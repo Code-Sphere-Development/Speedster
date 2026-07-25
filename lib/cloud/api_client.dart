@@ -10,7 +10,7 @@ const kApiBaseUrl = String.fromEnvironment(
 /// Configures a Dio instance that attaches the bearer token from [TokenStore].
 class ApiClient {
   ApiClient({required TokenStore tokenStore, Dio? dio})
-      : _tokenStore = tokenStore,
+      : _tokenStore = tokenStore, // ignore: prefer_initializing_formals
         dio = dio ?? Dio() {
     this.dio.options
       ..baseUrl = '$kApiBaseUrl/api'

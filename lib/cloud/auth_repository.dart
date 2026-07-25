@@ -10,12 +10,10 @@ class AuthException implements Exception {
 
 /// Talks to the Laravel auth endpoints and persists the returned token.
 class AuthRepository {
-  AuthRepository({required Dio dio, required TokenStore tokenStore})
-      : _dio = dio,
-        _tokenStore = tokenStore;
+  AuthRepository({required this.dio, required this.tokenStore});
 
-  final Dio _dio;
-  final TokenStore _tokenStore;
+  final Dio dio;
+  final TokenStore tokenStore;
 
   Future<void> register(String name, String email, String password) =>
       _authenticate('/auth/register', {
@@ -32,21 +30,21 @@ class AuthRepository {
 
   Future<void> logout() async {
     try {
-      await _dio.post('/auth/logout');
+      await dio.post('/auth/logout');
     } on DioException {
       // Best effort; clear locally regardless.
     }
-    await _tokenStore.clear();
+    await tokenStore.clear();
   }
 
   Future<void> _authenticate(String path, Map<String, dynamic> body) async {
     try {
-      final res = await _dio.post(path, data: body);
+      final res = await dio.post(path, data: body);
       final token = res.data['token'] as String?;
       if (token == null) {
         throw AuthException('Keine Token-Antwort vom Server.');
       }
-      await _tokenStore.write(token);
+      await tokenStore.write(token);
     } on DioException catch (e) {
       throw AuthException(_messageFrom(e));
     }

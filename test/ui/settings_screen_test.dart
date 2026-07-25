@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speedster/app/providers.dart';
+import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/settings_screen.dart';
@@ -31,4 +33,25 @@ void main() {
 
     expect(container.read(settingsControllerProvider).unit, UnitSystem.mph);
   });
+
+  testWidgets('enabling cloud while logged out opens auth screen', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          tokenStoreProvider.overrideWithValue(InMemoryTokenStore()),
+        ],
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('cloudSwitch')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mit Apple anmelden'), findsOneWidget); // AuthScreen shown
+  });
 }
+

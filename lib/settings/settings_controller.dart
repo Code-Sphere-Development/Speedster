@@ -8,21 +8,25 @@ class SettingsState {
     this.unit = UnitSystem.kmh,
     this.trackingPaused = false,
     this.consentAccepted = false,
+    this.cloudEnabled = false,
   });
 
   final UnitSystem unit;
   final bool trackingPaused;
   final bool consentAccepted;
+  final bool cloudEnabled;
 
   SettingsState copyWith({
     UnitSystem? unit,
     bool? trackingPaused,
     bool? consentAccepted,
+    bool? cloudEnabled,
   }) {
     return SettingsState(
       unit: unit ?? this.unit,
       trackingPaused: trackingPaused ?? this.trackingPaused,
       consentAccepted: consentAccepted ?? this.consentAccepted,
+      cloudEnabled: cloudEnabled ?? this.cloudEnabled,
     );
   }
 }
@@ -39,6 +43,7 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kUnit = 'unit';
   static const _kPaused = 'trackingPaused';
   static const _kConsent = 'consentAccepted';
+  static const _kCloud = 'cloudEnabled';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
@@ -49,6 +54,7 @@ class SettingsController extends Notifier<SettingsState> {
       unit: (p.getString(_kUnit) == 'mph') ? UnitSystem.mph : UnitSystem.kmh,
       trackingPaused: p.getBool(_kPaused) ?? false,
       consentAccepted: p.getBool(_kConsent) ?? false,
+      cloudEnabled: p.getBool(_kCloud) ?? false,
     );
   }
 
@@ -65,5 +71,10 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> acceptConsent() async {
     state = state.copyWith(consentAccepted: true);
     await _prefs.setBool(_kConsent, true);
+  }
+
+  Future<void> setCloudEnabled(bool enabled) async {
+    state = state.copyWith(cloudEnabled: enabled);
+    await _prefs.setBool(_kCloud, enabled);
   }
 }

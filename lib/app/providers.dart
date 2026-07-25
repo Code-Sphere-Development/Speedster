@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/permissions.dart';
+import 'package:speedster/cloud/api_client.dart';
+import 'package:speedster/cloud/auth_repository.dart';
+import 'package:speedster/cloud/cloud_sync_service.dart';
+import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
@@ -42,4 +46,27 @@ final recorderStateProvider = StreamProvider<RecorderState>(
 
 final keptTripsProvider = FutureProvider<List<Trip>>(
   (ref) => ref.watch(tripRepositoryProvider).keptTrips(),
+);
+
+// --- Cloud (Phase 2) ---
+
+final tokenStoreProvider = Provider<TokenStore>((ref) => SecureTokenStore());
+
+final apiClientProvider = Provider<ApiClient>(
+  (ref) => ApiClient(tokenStore: ref.watch(tokenStoreProvider)),
+);
+
+final authRepositoryProvider = Provider<AuthRepository>(
+  (ref) => AuthRepository(
+    dio: ref.watch(apiClientProvider).dio,
+    tokenStore: ref.watch(tokenStoreProvider),
+  ),
+);
+
+final cloudSyncServiceProvider = Provider<CloudSyncService>(
+  (ref) => CloudSyncService(
+    dio: ref.watch(apiClientProvider).dio,
+    repo: ref.watch(tripRepositoryProvider),
+    tokenStore: ref.watch(tokenStoreProvider),
+  ),
 );
