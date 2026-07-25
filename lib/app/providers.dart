@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/permissions.dart';
-import 'package:speedster/data/database.dart';
+import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
 import 'package:speedster/domain/trip.dart';
