@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
+import 'package:speedster/ui/formatters.dart';
 
 /// Shows current speed during a drive; idle prompt otherwise.
 class LiveScreen extends ConsumerWidget {
@@ -16,6 +17,8 @@ class LiveScreen extends ConsumerWidget {
     final state = stateAsync.asData?.value;
     final driving = state?.isDriving ?? false;
     final speedMps = state?.last?.speed ?? 0;
+    final distanceM = state?.distanceMeters ?? 0;
+    final elapsed = state?.elapsedSeconds ?? 0;
 
     return Scaffold(
       body: Center(
@@ -32,6 +35,23 @@ class LiveScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const Text('Fahrt wird aufgezeichnet'),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _LiveMetric(
+                    icon: Icons.straighten,
+                    value: SpeedFormat.distance(distanceM, unit),
+                    label: 'Distanz',
+                  ),
+                  const SizedBox(width: 40),
+                  _LiveMetric(
+                    icon: Icons.timer_outlined,
+                    value: Formatters.duration(elapsed),
+                    label: 'Dauer',
+                  ),
+                ],
+              ),
             ] else ...[
               const Icon(Icons.speed, size: 96),
               const SizedBox(height: 16),
@@ -46,6 +66,30 @@ class LiveScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LiveMetric extends StatelessWidget {
+  const _LiveMetric({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, size: 28),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+        Text(label, style: const TextStyle(color: Colors.grey)),
+      ],
     );
   }
 }

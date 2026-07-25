@@ -15,6 +15,8 @@ class RecorderState {
     this.activeTripId,
     this.last,
     this.awaitingConfirmationTripId,
+    this.distanceMeters = 0,
+    this.elapsedSeconds = 0,
   });
 
   final bool isDriving;
@@ -23,6 +25,12 @@ class RecorderState {
 
   /// Set once when a trip just ended and needs the driver/passenger prompt.
   final int? awaitingConfirmationTripId;
+
+  /// Distance covered so far in the active trip (meters).
+  final double distanceMeters;
+
+  /// Elapsed time since the active trip started (seconds).
+  final int elapsedSeconds;
 }
 
 /// Orchestrates: sensor samples -> detection -> point recording -> finalization.
@@ -46,6 +54,8 @@ class TripRecorder {
   final List<TrackPoint> _buffer = [];
   int _savedCount = 0;
   bool _stopped = false;
+  DateTime? _startTime;
+  double _distance = 0;
 
   /// Consumes the sample stream until it ends or [stop] is called.
   /// For an infinite (real device) stream, callers should NOT await this.
@@ -67,6 +77,8 @@ class TripRecorder {
 
     if (event == TripEvent.started) {
       _tripId = await repo.createTrip(_placeholderTrip(s.timestamp));
+      _startTime = s.timestamp;
+      _distance = 0;
       _buffer
         ..clear()
         ..add(_toPoint(_tripId!, s));
@@ -80,6 +92,8 @@ class TripRecorder {
       return;
     }
 
+    final prev = _buffer.last;
+    _distance += StatsEngine.haversineMeters(prev.lat, prev.lng, s.lat, s.lng);
     _buffer.add(_toPoint(_tripId!, s));
 
     if (event == TripEvent.stopped) {
@@ -91,6 +105,8 @@ class TripRecorder {
       _buffer.clear();
       _savedCount = 0;
       _emit(isDriving: false, last: s, awaitingConfirmationTripId: endedTripId);
+      _startTime = null;
+      _distance = 0;
       return;
     }
 
@@ -115,12 +131,17 @@ class TripRecorder {
     int? awaitingConfirmationTripId,
   }) {
     if (_stateController.isClosed) return;
+    final elapsed = (_startTime != null && last != null)
+        ? last.timestamp.difference(_startTime!).inSeconds
+        : 0;
     _stateController.add(
       RecorderState(
         isDriving: isDriving,
         activeTripId: activeTripId ?? _tripId,
         last: last,
         awaitingConfirmationTripId: awaitingConfirmationTripId,
+        distanceMeters: _distance,
+        elapsedSeconds: elapsed,
       ),
     );
   }

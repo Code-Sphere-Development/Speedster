@@ -22,6 +22,8 @@ void main() {
               RecorderState(
                 isDriving: true,
                 activeTripId: 1,
+                distanceMeters: 1500,
+                elapsedSeconds: 125,
                 last: Sample(
                   lat: 50,
                   lng: 6,
@@ -39,5 +41,7 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('36 km/h'), findsOneWidget);
+    expect(find.text('1.5 km'), findsOneWidget);
+    expect(find.text('2m 05s'), findsOneWidget);
   });
 }
