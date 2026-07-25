@@ -11,6 +11,8 @@ class Trip {
     required this.durationSeconds,
     required this.zeroToHundredSeconds,
     required this.kept,
+    this.clientUuid = '',
+    this.syncedAt,
   });
 
   final int? id;
@@ -26,6 +28,12 @@ class Trip {
   /// false = discarded (rode as passenger); excluded from lists and rankings.
   final bool kept;
 
+  /// Stable client-generated id for idempotent cloud upload.
+  final String clientUuid;
+
+  /// When this trip was uploaded to the cloud; null = not yet synced.
+  final DateTime? syncedAt;
+
   Trip copyWith({
     int? id,
     DateTime? startTime,
@@ -37,6 +45,8 @@ class Trip {
     int? durationSeconds,
     double? zeroToHundredSeconds,
     bool? kept,
+    String? clientUuid,
+    DateTime? syncedAt,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -49,6 +59,8 @@ class Trip {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       zeroToHundredSeconds: zeroToHundredSeconds ?? this.zeroToHundredSeconds,
       kept: kept ?? this.kept,
+      clientUuid: clientUuid ?? this.clientUuid,
+      syncedAt: syncedAt ?? this.syncedAt,
     );
   }
 }

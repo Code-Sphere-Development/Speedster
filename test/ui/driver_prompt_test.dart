@@ -28,6 +28,10 @@ class _FakeRepo implements TripRepository {
   Future<List<TrackPoint>> pointsFor(int tripId) async => [];
   @override
   Future<void> deleteAll() async {}
+  @override
+  Future<List<Trip>> unsyncedTrips() async => [];
+  @override
+  Future<void> markSynced(String clientUuid) async {}
 }
 
 void main() {
