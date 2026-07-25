@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\SocialTokenVerifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -45,6 +46,31 @@ class AuthController extends Controller
                 'email' => ['Die Anmeldedaten sind ungültig.'],
             ]);
         }
+
+        return response()->json([
+            'token' => $user->createToken('app')->plainTextToken,
+            'user' => $this->userPayload($user),
+        ]);
+    }
+
+    public function social(Request $request, SocialTokenVerifier $verifier)
+    {
+        $data = $request->validate([
+            'provider' => ['required', 'in:apple,google'],
+            'id_token' => ['required', 'string'],
+        ]);
+
+        $identity = $verifier->verify($data['provider'], $data['id_token']);
+        if (! $identity) {
+            throw ValidationException::withMessages([
+                'id_token' => ['Das Social-Token ist ungültig.'],
+            ]);
+        }
+
+        $user = User::firstOrCreate(
+            ['provider' => $data['provider'], 'provider_id' => $identity->providerId],
+            ['name' => $identity->name ?? 'Speedster', 'email' => $identity->email],
+        );
 
         return response()->json([
             'token' => $user->createToken('app')->plainTextToken,
