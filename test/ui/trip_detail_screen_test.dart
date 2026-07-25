@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/settings/settings_controller.dart';

@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   /// In-memory database for tests.
-  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
+  AppDatabase.forTesting(super.executor);
 
   @override
   int get schemaVersion => 1;
