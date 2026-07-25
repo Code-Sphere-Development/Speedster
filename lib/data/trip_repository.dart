@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 import 'package:speedster/data/database.dart';
 import 'package:speedster/domain/track_point.dart' as domain;
 import 'package:speedster/domain/trip.dart' as domain;
@@ -14,6 +15,8 @@ abstract class TripRepository {
   Future<List<domain.Trip>> keptTrips();
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
   Future<void> deleteAll();
+  Future<List<domain.Trip>> unsyncedTrips();
+  Future<void> markSynced(String clientUuid);
 }
 
 class DriftTripRepository implements TripRepository {
@@ -23,6 +26,7 @@ class DriftTripRepository implements TripRepository {
 
   @override
   Future<int> createTrip(domain.Trip t) {
+    final clientUuid = t.clientUuid.isEmpty ? const Uuid().v4() : t.clientUuid;
     return db.into(db.trips).insert(
           TripsCompanion.insert(
             startTime: t.startTime,
@@ -34,6 +38,8 @@ class DriftTripRepository implements TripRepository {
             durationSeconds: Value(t.durationSeconds),
             zeroToHundredSeconds: Value(t.zeroToHundredSeconds),
             kept: Value(t.kept),
+            clientUuid: Value(clientUuid),
+            syncedAt: Value(t.syncedAt),
           ),
         );
   }
@@ -120,6 +126,21 @@ class DriftTripRepository implements TripRepository {
     await db.delete(db.trips).go();
   }
 
+  @override
+  Future<List<domain.Trip>> unsyncedTrips() async {
+    final rows = await (db.select(db.trips)
+          ..where((t) => t.kept.equals(true) & t.syncedAt.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
+        .get();
+    return rows.map(_toDomainTrip).toList();
+  }
+
+  @override
+  Future<void> markSynced(String clientUuid) async {
+    await (db.update(db.trips)..where((t) => t.clientUuid.equals(clientUuid)))
+        .write(TripsCompanion(syncedAt: Value(DateTime.now())));
+  }
+
   domain.Trip _toDomainTrip(Trip r) => domain.Trip(
         id: r.id,
         startTime: r.startTime,
@@ -131,5 +152,7 @@ class DriftTripRepository implements TripRepository {
         durationSeconds: r.durationSeconds,
         zeroToHundredSeconds: r.zeroToHundredSeconds,
         kept: r.kept,
+        clientUuid: r.clientUuid,
+        syncedAt: r.syncedAt,
       );
 }

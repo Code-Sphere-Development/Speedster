@@ -127,6 +127,29 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _clientUuidMeta = const VerificationMeta(
+    'clientUuid',
+  );
+  @override
+  late final GeneratedColumn<String> clientUuid = GeneratedColumn<String>(
+    'client_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -139,6 +162,8 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     durationSeconds,
     zeroToHundredSeconds,
     kept,
+    clientUuid,
+    syncedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -220,6 +245,18 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         kept.isAcceptableOrUnknown(data['kept']!, _keptMeta),
       );
     }
+    if (data.containsKey('client_uuid')) {
+      context.handle(
+        _clientUuidMeta,
+        clientUuid.isAcceptableOrUnknown(data['client_uuid']!, _clientUuidMeta),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -269,6 +306,14 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.bool,
         data['${effectivePrefix}kept'],
       )!,
+      clientUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_uuid'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
     );
   }
 
@@ -289,6 +334,8 @@ class Trip extends DataClass implements Insertable<Trip> {
   final int durationSeconds;
   final double? zeroToHundredSeconds;
   final bool kept;
+  final String clientUuid;
+  final DateTime? syncedAt;
   const Trip({
     required this.id,
     required this.startTime,
@@ -300,6 +347,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     required this.durationSeconds,
     this.zeroToHundredSeconds,
     required this.kept,
+    required this.clientUuid,
+    this.syncedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -318,6 +367,10 @@ class Trip extends DataClass implements Insertable<Trip> {
       map['zero_to_hundred_seconds'] = Variable<double>(zeroToHundredSeconds);
     }
     map['kept'] = Variable<bool>(kept);
+    map['client_uuid'] = Variable<String>(clientUuid);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
     return map;
   }
 
@@ -337,6 +390,10 @@ class Trip extends DataClass implements Insertable<Trip> {
           ? const Value.absent()
           : Value(zeroToHundredSeconds),
       kept: Value(kept),
+      clientUuid: Value(clientUuid),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
     );
   }
 
@@ -358,6 +415,8 @@ class Trip extends DataClass implements Insertable<Trip> {
         json['zeroToHundredSeconds'],
       ),
       kept: serializer.fromJson<bool>(json['kept']),
+      clientUuid: serializer.fromJson<String>(json['clientUuid']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
     );
   }
   @override
@@ -374,6 +433,8 @@ class Trip extends DataClass implements Insertable<Trip> {
       'durationSeconds': serializer.toJson<int>(durationSeconds),
       'zeroToHundredSeconds': serializer.toJson<double?>(zeroToHundredSeconds),
       'kept': serializer.toJson<bool>(kept),
+      'clientUuid': serializer.toJson<String>(clientUuid),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
     };
   }
 
@@ -388,6 +449,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     int? durationSeconds,
     Value<double?> zeroToHundredSeconds = const Value.absent(),
     bool? kept,
+    String? clientUuid,
+    Value<DateTime?> syncedAt = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     startTime: startTime ?? this.startTime,
@@ -401,6 +464,8 @@ class Trip extends DataClass implements Insertable<Trip> {
         ? zeroToHundredSeconds.value
         : this.zeroToHundredSeconds,
     kept: kept ?? this.kept,
+    clientUuid: clientUuid ?? this.clientUuid,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -420,6 +485,10 @@ class Trip extends DataClass implements Insertable<Trip> {
           ? data.zeroToHundredSeconds.value
           : this.zeroToHundredSeconds,
       kept: data.kept.present ? data.kept.value : this.kept,
+      clientUuid: data.clientUuid.present
+          ? data.clientUuid.value
+          : this.clientUuid,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
     );
   }
 
@@ -435,7 +504,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('elevationGain: $elevationGain, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('zeroToHundredSeconds: $zeroToHundredSeconds, ')
-          ..write('kept: $kept')
+          ..write('kept: $kept, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('syncedAt: $syncedAt')
           ..write(')'))
         .toString();
   }
@@ -452,6 +523,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     durationSeconds,
     zeroToHundredSeconds,
     kept,
+    clientUuid,
+    syncedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -466,7 +539,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.elevationGain == this.elevationGain &&
           other.durationSeconds == this.durationSeconds &&
           other.zeroToHundredSeconds == this.zeroToHundredSeconds &&
-          other.kept == this.kept);
+          other.kept == this.kept &&
+          other.clientUuid == this.clientUuid &&
+          other.syncedAt == this.syncedAt);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -480,6 +555,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<int> durationSeconds;
   final Value<double?> zeroToHundredSeconds;
   final Value<bool> kept;
+  final Value<String> clientUuid;
+  final Value<DateTime?> syncedAt;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -491,6 +568,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.durationSeconds = const Value.absent(),
     this.zeroToHundredSeconds = const Value.absent(),
     this.kept = const Value.absent(),
+    this.clientUuid = const Value.absent(),
+    this.syncedAt = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -503,6 +582,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.durationSeconds = const Value.absent(),
     this.zeroToHundredSeconds = const Value.absent(),
     this.kept = const Value.absent(),
+    this.clientUuid = const Value.absent(),
+    this.syncedAt = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<Trip> custom({
     Expression<int>? id,
@@ -515,6 +596,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<int>? durationSeconds,
     Expression<double>? zeroToHundredSeconds,
     Expression<bool>? kept,
+    Expression<String>? clientUuid,
+    Expression<DateTime>? syncedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -528,6 +611,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (zeroToHundredSeconds != null)
         'zero_to_hundred_seconds': zeroToHundredSeconds,
       if (kept != null) 'kept': kept,
+      if (clientUuid != null) 'client_uuid': clientUuid,
+      if (syncedAt != null) 'synced_at': syncedAt,
     });
   }
 
@@ -542,6 +627,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<int>? durationSeconds,
     Value<double?>? zeroToHundredSeconds,
     Value<bool>? kept,
+    Value<String>? clientUuid,
+    Value<DateTime?>? syncedAt,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -554,6 +641,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       zeroToHundredSeconds: zeroToHundredSeconds ?? this.zeroToHundredSeconds,
       kept: kept ?? this.kept,
+      clientUuid: clientUuid ?? this.clientUuid,
+      syncedAt: syncedAt ?? this.syncedAt,
     );
   }
 
@@ -592,6 +681,12 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (kept.present) {
       map['kept'] = Variable<bool>(kept.value);
     }
+    if (clientUuid.present) {
+      map['client_uuid'] = Variable<String>(clientUuid.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
     return map;
   }
 
@@ -607,7 +702,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('elevationGain: $elevationGain, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('zeroToHundredSeconds: $zeroToHundredSeconds, ')
-          ..write('kept: $kept')
+          ..write('kept: $kept, ')
+          ..write('clientUuid: $clientUuid, ')
+          ..write('syncedAt: $syncedAt')
           ..write(')'))
         .toString();
   }
@@ -1136,6 +1233,8 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<int> durationSeconds,
       Value<double?> zeroToHundredSeconds,
       Value<bool> kept,
+      Value<String> clientUuid,
+      Value<DateTime?> syncedAt,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -1149,6 +1248,8 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<int> durationSeconds,
       Value<double?> zeroToHundredSeconds,
       Value<bool> kept,
+      Value<String> clientUuid,
+      Value<DateTime?> syncedAt,
     });
 
 final class $$TripsTableReferences
@@ -1229,6 +1330,16 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<bool> get kept => $composableBuilder(
     column: $table.kept,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1316,6 +1427,16 @@ class $$TripsTableOrderingComposer
     column: $table.kept,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TripsTableAnnotationComposer
@@ -1362,6 +1483,14 @@ class $$TripsTableAnnotationComposer
 
   GeneratedColumn<bool> get kept =>
       $composableBuilder(column: $table.kept, builder: (column) => column);
+
+  GeneratedColumn<String> get clientUuid => $composableBuilder(
+    column: $table.clientUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
 
   Expression<T> trackPointsRefs<T extends Object>(
     Expression<T> Function($$TrackPointsTableAnnotationComposer a) f,
@@ -1427,6 +1556,8 @@ class $$TripsTableTableManager
                 Value<int> durationSeconds = const Value.absent(),
                 Value<double?> zeroToHundredSeconds = const Value.absent(),
                 Value<bool> kept = const Value.absent(),
+                Value<String> clientUuid = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 startTime: startTime,
@@ -1438,6 +1569,8 @@ class $$TripsTableTableManager
                 durationSeconds: durationSeconds,
                 zeroToHundredSeconds: zeroToHundredSeconds,
                 kept: kept,
+                clientUuid: clientUuid,
+                syncedAt: syncedAt,
               ),
           createCompanionCallback:
               ({
@@ -1451,6 +1584,8 @@ class $$TripsTableTableManager
                 Value<int> durationSeconds = const Value.absent(),
                 Value<double?> zeroToHundredSeconds = const Value.absent(),
                 Value<bool> kept = const Value.absent(),
+                Value<String> clientUuid = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 startTime: startTime,
@@ -1462,6 +1597,8 @@ class $$TripsTableTableManager
                 durationSeconds: durationSeconds,
                 zeroToHundredSeconds: zeroToHundredSeconds,
                 kept: kept,
+                clientUuid: clientUuid,
+                syncedAt: syncedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
