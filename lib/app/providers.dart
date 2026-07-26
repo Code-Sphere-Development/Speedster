@@ -3,6 +3,7 @@ import 'package:speedster/app/permissions.dart';
 import 'package:speedster/cloud/api_client.dart';
 import 'package:speedster/cloud/auth_repository.dart';
 import 'package:speedster/cloud/cloud_sync_service.dart';
+import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
@@ -69,4 +70,8 @@ final cloudSyncServiceProvider = Provider<CloudSyncService>(
     repo: ref.watch(tripRepositoryProvider),
     tokenStore: ref.watch(tokenStoreProvider),
   ),
+);
+
+final rankingRepositoryProvider = Provider<RankingRepository>(
+  (ref) => RankingRepository(ref.watch(apiClientProvider).dio),
 );
