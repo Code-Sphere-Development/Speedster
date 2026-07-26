@@ -7,6 +7,7 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/driver_prompt.dart';
 import 'package:speedster/ui/live_screen.dart';
+import 'package:speedster/ui/ranking_screen.dart';
 import 'package:speedster/ui/settings_screen.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
 
@@ -38,8 +39,13 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
 
-  static const _tabs = [LiveScreen(), TripListScreen(), SettingsScreen()];
-  static const _titles = ['Live', 'Fahrten', 'Einstellungen'];
+  static const _tabs = [
+    LiveScreen(),
+    TripListScreen(),
+    RankingScreen(),
+    SettingsScreen(),
+  ];
+  static const _titles = ['Live', 'Fahrten', 'Ranking', 'Einstellungen'];
 
   @override
   void initState() {
@@ -77,6 +83,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.speed), label: 'Live'),
           NavigationDestination(icon: Icon(Icons.list), label: 'Fahrten'),
+          NavigationDestination(
+            icon: Icon(Icons.leaderboard),
+            label: 'Ranking',
+          ),
           NavigationDestination(
             icon: Icon(Icons.settings),
             label: 'Einstellungen',
