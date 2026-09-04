@@ -77,6 +77,7 @@ class _TripMap extends StatelessWidget {
       ),
       children: [
                   const OsmTileLayer(),
+                  const OsmAttribution(),
         PolylineLayer(
           polylines: [
             Polyline(points: coords, strokeWidth: 4, color: Colors.blue),

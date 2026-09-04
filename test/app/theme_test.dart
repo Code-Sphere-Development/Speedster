@@ -80,22 +80,25 @@ void main() {
         theme: theme,
         home: const FlutterMap(
           options: MapOptions(),
-          children: [OsmTileLayer()],
+          children: [OsmTileLayer(), OsmAttribution()],
         ),
       ),
     );
     await tester.pump();
   }
 
-  testWidgets('helle Karte bleibt im Hellmodus ungefiltert', (tester) async {
-    await pumpMap(tester, SpeedsterTheme.light);
-    expect(find.byKey(OsmTileLayer.darkFilterKey), findsNothing);
+  testWidgets('Karte bleibt in beiden Helligkeiten unveraendert',
+      (tester) async {
+    // Der fruehere Abdunkelungsfilter wirkte fahl und ist entfallen.
+    for (final theme in [SpeedsterTheme.light, SpeedsterTheme.dark]) {
+      await pumpMap(tester, theme);
+      expect(find.byType(ColorFiltered), findsNothing);
+    }
   });
 
-  testWidgets('OSM-Kacheln werden im Dunkelmodus abgedunkelt', (tester) async {
-    // OSM liefert nur helle Kacheln; ungefiltert waere der Start-Screen im
-    // Dunkelmodus eine grosse leuchtende Flaeche.
-    await pumpMap(tester, SpeedsterTheme.dark);
-    expect(find.byKey(OsmTileLayer.darkFilterKey), findsOneWidget);
+  testWidgets('Karte nennt ihre Quelle', (tester) async {
+    // Die Nutzungsrichtlinie von OpenStreetMap verlangt die Angabe.
+    await pumpMap(tester, SpeedsterTheme.light);
+    expect(find.textContaining('OpenStreetMap'), findsOneWidget);
   });
 }
