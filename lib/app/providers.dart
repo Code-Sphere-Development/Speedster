@@ -16,6 +16,7 @@ import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
 import 'package:speedster/heat/local_heat_source.dart';
 import 'package:speedster/recording/trip_recorder.dart';
+import 'package:speedster/sensors/last_known_location.dart';
 import 'package:speedster/sensors/location_service.dart';
 
 /// Opened in main() and injected via override.
@@ -38,6 +39,16 @@ final carConnectionProvider = Provider<CarConnection>(
 /// Zusaetzliches Signal fuer "der Nutzer sitzt im Auto".
 final carConnectedProvider = StreamProvider<bool>(
   (ref) => ref.watch(carConnectionProvider).connected,
+);
+
+final lastKnownLocationProvider = Provider<LastKnownLocation>(
+  (ref) => const GeolocatorLastKnownLocation(),
+);
+
+/// Startpunkt der Karte, solange keine Strecken vorliegen.
+final mapFallbackCenterProvider =
+    FutureProvider<({double lat, double lng})?>(
+  (ref) => ref.watch(lastKnownLocationProvider).get(),
 );
 
 final sampleSourceProvider = Provider<SampleSource>(
