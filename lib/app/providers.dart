@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/cloud/api_client.dart';
 import 'package:speedster/cloud/auth_repository.dart';
@@ -9,6 +10,11 @@ import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/heat/cloud_heat_source.dart';
+import 'package:speedster/heat/heat_folder.dart';
+import 'package:speedster/heat/heat_map.dart';
+import 'package:speedster/heat/heat_source.dart';
+import 'package:speedster/heat/local_heat_source.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/sensors/location_service.dart';
 
@@ -23,6 +29,15 @@ final tripRepositoryProvider = Provider<TripRepository>(
 
 final permissionGateProvider = Provider<PermissionGate>(
   (ref) => const LocationPermissions(),
+);
+
+final carConnectionProvider = Provider<CarConnection>(
+  (ref) => const PlatformCarConnection(),
+);
+
+/// Zusaetzliches Signal fuer "der Nutzer sitzt im Auto".
+final carConnectedProvider = StreamProvider<bool>(
+  (ref) => ref.watch(carConnectionProvider).connected,
 );
 
 final sampleSourceProvider = Provider<SampleSource>(
@@ -45,8 +60,33 @@ final recorderStateProvider = StreamProvider<RecorderState>(
   (ref) => ref.watch(recorderProvider).state,
 );
 
+final heatFolderProvider = Provider<HeatFolder>(
+  (ref) => HeatFolder(ref.watch(databaseProvider)),
+);
+
 final keptTripsProvider = FutureProvider<List<Trip>>(
   (ref) => ref.watch(tripRepositoryProvider).keptTrips(),
+);
+
+/// Cloud, wenn eingeloggt — sonst und bei Netzfehlern lokal.
+final heatSourceProvider = Provider<HeatSource>(
+  (ref) => FallbackHeatSource(
+    CloudHeatSource(ref.watch(apiClientProvider).dio),
+    LocalHeatSource(
+      ref.watch(databaseProvider),
+      ref.watch(heatFolderProvider),
+    ),
+    ref.watch(tokenStoreProvider),
+  ),
+);
+
+final heatMapProvider = FutureProvider.family<HeatMap, HeatQuery>(
+  (ref, query) => ref.watch(heatSourceProvider).load(query),
+);
+
+/// Steuert, ob die Zeitraum-Filter angeboten werden.
+final cloudActiveProvider = FutureProvider<bool>(
+  (ref) async => await ref.watch(tokenStoreProvider).read() != null,
 );
 
 // --- Cloud (Phase 2) ---

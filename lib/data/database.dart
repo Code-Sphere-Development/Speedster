@@ -15,6 +15,7 @@ class Trips extends Table {
   BoolColumn get kept => boolean().withDefault(const Constant(true))();
   TextColumn get clientUuid => text().withDefault(const Constant(''))();
   DateTimeColumn get syncedAt => dateTime().nullable()();
+  DateTimeColumn get heatFoldedAt => dateTime().nullable()();
 }
 
 class TrackPoints extends Table {
@@ -29,7 +30,38 @@ class TrackPoints extends Table {
   DateTimeColumn get timestamp => dateTime()();
 }
 
-@DriftDatabase(tables: [Trips, TrackPoints])
+/// Schwerpunkt-Summen je Rasterzelle. `n` zaehlt nur real gemessene Punkte.
+///
+/// Bewusst `cellRow`/`cellCol` statt `row`/`col`: die Namen werden im
+/// Backend gespiegelt, und `ROW` ist dort in MySQL 8 ein reserviertes Wort.
+@DataClassName('HeatCellRow')
+class HeatCells extends Table {
+  IntColumn get level => integer()();
+  IntColumn get cellRow => integer()();
+  IntColumn get cellCol => integer()();
+  RealColumn get latSum => real().withDefault(const Constant(0))();
+  RealColumn get lngSum => real().withDefault(const Constant(0))();
+  IntColumn get n => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {level, cellRow, cellCol};
+}
+
+/// Befahrungszaehler je Zelluebergang.
+@DataClassName('HeatEdgeRow')
+class HeatEdges extends Table {
+  IntColumn get level => integer()();
+  IntColumn get aRow => integer()();
+  IntColumn get aCol => integer()();
+  IntColumn get bRow => integer()();
+  IntColumn get bCol => integer()();
+  IntColumn get count => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {level, aRow, aCol, bRow, bCol};
+}
+
+@DriftDatabase(tables: [Trips, TrackPoints, HeatCells, HeatEdges])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -37,7 +69,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -45,6 +77,13 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await m.addColumn(trips, trips.clientUuid);
             await m.addColumn(trips, trips.syncedAt);
+          }
+          if (from < 3) {
+            await m.addColumn(trips, trips.heatFoldedAt);
+            await m.createTable(heatCells);
+            await m.createTable(heatEdges);
+            // Bestandsfahrten bleiben heatFoldedAt = NULL und werden beim
+            // ersten Laden der Heatmap nachgefaltet (siehe HeatFolder).
           }
         },
       );

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTripRequest;
 use App\Models\Trip;
+use App\Services\HeatAggregator;
 use Illuminate\Http\Request;
 
 class TripController extends Controller
@@ -33,6 +34,10 @@ class TripController extends Controller
                 'point_count' => count($points),
             ],
         );
+
+        // Heatmap-Aggregate mitziehen, solange die Punkte schon vorliegen —
+        // sonst muesste der Endpoint spaeter jeden Blob neu entpacken.
+        app(HeatAggregator::class)->fold($trip, $points);
 
         return response()->json(
             ['client_uuid' => $trip->client_uuid],

@@ -150,6 +150,17 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _heatFoldedAtMeta = const VerificationMeta(
+    'heatFoldedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> heatFoldedAt = GeneratedColumn<DateTime>(
+    'heat_folded_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -164,6 +175,7 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     kept,
     clientUuid,
     syncedAt,
+    heatFoldedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -257,6 +269,15 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
       );
     }
+    if (data.containsKey('heat_folded_at')) {
+      context.handle(
+        _heatFoldedAtMeta,
+        heatFoldedAt.isAcceptableOrUnknown(
+          data['heat_folded_at']!,
+          _heatFoldedAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -314,6 +335,10 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}synced_at'],
       ),
+      heatFoldedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}heat_folded_at'],
+      ),
     );
   }
 
@@ -336,6 +361,7 @@ class Trip extends DataClass implements Insertable<Trip> {
   final bool kept;
   final String clientUuid;
   final DateTime? syncedAt;
+  final DateTime? heatFoldedAt;
   const Trip({
     required this.id,
     required this.startTime,
@@ -349,6 +375,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     required this.kept,
     required this.clientUuid,
     this.syncedAt,
+    this.heatFoldedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -370,6 +397,9 @@ class Trip extends DataClass implements Insertable<Trip> {
     map['client_uuid'] = Variable<String>(clientUuid);
     if (!nullToAbsent || syncedAt != null) {
       map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    if (!nullToAbsent || heatFoldedAt != null) {
+      map['heat_folded_at'] = Variable<DateTime>(heatFoldedAt);
     }
     return map;
   }
@@ -394,6 +424,9 @@ class Trip extends DataClass implements Insertable<Trip> {
       syncedAt: syncedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(syncedAt),
+      heatFoldedAt: heatFoldedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(heatFoldedAt),
     );
   }
 
@@ -417,6 +450,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       kept: serializer.fromJson<bool>(json['kept']),
       clientUuid: serializer.fromJson<String>(json['clientUuid']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      heatFoldedAt: serializer.fromJson<DateTime?>(json['heatFoldedAt']),
     );
   }
   @override
@@ -435,6 +469,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       'kept': serializer.toJson<bool>(kept),
       'clientUuid': serializer.toJson<String>(clientUuid),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'heatFoldedAt': serializer.toJson<DateTime?>(heatFoldedAt),
     };
   }
 
@@ -451,6 +486,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     bool? kept,
     String? clientUuid,
     Value<DateTime?> syncedAt = const Value.absent(),
+    Value<DateTime?> heatFoldedAt = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     startTime: startTime ?? this.startTime,
@@ -466,6 +502,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     kept: kept ?? this.kept,
     clientUuid: clientUuid ?? this.clientUuid,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+    heatFoldedAt: heatFoldedAt.present ? heatFoldedAt.value : this.heatFoldedAt,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -489,6 +526,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           ? data.clientUuid.value
           : this.clientUuid,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      heatFoldedAt: data.heatFoldedAt.present
+          ? data.heatFoldedAt.value
+          : this.heatFoldedAt,
     );
   }
 
@@ -506,7 +546,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('zeroToHundredSeconds: $zeroToHundredSeconds, ')
           ..write('kept: $kept, ')
           ..write('clientUuid: $clientUuid, ')
-          ..write('syncedAt: $syncedAt')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('heatFoldedAt: $heatFoldedAt')
           ..write(')'))
         .toString();
   }
@@ -525,6 +566,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     kept,
     clientUuid,
     syncedAt,
+    heatFoldedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -541,7 +583,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.zeroToHundredSeconds == this.zeroToHundredSeconds &&
           other.kept == this.kept &&
           other.clientUuid == this.clientUuid &&
-          other.syncedAt == this.syncedAt);
+          other.syncedAt == this.syncedAt &&
+          other.heatFoldedAt == this.heatFoldedAt);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -557,6 +600,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<bool> kept;
   final Value<String> clientUuid;
   final Value<DateTime?> syncedAt;
+  final Value<DateTime?> heatFoldedAt;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -570,6 +614,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.kept = const Value.absent(),
     this.clientUuid = const Value.absent(),
     this.syncedAt = const Value.absent(),
+    this.heatFoldedAt = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -584,6 +629,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.kept = const Value.absent(),
     this.clientUuid = const Value.absent(),
     this.syncedAt = const Value.absent(),
+    this.heatFoldedAt = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<Trip> custom({
     Expression<int>? id,
@@ -598,6 +644,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<bool>? kept,
     Expression<String>? clientUuid,
     Expression<DateTime>? syncedAt,
+    Expression<DateTime>? heatFoldedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -613,6 +660,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (kept != null) 'kept': kept,
       if (clientUuid != null) 'client_uuid': clientUuid,
       if (syncedAt != null) 'synced_at': syncedAt,
+      if (heatFoldedAt != null) 'heat_folded_at': heatFoldedAt,
     });
   }
 
@@ -629,6 +677,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<bool>? kept,
     Value<String>? clientUuid,
     Value<DateTime?>? syncedAt,
+    Value<DateTime?>? heatFoldedAt,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -643,6 +692,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       kept: kept ?? this.kept,
       clientUuid: clientUuid ?? this.clientUuid,
       syncedAt: syncedAt ?? this.syncedAt,
+      heatFoldedAt: heatFoldedAt ?? this.heatFoldedAt,
     );
   }
 
@@ -687,6 +737,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (syncedAt.present) {
       map['synced_at'] = Variable<DateTime>(syncedAt.value);
     }
+    if (heatFoldedAt.present) {
+      map['heat_folded_at'] = Variable<DateTime>(heatFoldedAt.value);
+    }
     return map;
   }
 
@@ -704,7 +757,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('zeroToHundredSeconds: $zeroToHundredSeconds, ')
           ..write('kept: $kept, ')
           ..write('clientUuid: $clientUuid, ')
-          ..write('syncedAt: $syncedAt')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('heatFoldedAt: $heatFoldedAt')
           ..write(')'))
         .toString();
   }
@@ -1199,16 +1253,813 @@ class TrackPointsCompanion extends UpdateCompanion<TrackPoint> {
   }
 }
 
+class $HeatCellsTable extends HeatCells
+    with TableInfo<$HeatCellsTable, HeatCellRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HeatCellsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<int> level = GeneratedColumn<int>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cellRowMeta = const VerificationMeta(
+    'cellRow',
+  );
+  @override
+  late final GeneratedColumn<int> cellRow = GeneratedColumn<int>(
+    'cell_row',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cellColMeta = const VerificationMeta(
+    'cellCol',
+  );
+  @override
+  late final GeneratedColumn<int> cellCol = GeneratedColumn<int>(
+    'cell_col',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latSumMeta = const VerificationMeta('latSum');
+  @override
+  late final GeneratedColumn<double> latSum = GeneratedColumn<double>(
+    'lat_sum',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lngSumMeta = const VerificationMeta('lngSum');
+  @override
+  late final GeneratedColumn<double> lngSum = GeneratedColumn<double>(
+    'lng_sum',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _nMeta = const VerificationMeta('n');
+  @override
+  late final GeneratedColumn<int> n = GeneratedColumn<int>(
+    'n',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    level,
+    cellRow,
+    cellCol,
+    latSum,
+    lngSum,
+    n,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'heat_cells';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HeatCellRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_levelMeta);
+    }
+    if (data.containsKey('cell_row')) {
+      context.handle(
+        _cellRowMeta,
+        cellRow.isAcceptableOrUnknown(data['cell_row']!, _cellRowMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cellRowMeta);
+    }
+    if (data.containsKey('cell_col')) {
+      context.handle(
+        _cellColMeta,
+        cellCol.isAcceptableOrUnknown(data['cell_col']!, _cellColMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cellColMeta);
+    }
+    if (data.containsKey('lat_sum')) {
+      context.handle(
+        _latSumMeta,
+        latSum.isAcceptableOrUnknown(data['lat_sum']!, _latSumMeta),
+      );
+    }
+    if (data.containsKey('lng_sum')) {
+      context.handle(
+        _lngSumMeta,
+        lngSum.isAcceptableOrUnknown(data['lng_sum']!, _lngSumMeta),
+      );
+    }
+    if (data.containsKey('n')) {
+      context.handle(_nMeta, n.isAcceptableOrUnknown(data['n']!, _nMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {level, cellRow, cellCol};
+  @override
+  HeatCellRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HeatCellRow(
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}level'],
+      )!,
+      cellRow: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cell_row'],
+      )!,
+      cellCol: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cell_col'],
+      )!,
+      latSum: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}lat_sum'],
+      )!,
+      lngSum: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}lng_sum'],
+      )!,
+      n: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}n'],
+      )!,
+    );
+  }
+
+  @override
+  $HeatCellsTable createAlias(String alias) {
+    return $HeatCellsTable(attachedDatabase, alias);
+  }
+}
+
+class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
+  final int level;
+  final int cellRow;
+  final int cellCol;
+  final double latSum;
+  final double lngSum;
+  final int n;
+  const HeatCellRow({
+    required this.level,
+    required this.cellRow,
+    required this.cellCol,
+    required this.latSum,
+    required this.lngSum,
+    required this.n,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['level'] = Variable<int>(level);
+    map['cell_row'] = Variable<int>(cellRow);
+    map['cell_col'] = Variable<int>(cellCol);
+    map['lat_sum'] = Variable<double>(latSum);
+    map['lng_sum'] = Variable<double>(lngSum);
+    map['n'] = Variable<int>(n);
+    return map;
+  }
+
+  HeatCellsCompanion toCompanion(bool nullToAbsent) {
+    return HeatCellsCompanion(
+      level: Value(level),
+      cellRow: Value(cellRow),
+      cellCol: Value(cellCol),
+      latSum: Value(latSum),
+      lngSum: Value(lngSum),
+      n: Value(n),
+    );
+  }
+
+  factory HeatCellRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HeatCellRow(
+      level: serializer.fromJson<int>(json['level']),
+      cellRow: serializer.fromJson<int>(json['cellRow']),
+      cellCol: serializer.fromJson<int>(json['cellCol']),
+      latSum: serializer.fromJson<double>(json['latSum']),
+      lngSum: serializer.fromJson<double>(json['lngSum']),
+      n: serializer.fromJson<int>(json['n']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'level': serializer.toJson<int>(level),
+      'cellRow': serializer.toJson<int>(cellRow),
+      'cellCol': serializer.toJson<int>(cellCol),
+      'latSum': serializer.toJson<double>(latSum),
+      'lngSum': serializer.toJson<double>(lngSum),
+      'n': serializer.toJson<int>(n),
+    };
+  }
+
+  HeatCellRow copyWith({
+    int? level,
+    int? cellRow,
+    int? cellCol,
+    double? latSum,
+    double? lngSum,
+    int? n,
+  }) => HeatCellRow(
+    level: level ?? this.level,
+    cellRow: cellRow ?? this.cellRow,
+    cellCol: cellCol ?? this.cellCol,
+    latSum: latSum ?? this.latSum,
+    lngSum: lngSum ?? this.lngSum,
+    n: n ?? this.n,
+  );
+  HeatCellRow copyWithCompanion(HeatCellsCompanion data) {
+    return HeatCellRow(
+      level: data.level.present ? data.level.value : this.level,
+      cellRow: data.cellRow.present ? data.cellRow.value : this.cellRow,
+      cellCol: data.cellCol.present ? data.cellCol.value : this.cellCol,
+      latSum: data.latSum.present ? data.latSum.value : this.latSum,
+      lngSum: data.lngSum.present ? data.lngSum.value : this.lngSum,
+      n: data.n.present ? data.n.value : this.n,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HeatCellRow(')
+          ..write('level: $level, ')
+          ..write('cellRow: $cellRow, ')
+          ..write('cellCol: $cellCol, ')
+          ..write('latSum: $latSum, ')
+          ..write('lngSum: $lngSum, ')
+          ..write('n: $n')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(level, cellRow, cellCol, latSum, lngSum, n);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HeatCellRow &&
+          other.level == this.level &&
+          other.cellRow == this.cellRow &&
+          other.cellCol == this.cellCol &&
+          other.latSum == this.latSum &&
+          other.lngSum == this.lngSum &&
+          other.n == this.n);
+}
+
+class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
+  final Value<int> level;
+  final Value<int> cellRow;
+  final Value<int> cellCol;
+  final Value<double> latSum;
+  final Value<double> lngSum;
+  final Value<int> n;
+  final Value<int> rowid;
+  const HeatCellsCompanion({
+    this.level = const Value.absent(),
+    this.cellRow = const Value.absent(),
+    this.cellCol = const Value.absent(),
+    this.latSum = const Value.absent(),
+    this.lngSum = const Value.absent(),
+    this.n = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HeatCellsCompanion.insert({
+    required int level,
+    required int cellRow,
+    required int cellCol,
+    this.latSum = const Value.absent(),
+    this.lngSum = const Value.absent(),
+    this.n = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : level = Value(level),
+       cellRow = Value(cellRow),
+       cellCol = Value(cellCol);
+  static Insertable<HeatCellRow> custom({
+    Expression<int>? level,
+    Expression<int>? cellRow,
+    Expression<int>? cellCol,
+    Expression<double>? latSum,
+    Expression<double>? lngSum,
+    Expression<int>? n,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (level != null) 'level': level,
+      if (cellRow != null) 'cell_row': cellRow,
+      if (cellCol != null) 'cell_col': cellCol,
+      if (latSum != null) 'lat_sum': latSum,
+      if (lngSum != null) 'lng_sum': lngSum,
+      if (n != null) 'n': n,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HeatCellsCompanion copyWith({
+    Value<int>? level,
+    Value<int>? cellRow,
+    Value<int>? cellCol,
+    Value<double>? latSum,
+    Value<double>? lngSum,
+    Value<int>? n,
+    Value<int>? rowid,
+  }) {
+    return HeatCellsCompanion(
+      level: level ?? this.level,
+      cellRow: cellRow ?? this.cellRow,
+      cellCol: cellCol ?? this.cellCol,
+      latSum: latSum ?? this.latSum,
+      lngSum: lngSum ?? this.lngSum,
+      n: n ?? this.n,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (level.present) {
+      map['level'] = Variable<int>(level.value);
+    }
+    if (cellRow.present) {
+      map['cell_row'] = Variable<int>(cellRow.value);
+    }
+    if (cellCol.present) {
+      map['cell_col'] = Variable<int>(cellCol.value);
+    }
+    if (latSum.present) {
+      map['lat_sum'] = Variable<double>(latSum.value);
+    }
+    if (lngSum.present) {
+      map['lng_sum'] = Variable<double>(lngSum.value);
+    }
+    if (n.present) {
+      map['n'] = Variable<int>(n.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HeatCellsCompanion(')
+          ..write('level: $level, ')
+          ..write('cellRow: $cellRow, ')
+          ..write('cellCol: $cellCol, ')
+          ..write('latSum: $latSum, ')
+          ..write('lngSum: $lngSum, ')
+          ..write('n: $n, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HeatEdgesTable extends HeatEdges
+    with TableInfo<$HeatEdgesTable, HeatEdgeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HeatEdgesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<int> level = GeneratedColumn<int>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _aRowMeta = const VerificationMeta('aRow');
+  @override
+  late final GeneratedColumn<int> aRow = GeneratedColumn<int>(
+    'a_row',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _aColMeta = const VerificationMeta('aCol');
+  @override
+  late final GeneratedColumn<int> aCol = GeneratedColumn<int>(
+    'a_col',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bRowMeta = const VerificationMeta('bRow');
+  @override
+  late final GeneratedColumn<int> bRow = GeneratedColumn<int>(
+    'b_row',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bColMeta = const VerificationMeta('bCol');
+  @override
+  late final GeneratedColumn<int> bCol = GeneratedColumn<int>(
+    'b_col',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _countMeta = const VerificationMeta('count');
+  @override
+  late final GeneratedColumn<int> count = GeneratedColumn<int>(
+    'count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [level, aRow, aCol, bRow, bCol, count];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'heat_edges';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HeatEdgeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_levelMeta);
+    }
+    if (data.containsKey('a_row')) {
+      context.handle(
+        _aRowMeta,
+        aRow.isAcceptableOrUnknown(data['a_row']!, _aRowMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_aRowMeta);
+    }
+    if (data.containsKey('a_col')) {
+      context.handle(
+        _aColMeta,
+        aCol.isAcceptableOrUnknown(data['a_col']!, _aColMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_aColMeta);
+    }
+    if (data.containsKey('b_row')) {
+      context.handle(
+        _bRowMeta,
+        bRow.isAcceptableOrUnknown(data['b_row']!, _bRowMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bRowMeta);
+    }
+    if (data.containsKey('b_col')) {
+      context.handle(
+        _bColMeta,
+        bCol.isAcceptableOrUnknown(data['b_col']!, _bColMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bColMeta);
+    }
+    if (data.containsKey('count')) {
+      context.handle(
+        _countMeta,
+        count.isAcceptableOrUnknown(data['count']!, _countMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {level, aRow, aCol, bRow, bCol};
+  @override
+  HeatEdgeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HeatEdgeRow(
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}level'],
+      )!,
+      aRow: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}a_row'],
+      )!,
+      aCol: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}a_col'],
+      )!,
+      bRow: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}b_row'],
+      )!,
+      bCol: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}b_col'],
+      )!,
+      count: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}count'],
+      )!,
+    );
+  }
+
+  @override
+  $HeatEdgesTable createAlias(String alias) {
+    return $HeatEdgesTable(attachedDatabase, alias);
+  }
+}
+
+class HeatEdgeRow extends DataClass implements Insertable<HeatEdgeRow> {
+  final int level;
+  final int aRow;
+  final int aCol;
+  final int bRow;
+  final int bCol;
+  final int count;
+  const HeatEdgeRow({
+    required this.level,
+    required this.aRow,
+    required this.aCol,
+    required this.bRow,
+    required this.bCol,
+    required this.count,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['level'] = Variable<int>(level);
+    map['a_row'] = Variable<int>(aRow);
+    map['a_col'] = Variable<int>(aCol);
+    map['b_row'] = Variable<int>(bRow);
+    map['b_col'] = Variable<int>(bCol);
+    map['count'] = Variable<int>(count);
+    return map;
+  }
+
+  HeatEdgesCompanion toCompanion(bool nullToAbsent) {
+    return HeatEdgesCompanion(
+      level: Value(level),
+      aRow: Value(aRow),
+      aCol: Value(aCol),
+      bRow: Value(bRow),
+      bCol: Value(bCol),
+      count: Value(count),
+    );
+  }
+
+  factory HeatEdgeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HeatEdgeRow(
+      level: serializer.fromJson<int>(json['level']),
+      aRow: serializer.fromJson<int>(json['aRow']),
+      aCol: serializer.fromJson<int>(json['aCol']),
+      bRow: serializer.fromJson<int>(json['bRow']),
+      bCol: serializer.fromJson<int>(json['bCol']),
+      count: serializer.fromJson<int>(json['count']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'level': serializer.toJson<int>(level),
+      'aRow': serializer.toJson<int>(aRow),
+      'aCol': serializer.toJson<int>(aCol),
+      'bRow': serializer.toJson<int>(bRow),
+      'bCol': serializer.toJson<int>(bCol),
+      'count': serializer.toJson<int>(count),
+    };
+  }
+
+  HeatEdgeRow copyWith({
+    int? level,
+    int? aRow,
+    int? aCol,
+    int? bRow,
+    int? bCol,
+    int? count,
+  }) => HeatEdgeRow(
+    level: level ?? this.level,
+    aRow: aRow ?? this.aRow,
+    aCol: aCol ?? this.aCol,
+    bRow: bRow ?? this.bRow,
+    bCol: bCol ?? this.bCol,
+    count: count ?? this.count,
+  );
+  HeatEdgeRow copyWithCompanion(HeatEdgesCompanion data) {
+    return HeatEdgeRow(
+      level: data.level.present ? data.level.value : this.level,
+      aRow: data.aRow.present ? data.aRow.value : this.aRow,
+      aCol: data.aCol.present ? data.aCol.value : this.aCol,
+      bRow: data.bRow.present ? data.bRow.value : this.bRow,
+      bCol: data.bCol.present ? data.bCol.value : this.bCol,
+      count: data.count.present ? data.count.value : this.count,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HeatEdgeRow(')
+          ..write('level: $level, ')
+          ..write('aRow: $aRow, ')
+          ..write('aCol: $aCol, ')
+          ..write('bRow: $bRow, ')
+          ..write('bCol: $bCol, ')
+          ..write('count: $count')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(level, aRow, aCol, bRow, bCol, count);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HeatEdgeRow &&
+          other.level == this.level &&
+          other.aRow == this.aRow &&
+          other.aCol == this.aCol &&
+          other.bRow == this.bRow &&
+          other.bCol == this.bCol &&
+          other.count == this.count);
+}
+
+class HeatEdgesCompanion extends UpdateCompanion<HeatEdgeRow> {
+  final Value<int> level;
+  final Value<int> aRow;
+  final Value<int> aCol;
+  final Value<int> bRow;
+  final Value<int> bCol;
+  final Value<int> count;
+  final Value<int> rowid;
+  const HeatEdgesCompanion({
+    this.level = const Value.absent(),
+    this.aRow = const Value.absent(),
+    this.aCol = const Value.absent(),
+    this.bRow = const Value.absent(),
+    this.bCol = const Value.absent(),
+    this.count = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HeatEdgesCompanion.insert({
+    required int level,
+    required int aRow,
+    required int aCol,
+    required int bRow,
+    required int bCol,
+    this.count = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : level = Value(level),
+       aRow = Value(aRow),
+       aCol = Value(aCol),
+       bRow = Value(bRow),
+       bCol = Value(bCol);
+  static Insertable<HeatEdgeRow> custom({
+    Expression<int>? level,
+    Expression<int>? aRow,
+    Expression<int>? aCol,
+    Expression<int>? bRow,
+    Expression<int>? bCol,
+    Expression<int>? count,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (level != null) 'level': level,
+      if (aRow != null) 'a_row': aRow,
+      if (aCol != null) 'a_col': aCol,
+      if (bRow != null) 'b_row': bRow,
+      if (bCol != null) 'b_col': bCol,
+      if (count != null) 'count': count,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HeatEdgesCompanion copyWith({
+    Value<int>? level,
+    Value<int>? aRow,
+    Value<int>? aCol,
+    Value<int>? bRow,
+    Value<int>? bCol,
+    Value<int>? count,
+    Value<int>? rowid,
+  }) {
+    return HeatEdgesCompanion(
+      level: level ?? this.level,
+      aRow: aRow ?? this.aRow,
+      aCol: aCol ?? this.aCol,
+      bRow: bRow ?? this.bRow,
+      bCol: bCol ?? this.bCol,
+      count: count ?? this.count,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (level.present) {
+      map['level'] = Variable<int>(level.value);
+    }
+    if (aRow.present) {
+      map['a_row'] = Variable<int>(aRow.value);
+    }
+    if (aCol.present) {
+      map['a_col'] = Variable<int>(aCol.value);
+    }
+    if (bRow.present) {
+      map['b_row'] = Variable<int>(bRow.value);
+    }
+    if (bCol.present) {
+      map['b_col'] = Variable<int>(bCol.value);
+    }
+    if (count.present) {
+      map['count'] = Variable<int>(count.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HeatEdgesCompanion(')
+          ..write('level: $level, ')
+          ..write('aRow: $aRow, ')
+          ..write('aCol: $aCol, ')
+          ..write('bRow: $bRow, ')
+          ..write('bCol: $bCol, ')
+          ..write('count: $count, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $TripsTable trips = $TripsTable(this);
   late final $TrackPointsTable trackPoints = $TrackPointsTable(this);
+  late final $HeatCellsTable heatCells = $HeatCellsTable(this);
+  late final $HeatEdgesTable heatEdges = $HeatEdgesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [trips, trackPoints];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    trips,
+    trackPoints,
+    heatCells,
+    heatEdges,
+  ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -1235,6 +2086,7 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<bool> kept,
       Value<String> clientUuid,
       Value<DateTime?> syncedAt,
+      Value<DateTime?> heatFoldedAt,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -1250,6 +2102,7 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<bool> kept,
       Value<String> clientUuid,
       Value<DateTime?> syncedAt,
+      Value<DateTime?> heatFoldedAt,
     });
 
 final class $$TripsTableReferences
@@ -1340,6 +2193,11 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<DateTime> get syncedAt => $composableBuilder(
     column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get heatFoldedAt => $composableBuilder(
+    column: $table.heatFoldedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1437,6 +2295,11 @@ class $$TripsTableOrderingComposer
     column: $table.syncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get heatFoldedAt => $composableBuilder(
+    column: $table.heatFoldedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TripsTableAnnotationComposer
@@ -1491,6 +2354,11 @@ class $$TripsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get syncedAt =>
       $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get heatFoldedAt => $composableBuilder(
+    column: $table.heatFoldedAt,
+    builder: (column) => column,
+  );
 
   Expression<T> trackPointsRefs<T extends Object>(
     Expression<T> Function($$TrackPointsTableAnnotationComposer a) f,
@@ -1558,6 +2426,7 @@ class $$TripsTableTableManager
                 Value<bool> kept = const Value.absent(),
                 Value<String> clientUuid = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> heatFoldedAt = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 startTime: startTime,
@@ -1571,6 +2440,7 @@ class $$TripsTableTableManager
                 kept: kept,
                 clientUuid: clientUuid,
                 syncedAt: syncedAt,
+                heatFoldedAt: heatFoldedAt,
               ),
           createCompanionCallback:
               ({
@@ -1586,6 +2456,7 @@ class $$TripsTableTableManager
                 Value<bool> kept = const Value.absent(),
                 Value<String> clientUuid = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> heatFoldedAt = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 startTime: startTime,
@@ -1599,6 +2470,7 @@ class $$TripsTableTableManager
                 kept: kept,
                 clientUuid: clientUuid,
                 syncedAt: syncedAt,
+                heatFoldedAt: heatFoldedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -2014,6 +2886,444 @@ typedef $$TrackPointsTableProcessedTableManager =
       TrackPoint,
       PrefetchHooks Function({bool tripId})
     >;
+typedef $$HeatCellsTableCreateCompanionBuilder =
+    HeatCellsCompanion Function({
+      required int level,
+      required int cellRow,
+      required int cellCol,
+      Value<double> latSum,
+      Value<double> lngSum,
+      Value<int> n,
+      Value<int> rowid,
+    });
+typedef $$HeatCellsTableUpdateCompanionBuilder =
+    HeatCellsCompanion Function({
+      Value<int> level,
+      Value<int> cellRow,
+      Value<int> cellCol,
+      Value<double> latSum,
+      Value<double> lngSum,
+      Value<int> n,
+      Value<int> rowid,
+    });
+
+class $$HeatCellsTableFilterComposer
+    extends Composer<_$AppDatabase, $HeatCellsTable> {
+  $$HeatCellsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cellRow => $composableBuilder(
+    column: $table.cellRow,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cellCol => $composableBuilder(
+    column: $table.cellCol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latSum => $composableBuilder(
+    column: $table.latSum,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get lngSum => $composableBuilder(
+    column: $table.lngSum,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get n => $composableBuilder(
+    column: $table.n,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HeatCellsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HeatCellsTable> {
+  $$HeatCellsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cellRow => $composableBuilder(
+    column: $table.cellRow,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cellCol => $composableBuilder(
+    column: $table.cellCol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latSum => $composableBuilder(
+    column: $table.latSum,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get lngSum => $composableBuilder(
+    column: $table.lngSum,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get n => $composableBuilder(
+    column: $table.n,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HeatCellsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HeatCellsTable> {
+  $$HeatCellsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<int> get cellRow =>
+      $composableBuilder(column: $table.cellRow, builder: (column) => column);
+
+  GeneratedColumn<int> get cellCol =>
+      $composableBuilder(column: $table.cellCol, builder: (column) => column);
+
+  GeneratedColumn<double> get latSum =>
+      $composableBuilder(column: $table.latSum, builder: (column) => column);
+
+  GeneratedColumn<double> get lngSum =>
+      $composableBuilder(column: $table.lngSum, builder: (column) => column);
+
+  GeneratedColumn<int> get n =>
+      $composableBuilder(column: $table.n, builder: (column) => column);
+}
+
+class $$HeatCellsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HeatCellsTable,
+          HeatCellRow,
+          $$HeatCellsTableFilterComposer,
+          $$HeatCellsTableOrderingComposer,
+          $$HeatCellsTableAnnotationComposer,
+          $$HeatCellsTableCreateCompanionBuilder,
+          $$HeatCellsTableUpdateCompanionBuilder,
+          (
+            HeatCellRow,
+            BaseReferences<_$AppDatabase, $HeatCellsTable, HeatCellRow>,
+          ),
+          HeatCellRow,
+          PrefetchHooks Function()
+        > {
+  $$HeatCellsTableTableManager(_$AppDatabase db, $HeatCellsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HeatCellsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HeatCellsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HeatCellsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> level = const Value.absent(),
+                Value<int> cellRow = const Value.absent(),
+                Value<int> cellCol = const Value.absent(),
+                Value<double> latSum = const Value.absent(),
+                Value<double> lngSum = const Value.absent(),
+                Value<int> n = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HeatCellsCompanion(
+                level: level,
+                cellRow: cellRow,
+                cellCol: cellCol,
+                latSum: latSum,
+                lngSum: lngSum,
+                n: n,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int level,
+                required int cellRow,
+                required int cellCol,
+                Value<double> latSum = const Value.absent(),
+                Value<double> lngSum = const Value.absent(),
+                Value<int> n = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HeatCellsCompanion.insert(
+                level: level,
+                cellRow: cellRow,
+                cellCol: cellCol,
+                latSum: latSum,
+                lngSum: lngSum,
+                n: n,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HeatCellsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HeatCellsTable,
+      HeatCellRow,
+      $$HeatCellsTableFilterComposer,
+      $$HeatCellsTableOrderingComposer,
+      $$HeatCellsTableAnnotationComposer,
+      $$HeatCellsTableCreateCompanionBuilder,
+      $$HeatCellsTableUpdateCompanionBuilder,
+      (
+        HeatCellRow,
+        BaseReferences<_$AppDatabase, $HeatCellsTable, HeatCellRow>,
+      ),
+      HeatCellRow,
+      PrefetchHooks Function()
+    >;
+typedef $$HeatEdgesTableCreateCompanionBuilder =
+    HeatEdgesCompanion Function({
+      required int level,
+      required int aRow,
+      required int aCol,
+      required int bRow,
+      required int bCol,
+      Value<int> count,
+      Value<int> rowid,
+    });
+typedef $$HeatEdgesTableUpdateCompanionBuilder =
+    HeatEdgesCompanion Function({
+      Value<int> level,
+      Value<int> aRow,
+      Value<int> aCol,
+      Value<int> bRow,
+      Value<int> bCol,
+      Value<int> count,
+      Value<int> rowid,
+    });
+
+class $$HeatEdgesTableFilterComposer
+    extends Composer<_$AppDatabase, $HeatEdgesTable> {
+  $$HeatEdgesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get aRow => $composableBuilder(
+    column: $table.aRow,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get aCol => $composableBuilder(
+    column: $table.aCol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bRow => $composableBuilder(
+    column: $table.bRow,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bCol => $composableBuilder(
+    column: $table.bCol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get count => $composableBuilder(
+    column: $table.count,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HeatEdgesTableOrderingComposer
+    extends Composer<_$AppDatabase, $HeatEdgesTable> {
+  $$HeatEdgesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get aRow => $composableBuilder(
+    column: $table.aRow,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get aCol => $composableBuilder(
+    column: $table.aCol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bRow => $composableBuilder(
+    column: $table.bRow,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bCol => $composableBuilder(
+    column: $table.bCol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get count => $composableBuilder(
+    column: $table.count,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HeatEdgesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HeatEdgesTable> {
+  $$HeatEdgesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<int> get aRow =>
+      $composableBuilder(column: $table.aRow, builder: (column) => column);
+
+  GeneratedColumn<int> get aCol =>
+      $composableBuilder(column: $table.aCol, builder: (column) => column);
+
+  GeneratedColumn<int> get bRow =>
+      $composableBuilder(column: $table.bRow, builder: (column) => column);
+
+  GeneratedColumn<int> get bCol =>
+      $composableBuilder(column: $table.bCol, builder: (column) => column);
+
+  GeneratedColumn<int> get count =>
+      $composableBuilder(column: $table.count, builder: (column) => column);
+}
+
+class $$HeatEdgesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HeatEdgesTable,
+          HeatEdgeRow,
+          $$HeatEdgesTableFilterComposer,
+          $$HeatEdgesTableOrderingComposer,
+          $$HeatEdgesTableAnnotationComposer,
+          $$HeatEdgesTableCreateCompanionBuilder,
+          $$HeatEdgesTableUpdateCompanionBuilder,
+          (
+            HeatEdgeRow,
+            BaseReferences<_$AppDatabase, $HeatEdgesTable, HeatEdgeRow>,
+          ),
+          HeatEdgeRow,
+          PrefetchHooks Function()
+        > {
+  $$HeatEdgesTableTableManager(_$AppDatabase db, $HeatEdgesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HeatEdgesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HeatEdgesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HeatEdgesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> level = const Value.absent(),
+                Value<int> aRow = const Value.absent(),
+                Value<int> aCol = const Value.absent(),
+                Value<int> bRow = const Value.absent(),
+                Value<int> bCol = const Value.absent(),
+                Value<int> count = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HeatEdgesCompanion(
+                level: level,
+                aRow: aRow,
+                aCol: aCol,
+                bRow: bRow,
+                bCol: bCol,
+                count: count,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int level,
+                required int aRow,
+                required int aCol,
+                required int bRow,
+                required int bCol,
+                Value<int> count = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HeatEdgesCompanion.insert(
+                level: level,
+                aRow: aRow,
+                aCol: aCol,
+                bRow: bRow,
+                bCol: bCol,
+                count: count,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HeatEdgesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HeatEdgesTable,
+      HeatEdgeRow,
+      $$HeatEdgesTableFilterComposer,
+      $$HeatEdgesTableOrderingComposer,
+      $$HeatEdgesTableAnnotationComposer,
+      $$HeatEdgesTableCreateCompanionBuilder,
+      $$HeatEdgesTableUpdateCompanionBuilder,
+      (
+        HeatEdgeRow,
+        BaseReferences<_$AppDatabase, $HeatEdgesTable, HeatEdgeRow>,
+      ),
+      HeatEdgeRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2022,4 +3332,8 @@ class $AppDatabaseManager {
       $$TripsTableTableManager(_db, _db.trips);
   $$TrackPointsTableTableManager get trackPoints =>
       $$TrackPointsTableTableManager(_db, _db.trackPoints);
+  $$HeatCellsTableTableManager get heatCells =>
+      $$HeatCellsTableTableManager(_db, _db.heatCells);
+  $$HeatEdgesTableTableManager get heatEdges =>
+      $$HeatEdgesTableTableManager(_db, _db.heatEdges);
 }

@@ -48,3 +48,55 @@ function something()
 {
     // ..
 }
+
+/** Deterministische, gueltige UUID aus einem beliebigen Namen. */
+function testUuid(string $seed): string
+{
+    $h = md5($seed);
+
+    return sprintf(
+        '%s-%s-4%s-a%s-%s',
+        substr($h, 0, 8), substr($h, 8, 4), substr($h, 13, 3),
+        substr($h, 17, 3), substr($h, 20, 12)
+    );
+}
+
+/**
+ * Payload einer geraden Testfahrt: 20 Punkte, 12 m auseinander.
+ * Wird von den Heatmap-Feature-Tests geteilt.
+ */
+function tripPayload(
+    string $uuid,
+    string $start = '2026-01-15T10:00:00Z',
+    float $startLat = 50.0
+): array {
+    $points = [];
+    for ($i = 0; $i < 20; $i++) {
+        $points[] = [
+            'lat' => $startLat + ($i * 12) / 111320.0,
+            'lng' => 6.0,
+            'speed' => 20,
+            'altitude' => 100,
+            'accuracy' => 5,
+            't' => gmdate('c', strtotime($start) + $i),
+        ];
+    }
+
+    return [
+        'client_uuid' => testUuid($uuid),
+        'start_time' => $start,
+        'end_time' => gmdate('c', strtotime($start) + 20),
+        'max_speed' => 20,
+        'avg_speed' => 15,
+        'distance' => 240,
+        'duration_seconds' => 20,
+        'elevation_gain' => 0,
+        'points' => $points,
+    ];
+}
+
+function maxEdgeCount(int $userId): int
+{
+    return (int) \Illuminate\Support\Facades\DB::table('heat_edges')
+        ->where('user_id', $userId)->where('level', 0)->max('count');
+}
