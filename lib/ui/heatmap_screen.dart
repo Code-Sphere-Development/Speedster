@@ -115,6 +115,7 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                 ),
                 children: [
                   const OsmTileLayer(),
+                  const OsmAttribution(),
                   PolylineLayer(
                     polylines: [
                       for (final e in map.edges)
