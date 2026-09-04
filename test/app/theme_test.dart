@@ -42,11 +42,36 @@ void main() {
     expect(shownBrightness(tester), Brightness.dark);
   });
 
-  test('beide Themes stammen aus derselben Saatfarbe', () {
+  test('beide Helligkeiten sind definiert', () {
     expect(SpeedsterTheme.light.colorScheme.brightness, Brightness.light);
     expect(SpeedsterTheme.dark.colorScheme.brightness, Brightness.dark);
-    // Rot aus dem Logo, nicht mehr das Flutter-Standard-Indigo.
-    expect(SpeedsterTheme.seed, const Color(0xFFE21C23));
+    expect(SpeedsterTheme.brandRed, const Color(0xFFE21C23));
+  });
+
+  test('Flaechen bleiben neutral, ohne Farbstich', () {
+    for (final brightness in Brightness.values) {
+      final surface = SpeedsterTheme.scheme(brightness).surface;
+      // Material 3 faerbt Flaechen sonst mit der Saatfarbe ein; hier muessen
+      // die Kanaele nahezu gleich sein.
+      final spread = [surface.r, surface.g, surface.b];
+      expect(
+        spread.reduce((a, b) => a > b ? a : b) -
+            spread.reduce((a, b) => a < b ? a : b),
+        lessThan(0.02),
+        reason: 'Flaeche bei $brightness hat einen Farbstich: $surface',
+      );
+    }
+  });
+
+  test('der Akzent bleibt ein kraeftiges Rot', () {
+    // Der abgeleitete Akzent waere im Dunkelmodus ein blasses Lachsrosa.
+    final dark = SpeedsterTheme.scheme(Brightness.dark).primary;
+    expect(dark.r, greaterThan(0.9));
+    expect(dark.g, lessThan(0.4));
+
+    final light = SpeedsterTheme.scheme(Brightness.light).primary;
+    expect(light.r, greaterThan(0.7));
+    expect(light.g, lessThan(0.2));
   });
 
   Future<void> pumpMap(WidgetTester tester, ThemeData theme) async {
