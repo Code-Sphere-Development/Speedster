@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:speedster/ui/map_tiles.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_palette.dart';
@@ -72,11 +73,7 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                   onMapEvent: (e) => _onCameraChanged(e.camera),
                 ),
                 children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'de.mediacologne.speedster',
-                  ),
+                  const OsmTileLayer(),
                   PolylineLayer(
                     polylines: [
                       for (final e in map.edges)
