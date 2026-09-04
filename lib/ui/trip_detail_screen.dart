@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:speedster/ui/map_tiles.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
@@ -75,10 +76,7 @@ class _TripMap extends StatelessWidget {
         initialZoom: 14,
       ),
       children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'de.mediacologne.speedster',
-        ),
+                  const OsmTileLayer(),
         PolylineLayer(
           polylines: [
             Polyline(points: coords, strokeWidth: 4, color: Colors.blue),

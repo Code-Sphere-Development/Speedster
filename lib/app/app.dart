@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/app/theme.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
@@ -21,10 +22,11 @@ class SpeedsterApp extends ConsumerWidget {
         ref.watch(settingsControllerProvider.select((s) => s.consentAccepted));
     return MaterialApp(
       title: 'Speedster',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
+      theme: SpeedsterTheme.light,
+      darkTheme: SpeedsterTheme.dark,
+      // Ohne darkTheme faellt ThemeMode.system stillschweigend auf das helle
+      // Theme zurueck -- genau das war vorher der Fall.
+      themeMode: ThemeMode.system,
       home: consented ? const HomeShell() : const ConsentScreen(),
     );
   }

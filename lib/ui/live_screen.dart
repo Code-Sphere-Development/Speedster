@@ -88,7 +88,10 @@ class _LiveMetric extends StatelessWidget {
         Icon(icon, size: 28),
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-        Text(label, style: const TextStyle(color: Colors.grey)),
+        Text(
+          label,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
       ],
     );
   }

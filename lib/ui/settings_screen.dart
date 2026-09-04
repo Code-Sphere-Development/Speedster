@@ -138,13 +138,16 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _confirmDeleteAll(context, ref),
           ),
           const Divider(),
-          const Padding(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Text(
               'Fahre stets verantwortungsvoll. Es gilt die StVO. '
               'Die Nutzung erfolgt auf eigene Gefahr. Alle Daten bleiben lokal '
               'auf deinem Gerät.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
