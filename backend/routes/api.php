@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\HeatmapController;
 use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\TripController;
 use Illuminate\Support\Facades\Route;
@@ -25,4 +26,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/account/export', [AccountController::class, 'export']);
 
     Route::get('/rankings', [RankingController::class, 'index']);
+
+    Route::get('/heatmap', [HeatmapController::class, 'index']);
 });

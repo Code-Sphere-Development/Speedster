@@ -23,6 +23,7 @@ class Trip extends Model
         'zero_to_hundred_seconds',
         'route',
         'point_count',
+        'heat_folded_at',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class Trip extends Model
         'zero_to_hundred_seconds' => 'float',
         'duration_seconds' => 'integer',
         'point_count' => 'integer',
+        'heat_folded_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
