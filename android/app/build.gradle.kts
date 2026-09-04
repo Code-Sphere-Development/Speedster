@@ -6,7 +6,9 @@ plugins {
 
 android {
     namespace = "de.mediacologne.speedster"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android 14 and flutter_secure_storage 11 both require
+    // compileSdk 37, which is ahead of the Flutter SDK default (36).
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
