@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive Icon fuer Android 8+. Ohne diese Datei zeigt der Launcher das
+  klassische Mipmap als kleines Bild in einem weissen Badge statt in der
+  Maske des jeweiligen Launchers.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>
