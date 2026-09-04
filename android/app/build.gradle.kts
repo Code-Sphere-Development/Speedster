@@ -42,6 +42,12 @@ kotlin {
     }
 }
 
+dependencies {
+    // Liefert den Verbindungsstatus zu Android Auto, ohne dass die App
+    // selbst eine Auto-App sein muss.
+    implementation("androidx.car.app:app:1.7.0")
+}
+
 flutter {
     source = "../.."
 }
