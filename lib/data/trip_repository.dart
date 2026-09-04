@@ -87,6 +87,23 @@ class DriftTripRepository implements TripRepository {
   Future<void> setKept(int tripId, bool kept) async {
     await (db.update(db.trips)..where((t) => t.id.equals(tripId)))
         .write(TripsCompanion(kept: Value(kept)));
+    if (!kept) {
+      await _invalidateHeat();
+    }
+  }
+
+  /// Verwirft die Heatmap-Aggregate und markiert alle Fahrten als ungefaltet.
+  ///
+  /// Der Neuaufbau passiert beim naechsten Laden der Heatmap, nicht hier:
+  /// der Nutzer soll im Beifahrer-Dialog nicht auf eine Aggregation warten.
+  /// Eine Fahrt exakt herauszurechnen waere fehleranfaelliger als ein
+  /// Neuaufbau, und Ruecknahmen sind selten.
+  Future<void> _invalidateHeat() async {
+    await db.delete(db.heatEdges).go();
+    await db.delete(db.heatCells).go();
+    await db.update(db.trips).write(
+          const TripsCompanion(heatFoldedAt: Value(null)),
+        );
   }
 
   @override
@@ -124,6 +141,10 @@ class DriftTripRepository implements TripRepository {
   Future<void> deleteAll() async {
     await db.delete(db.trackPoints).go();
     await db.delete(db.trips).go();
+    // Sonst ueberlebt die Heatmap ein "alle Daten loeschen": die Aggregate
+    // liegen in eigenen Tabellen und haengen nicht am Trip-Fremdschluessel.
+    await db.delete(db.heatEdges).go();
+    await db.delete(db.heatCells).go();
   }
 
   @override
