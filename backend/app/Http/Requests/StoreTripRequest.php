@@ -30,6 +30,14 @@ class StoreTripRequest extends FormRequest
             'points' => ['required', 'array'],
             'points.*.lat' => ['required', 'numeric'],
             'points.*.lng' => ['required', 'numeric'],
+            // Zeitstempel und Genauigkeit muessen mitvalidiert werden, sonst
+            // wirft validated() sie weg und die serverseitige Heatmap kann
+            // weder Mess-Luecken noch ungenaue Punkte erkennen — sie wiche
+            // dann vom lokalen Ergebnis ab.
+            'points.*.t' => ['required', 'date'],
+            'points.*.accuracy' => ['nullable', 'numeric', 'min:0'],
+            'points.*.speed' => ['nullable', 'numeric'],
+            'points.*.altitude' => ['nullable', 'numeric'],
         ];
     }
 }
