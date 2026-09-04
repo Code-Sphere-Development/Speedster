@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
+import 'package:speedster/heat/heat_folder.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/stats/stats_engine.dart';
@@ -80,5 +81,52 @@ void main() {
     await repo.deleteAll();
     expect(await repo.keptTrips(), isEmpty);
     expect(await repo.pointsFor(id), isEmpty);
+  });
+
+  test('deleteAll raeumt auch die Heatmap-Aggregate', () async {
+    final id = await repo.createTrip(newTrip());
+    await repo.addPoints(id, [
+      for (var i = 0; i < 20; i++)
+        TrackPoint(
+          tripId: id,
+          lat: 50.0 + (i * 12) / 111320.0,
+          lng: 6.0,
+          speed: 20,
+          altitude: 100,
+          accuracy: 5,
+          timestamp: DateTime.utc(2026, 1, 1).add(Duration(seconds: i)),
+        ),
+    ]);
+    await HeatFolder(db, runner: (fn, msg) async => fn(msg)).foldPending();
+    expect(await db.select(db.heatEdges).get(), isNotEmpty);
+
+    await repo.deleteAll();
+
+    // Sonst ueberlebt die Heatmap ein "alle Daten loeschen".
+    expect(await db.select(db.heatEdges).get(), isEmpty);
+    expect(await db.select(db.heatCells).get(), isEmpty);
+  });
+
+  test('setKept(false) invalidiert die Heatmap-Aggregate', () async {
+    final id = await repo.createTrip(newTrip());
+    await repo.addPoints(id, [
+      for (var i = 0; i < 20; i++)
+        TrackPoint(
+          tripId: id,
+          lat: 50.0 + (i * 12) / 111320.0,
+          lng: 6.0,
+          speed: 20,
+          altitude: 100,
+          accuracy: 5,
+          timestamp: DateTime.utc(2026, 1, 1).add(Duration(seconds: i)),
+        ),
+    ]);
+    await HeatFolder(db, runner: (fn, msg) async => fn(msg)).foldPending();
+    expect(await db.select(db.heatEdges).get(), isNotEmpty);
+
+    await repo.setKept(id, false);
+
+    // Verworfene Beifahrer-Fahrten duerfen in der Heatmap nicht leuchten.
+    expect(await db.select(db.heatEdges).get(), isEmpty);
   });
 }
