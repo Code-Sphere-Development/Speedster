@@ -30,8 +30,14 @@ Map<String, dynamic> canonical(TripFold fold) {
   return out;
 }
 
+/// Mit `--dart-define=REGENERATE_HEAT_FIXTURES=true` werden die
+/// Erwartungswerte neu geschrieben statt geprueft. Danach gehoeren beide
+/// JSON-Dateien nach `tests/fixtures/` im Speedster_Cloud-Repo kopiert,
+/// sonst pruefen die beiden Implementierungen gegen verschiedene Referenzen.
+const _regenerate = bool.fromEnvironment('REGENERATE_HEAT_FIXTURES');
+
 void main() {
-  test('erzeugt die Paritaets-Erwartungswerte', () {
+  test('Dart-Rasterung entspricht der festgeschriebenen Referenz', () {
     final data = jsonDecode(File('test/fixtures/heat_parity.json')
         .readAsStringSync()) as Map<String, dynamic>;
 
@@ -53,13 +59,26 @@ void main() {
       expected[map['name'] as String] = canonical(HeatGrid.foldTrip(points));
     }
 
-    // Erwartungswerte neben die Fixtures schreiben; PHP prueft dagegen.
-    File('test/fixtures/heat_parity_expected.json').writeAsStringSync(
-      '${const JsonEncoder.withIndent('  ').convert(expected)}\n',
-    );
+    final baseline = File('test/fixtures/heat_parity_expected.json');
 
-    expect(expected, isNotEmpty);
-    final straight = expected['gerade_strecke_12m'] as Map<String, dynamic>;
-    expect((straight['0'] as Map)['edges'], isNotEmpty);
+    if (_regenerate) {
+      baseline.writeAsStringSync(
+        '${const JsonEncoder.withIndent('  ').convert(expected)}\n',
+      );
+      return;
+    }
+
+    // Gegen die Referenz pruefen, nicht sie ueberschreiben: sonst faellt eine
+    // Abweichung auf der Dart-Seite nie auf, und die PHP-Seite prueft gegen
+    // etwas, das sich stillschweigend mitverschoben hat.
+    final committed =
+        jsonDecode(baseline.readAsStringSync()) as Map<String, dynamic>;
+    expect(
+      jsonDecode(jsonEncode(expected)),
+      committed,
+      reason: 'Rasterung geaendert? Dann mit '
+          '--dart-define=REGENERATE_HEAT_FIXTURES=true neu erzeugen und die '
+          'Dateien ins Speedster_Cloud-Repo kopieren.',
+    );
   });
 }
