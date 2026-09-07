@@ -1,33 +1,47 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/heat/heat_palette.dart';
 
 void main() {
-  test('einmal befahren ist der dunkelste Ton', () {
-    expect(HeatPalette.colorFor(1, 200), const Color(0xFF4A0E0E));
+  test('einmal befahren ist sichtbar, nicht fast schwarz', () {
+    // Der Vorgaenger faerbte genau diesen Fall #4A0E0E -- und weil fast
+    // jede Strecke nur einmal gefahren wird, war die ganze Karte dunkel.
+    final style = HeatPalette.styleFor(1, 50);
+
+    expect(style.core.color.r, greaterThan(0.9));
+    expect(style.core.color.a, greaterThan(0.8));
   });
 
-  test('das Maximum ist der hellste Ton', () {
-    expect(HeatPalette.colorFor(200, 200), const Color(0xFFFFD54A));
-  });
-
-  test('logarithmisch: die Mitte liegt weit unter dem halben Maximum', () {
-    final mid = HeatPalette.colorFor(14, 200);
-    expect(mid.g, greaterThan(const Color(0xFF4A0E0E).g));
-  });
-
-  test('haeufiger heisst nie dunkler', () {
-    var previous = 0.0;
-    for (final c in [1, 2, 5, 10, 50, 200]) {
-      final lum = HeatPalette.colorFor(c, 200).computeLuminance();
-      expect(lum, greaterThanOrEqualTo(previous - 0.001));
-      previous = lum;
+  test('haeufiger heisst breiter und deckender, nie duenner', () {
+    var previousWidth = 0.0;
+    var previousAlpha = 0.0;
+    for (final count in [1, 2, 5, 20, 50]) {
+      final core = HeatPalette.styleFor(count, 50).core;
+      expect(core.strokeWidth, greaterThanOrEqualTo(previousWidth));
+      expect(core.color.a, greaterThanOrEqualTo(previousAlpha - 0.001));
+      previousWidth = core.strokeWidth;
+      previousAlpha = core.color.a;
     }
   });
 
-  test('Randfaelle stuerzen nicht ab', () {
-    expect(HeatPalette.colorFor(1, 1), const Color(0xFFFFD54A));
-    expect(HeatPalette.colorFor(0, 0), const Color(0xFF4A0E0E));
-    expect(HeatPalette.colorFor(5, 2), const Color(0xFFFFD54A));
+  test('die drei Ebenen liegen von aussen nach innen', () {
+    final s = HeatPalette.styleFor(10, 20);
+
+    // Der Schein muss breiter und durchsichtiger sein als der Kern, sonst
+    // entsteht kein weicher Rand sondern wieder eine harte Linie.
+    expect(s.glow.strokeWidth, greaterThan(s.halo.strokeWidth));
+    expect(s.halo.strokeWidth, greaterThan(s.core.strokeWidth));
+    expect(s.glow.color.a, lessThan(s.halo.color.a));
+    expect(s.halo.color.a, lessThan(s.core.color.a));
+    expect(s.layers.length, 3);
+  });
+
+  test('Normierung ist logarithmisch und begrenzt', () {
+    expect(HeatPalette.intensity(1, 100), 0);
+    expect(HeatPalette.intensity(100, 100), 1);
+    expect(HeatPalette.intensity(10, 100), closeTo(0.5, 0.01));
+    // Randfaelle duerfen nicht in eine Division durch null laufen.
+    expect(HeatPalette.intensity(1, 1), 1);
+    expect(HeatPalette.intensity(0, 0), 0);
+    expect(HeatPalette.intensity(5, 2), 1);
   });
 }

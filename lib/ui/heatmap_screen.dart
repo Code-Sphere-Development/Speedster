@@ -116,19 +116,31 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                 children: [
                   const OsmTileLayer(),
                   const OsmAttribution(),
-                  PolylineLayer(
-                    polylines: [
-                      for (final e in map.edges)
-                        Polyline(
-                          points: [
-                            LatLng(e.aLat, e.aLng),
-                            LatLng(e.bLat, e.bLng),
-                          ],
-                          strokeWidth: 4,
-                          color: HeatPalette.colorFor(e.count, map.maxCount),
-                        ),
-                    ],
-                  ),
+                  // Drei Durchgaenge statt einer Linie: breit und fast
+                  // durchsichtig, mittel, dann duenn und hell. flutter_map
+                  // zeichnet jede Ebene in einem Canvas-Durchgang, es
+                  // entstehen also keine dreifachen Widget-Kosten.
+                  for (var layer = 0; layer < 3; layer++)
+                    PolylineLayer(
+                      polylines: [
+                        for (final e in map.edges)
+                          () {
+                            final style = HeatPalette
+                                .styleFor(e.count, map.maxCount)
+                                .layers[layer];
+                            return Polyline(
+                              points: [
+                                LatLng(e.aLat, e.aLng),
+                                LatLng(e.bLat, e.bLng),
+                              ],
+                              strokeWidth: style.strokeWidth,
+                              color: style.color,
+                              strokeCap: StrokeCap.round,
+                              strokeJoin: StrokeJoin.round,
+                            );
+                          }(),
+                      ],
+                    ),
                 ],
               ),
               const Positioned(left: 12, bottom: 12, child: _Legend()),
@@ -233,9 +245,14 @@ class _Legend extends StatelessWidget {
             height: 8,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              gradient: LinearGradient(
-                colors: [for (final s in HeatPalette.stops) s.$2],
-                stops: [for (final s in HeatPalette.stops) s.$1],
+              // Der Verlauf zeigt, was die Karte tut: von duenn und
+              // zurueckhaltend zu hell und kraeftig.
+              gradient: const LinearGradient(
+                colors: [
+                  HeatPalette.haloColor,
+                  HeatPalette.coreLow,
+                  HeatPalette.coreHigh,
+                ],
               ),
             ),
           ),
