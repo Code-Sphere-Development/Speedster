@@ -7,6 +7,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/sensors/last_known_location.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
+import 'package:speedster/ui/heat_glow_layer.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/map_tiles.dart';
 
@@ -54,6 +55,52 @@ void main() {
     // Der leere Zustand ist ein Hinweis ueber der Karte, kein Ersatz dafuer.
     expect(find.byType(FlutterMap), findsOneWidget);
     expect(find.text('Noch keine Strecken aufgezeichnet'), findsOneWidget);
+    // Auch ohne Strecken bleiben die dunklen Kacheln und die Quellenangabe
+    // stehen -- der Hinweis ueberlagert die Karte, ersetzt sie nicht.
+    expect(find.byType(EsriDarkTileLayer), findsOneWidget);
+    expect(find.byType(EsriDarkLabelsTileLayer), findsOneWidget);
+    expect(find.byType(EsriDarkAttribution), findsOneWidget);
+  });
+
+  testWidgets('nutzt dunkle Esri-Kacheln statt heller OSM-Kacheln',
+      (tester) async {
+    await tester.pumpWidget(wrap(FakeHeatSource(_oneEdge)));
+    await tester.pumpAndSettle();
+
+    // Auf hellen OSM-Kacheln liest sich die dunkle Rampe wie Schmutz --
+    // deshalb nur die dunkle Basiskarte auf der Heatmap, nie OSM.
+    expect(find.byType(EsriDarkTileLayer), findsOneWidget);
+    expect(find.byType(EsriDarkLabelsTileLayer), findsOneWidget);
+    expect(find.byType(OsmTileLayer), findsNothing);
+
+    final tileLayers =
+        tester.widgetList<TileLayer>(find.byType(TileLayer)).toList();
+    expect(tileLayers, hasLength(2));
+    for (final layer in tileLayers) {
+      // Esri erwartet {z}/{y}/{x} -- anders als OSMs {z}/{x}/{y}.
+      expect(layer.urlTemplate, contains('{z}/{y}/{x}'));
+      expect(layer.urlTemplate, contains('arcgisonline.com'));
+    }
+  });
+
+  testWidgets('zeigt die vorgeschriebene Esri-Quellenangabe', (tester) async {
+    await tester.pumpWidget(wrap(FakeHeatSource(_oneEdge)));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('© Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'),
+      findsOneWidget,
+    );
+    expect(find.byType(OsmAttribution), findsNothing);
+  });
+
+  testWidgets('zeichnet die Strecken ueber die glow-Ebene, nicht PolylineLayer',
+      (tester) async {
+    await tester.pumpWidget(wrap(FakeHeatSource(_oneEdge)));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HeatGlowLayer), findsOneWidget);
+    expect(find.byType(PolylineLayer), findsNothing);
   });
 
   testWidgets('blendet den Hinweis aus, sobald Strecken vorliegen',
@@ -107,7 +154,8 @@ void main() {
 
     // Kamera aus dem Kartenkontext lesen, nicht nur die Startoptionen:
     // verschoben wird erst nach dem ersten Frame.
-    final camera = MapCamera.of(tester.element(find.byType(OsmTileLayer)));
+    final camera =
+        MapCamera.of(tester.element(find.byType(EsriDarkTileLayer)));
     expect(camera.center.latitude, closeTo(50.9375, 0.0001));
     expect(camera.center.longitude, closeTo(6.9603, 0.0001));
     expect(find.text('Noch keine Strecken aufgezeichnet'), findsOneWidget);
@@ -129,7 +177,8 @@ void main() {
 
     // Vorher zeigte die Karte fest auf den ersten Kantenpunkt; jetzt wird der
     // gesamte Streckenbereich eingepasst.
-    final camera = MapCamera.of(tester.element(find.byType(OsmTileLayer)));
+    final camera =
+        MapCamera.of(tester.element(find.byType(EsriDarkTileLayer)));
     expect(camera.center.latitude, closeTo(50.0005, 0.001));
     expect(camera.center.longitude, closeTo(6.0005, 0.001));
     expect(camera.zoom, greaterThan(5.0));
