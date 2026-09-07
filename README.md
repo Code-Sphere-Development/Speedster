@@ -1,6 +1,13 @@
-# speedster
+# Speedster
 
-A new Flutter project.
+Flutter-App zur Aufzeichnung von Fahrten: Geschwindigkeit, Route, Statistiken
+und eine Heatmap der häufig gefahrenen Strecken.
+
+Das Laravel-Backend liegt in einem eigenen Repository:
+[Code-Sphere-Development/Speedster_Cloud](https://github.com/Code-Sphere-Development/Speedster_Cloud).
+Ändert sich die Rasterung der Heatmap in `lib/heat/heat_grid.dart`, muss der
+Spiegel dort nachgezogen werden — `test/fixtures/heat_parity*.json` ist der
+gemeinsame Vertrag beider Seiten.
 
 ## Getting Started
 
