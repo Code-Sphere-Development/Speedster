@@ -26,8 +26,10 @@ class ConsentScreen extends ConsumerWidget {
                   'Verkehr, Wetter und Sicht an.\n\n'
                   'Die Nutzung erfolgt auf eigene Gefahr. Speedster fordert nicht '
                   'zu überhöhter Geschwindigkeit auf.\n\n'
-                  'Datenschutz: Alle Daten bleiben lokal auf deinem Gerät. Es '
-                  'findet kein Upload statt. Du kannst deine Daten jederzeit in '
+                  'Datenschutz: Deine Fahrten werden auf dem Gerät gespeichert. '
+                  'Erst wenn du die Cloud-Synchronisierung in den Einstellungen '
+                  'aktivierst, werden sie samt Streckenverlauf auf unseren '
+                  'Server übertragen. Du kannst deine Daten jederzeit in '
                   'den Einstellungen löschen.',
                   style: TextStyle(height: 1.4),
                 ),
