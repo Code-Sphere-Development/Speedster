@@ -9,6 +9,7 @@ import 'package:speedster/ui/map_tiles.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_palette.dart';
+import 'package:speedster/ui/heat_glow_layer.dart';
 
 /// Karte aller gefahrenen Strecken, eingefaerbt nach Befahrungshaeufigkeit.
 class HeatmapScreen extends ConsumerStatefulWidget {
@@ -112,35 +113,24 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                   initialCenter: _overviewCenter,
                   initialZoom: _overviewZoom,
                   onMapEvent: (e) => _onCameraChanged(e.camera),
+                  // Ohne das faellt die Karte auf ein helles Grau zurueck,
+                  // solange die Esri-Kacheln noch laden oder gar nicht
+                  // erreichbar sind -- dann wieder dunkle Rampe auf hellem
+                  // Grund, genau das Problem, das diese Aenderung beheben
+                  // soll.
+                  backgroundColor: esriDarkBackground,
                 ),
                 children: [
-                  const OsmTileLayer(),
-                  const OsmAttribution(),
-                  // Drei Durchgaenge statt einer Linie: breit und fast
-                  // durchsichtig, mittel, dann duenn und hell. flutter_map
-                  // zeichnet jede Ebene in einem Canvas-Durchgang, es
-                  // entstehen also keine dreifachen Widget-Kosten.
-                  for (var layer = 0; layer < 3; layer++)
-                    PolylineLayer(
-                      polylines: [
-                        for (final e in map.edges)
-                          () {
-                            final style = HeatPalette
-                                .styleFor(e.count, map.maxCount)
-                                .layers[layer];
-                            return Polyline(
-                              points: [
-                                LatLng(e.aLat, e.aLng),
-                                LatLng(e.bLat, e.bLng),
-                              ],
-                              strokeWidth: style.strokeWidth,
-                              color: style.color,
-                              strokeCap: StrokeCap.round,
-                              strokeJoin: StrokeJoin.round,
-                            );
-                          }(),
-                      ],
-                    ),
+                  // Dunkle Basiskarte statt heller OSM-Kacheln: erst darauf
+                  // liest sich die dunkle Rampe (Wein bei seltener Nutzung)
+                  // als Farbe statt als Schmutz.
+                  const EsriDarkTileLayer(),
+                  const EsriDarkLabelsTileLayer(),
+                  const EsriDarkAttribution(),
+                  // Ein einziger Canvas-Durchgang mit echtem Weichzeichner
+                  // und additiver Ueberlagerung statt dreier harter
+                  // PolylineLayer-Striche -- siehe heat_glow_layer.dart.
+                  HeatGlowLayer(edges: map.edges, maxCount: map.maxCount),
                 ],
               ),
               const Positioned(left: 12, bottom: 12, child: _Legend()),
@@ -245,13 +235,13 @@ class _Legend extends StatelessWidget {
             height: 8,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              // Der Verlauf zeigt, was die Karte tut: von duenn und
-              // zurueckhaltend zu hell und kraeftig.
+              // Der Verlauf zeigt, was die Karte tut: von dunklem Wein zu
+              // hellem, fast ausgebranntem Kern.
               gradient: const LinearGradient(
                 colors: [
-                  HeatPalette.haloColor,
-                  HeatPalette.coreLow,
-                  HeatPalette.coreHigh,
+                  HeatPalette.colorLow,
+                  HeatPalette.colorMid,
+                  HeatPalette.colorHigh,
                 ],
               ),
             ),
