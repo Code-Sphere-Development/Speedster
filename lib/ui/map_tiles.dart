@@ -30,6 +30,16 @@ class OsmAttribution extends StatelessWidget {
       );
 }
 
+/// Hintergrundfarbe der Heatmap, solange Esri-Kacheln noch nicht geladen
+/// sind (oder gar nicht laden, z.B. offline).
+///
+/// `MapOptions.backgroundColor` faellt sonst auf ein helles Grau
+/// (`0xFFE0E0E0`) zurueck -- genau das "dunkles Gekritzel auf heller Karte"
+/// Problem, das diese Aenderung eigentlich beheben soll, waere im
+/// Fehlerfall wieder da. Gemessen an der Referenz-App liegen leere Flaechen
+/// zwischen `#222D36` und `#151D1F`; dieser Wert liegt dazwischen.
+const Color esriDarkBackground = Color(0xFF1C252B);
+
 /// Dunkle Kacheln fuer die Heatmap.
 ///
 /// Auf hellen OSM-Kacheln liest sich die niedrige Intensitaet der Rampe

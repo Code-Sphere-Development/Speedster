@@ -113,6 +113,12 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                   initialCenter: _overviewCenter,
                   initialZoom: _overviewZoom,
                   onMapEvent: (e) => _onCameraChanged(e.camera),
+                  // Ohne das faellt die Karte auf ein helles Grau zurueck,
+                  // solange die Esri-Kacheln noch laden oder gar nicht
+                  // erreichbar sind -- dann wieder dunkle Rampe auf hellem
+                  // Grund, genau das Problem, das diese Aenderung beheben
+                  // soll.
+                  backgroundColor: esriDarkBackground,
                 ),
                 children: [
                   // Dunkle Basiskarte statt heller OSM-Kacheln: erst darauf

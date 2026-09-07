@@ -171,6 +171,21 @@ void main() {
     expect(options.initialZoom, 5.0);
   });
 
+  testWidgets(
+      'faellt bei fehlenden Kacheln nicht auf den hellen Standardgrund '
+      'zurueck', (tester) async {
+    await tester.pumpWidget(wrap(FakeHeatSource(_oneEdge)));
+    await tester.pumpAndSettle();
+
+    // MapOptions.backgroundColor faellt sonst auf 0xFFE0E0E0 zurueck --
+    // solange die Esri-Kacheln laden oder unerreichbar sind, waere die
+    // Karte wieder dunkle Rampe auf hellem Grund. Der exakte Wert ist
+    // bewusst geprueft, damit ihn niemand versehentlich fallen laesst.
+    final options = tester.widget<FlutterMap>(find.byType(FlutterMap)).options;
+    expect(options.backgroundColor, esriDarkBackground);
+    expect(options.backgroundColor, isNot(const Color(0xFFE0E0E0)));
+  });
+
   testWidgets('rueckt die Karte auf die vorhandenen Strecken', (tester) async {
     await tester.pumpWidget(wrap(FakeHeatSource(_oneEdge)));
     await tester.pumpAndSettle();
