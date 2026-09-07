@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
@@ -48,6 +49,43 @@ class _ProjectedEdge {
   final HeatStyle style;
 }
 
+/// Wie weit eine Kante ueber ihre geometrische Strecke hinaus sichtbar
+/// bleibt: der halbe breiteste Strich plus die Weichzeichnung.
+///
+/// Reine Funktion, eigens fuer die Sichtbarkeitspruefung -- ein
+/// weichgezeichneter Strich blutet sichtbar ueber seine geometrischen
+/// Grenzen hinaus, also darf die Kulisse nicht am rohen Streckenrechteck
+/// abschneiden, sonst reisst der Schein am Bildschirmrand hart ab.
+/// `glow` ist immer breiter und staerker weichgezeichnet als `core`
+/// (siehe `HeatPalette.styleFor`), deshalb reicht es, sie zu betrachten.
+/// Der Faktor 3 auf `blurSigma` ist eine grobe, bewusst grosszuegige
+/// Naeherung an die sichtbare Reichweite eines Gauss-Weichzeichners.
+double heatCullMargin(HeatStyle style) =>
+    style.glow.strokeWidth / 2 + style.glow.blurSigma * 3;
+
+/// Prueft, ob die Bounding-Box einer bereits projizierten Strecke (samt
+/// [margin]) den sichtbaren Ausschnitt [viewport] ueberlappt.
+///
+/// Reine Funktion, arbeitet ausschliesslich auf den uebergebenen Offsets --
+/// keine Neuprojektion, kein Kamerazugriff. Damit einzeln testbar und im
+/// Malvorgang billig: nur Min/Max und ein Rechteckvergleich pro Kante.
+bool heatSegmentOverlapsViewport({
+  required Offset a,
+  required Offset b,
+  required Size viewport,
+  required double margin,
+}) {
+  final left = math.min(a.dx, b.dx) - margin;
+  final right = math.max(a.dx, b.dx) + margin;
+  final top = math.min(a.dy, b.dy) - margin;
+  final bottom = math.max(a.dy, b.dy) + margin;
+
+  return right >= 0 &&
+      left <= viewport.width &&
+      bottom >= 0 &&
+      top <= viewport.height;
+}
+
 class _HeatGlowPainter extends CustomPainter {
   _HeatGlowPainter({
     required this.edges,
@@ -63,14 +101,28 @@ class _HeatGlowPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (edges.isEmpty) return;
 
-    final projected = [
-      for (final e in edges)
-        _ProjectedEdge(
-          camera.getOffsetFromOrigin(LatLng(e.aLat, e.aLng)),
-          camera.getOffsetFromOrigin(LatLng(e.bLat, e.bLng)),
-          HeatPalette.styleFor(e.count, maxCount),
-        ),
-    ];
+    // PolylineLayer culled Segmente ausserhalb des Ausschnitts; das ging
+    // beim Ersatz durch diese Ebene verloren, weil hier jede Kante
+    // bedingungslos gezeichnet wurde. Besonders die allererste Abfrage
+    // (HeatQuery(level: 1), noch ohne bounds, bevor das erste Kamera-Event
+    // feuert) liefert sonst jede gespeicherte Kante im ganzen Zeitraum.
+    final projected = <_ProjectedEdge>[];
+    for (final e in edges) {
+      final a = camera.getOffsetFromOrigin(LatLng(e.aLat, e.aLng));
+      final b = camera.getOffsetFromOrigin(LatLng(e.bLat, e.bLng));
+      final style = HeatPalette.styleFor(e.count, maxCount);
+      final margin = heatCullMargin(style);
+      if (!heatSegmentOverlapsViewport(
+        a: a,
+        b: b,
+        viewport: size,
+        margin: margin,
+      )) {
+        continue;
+      }
+      projected.add(_ProjectedEdge(a, b, style));
+    }
+    if (projected.isEmpty) return;
 
     final viewport = Offset.zero & size;
     // Ein saveLayer, damit BlendMode.plus zwischen den beiden Durchgaengen
