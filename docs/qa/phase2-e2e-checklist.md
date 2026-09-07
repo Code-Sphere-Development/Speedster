@@ -3,10 +3,14 @@
 Verifies the full loop: app ↔ Laravel backend ↔ MySQL. Backend hosting is provided
 separately; this checklist assumes a reachable API instance.
 
+The backend now lives in its own repository:
+[Code-Sphere-Development/Speedster_Cloud](https://github.com/Code-Sphere-Development/Speedster_Cloud).
+Commands below run from a checkout of that repository.
+
 ## Backend bring-up
 
-- [ ] Configure `backend/.env` with MySQL credentials (`DB_CONNECTION=mysql`, host, db, user, pass).
-- [ ] `cd backend && php artisan migrate` — all migrations run against MySQL.
+- [ ] Configure `.env` with MySQL credentials (`DB_CONNECTION=mysql`, host, db, user, pass).
+- [ ] `php artisan migrate` — all migrations run against MySQL.
 - [ ] `php artisan serve` (or the real host) exposes the API.
 - [ ] `./vendor/bin/pest` → 26 passing (auth, social, upload idempotency, read, account, throttle).
 - [ ] Set `GOOGLE_CLIENT_ID` / `APPLE_CLIENT_ID` in `.env` before enabling social login in prod
