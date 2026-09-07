@@ -31,6 +31,12 @@ void main() {
     // Der Text war die Grundlage der Einwilligung und seit Phase 2 falsch:
     // die Cloud-Synchronisierung laedt vollstaendige GPS-Spuren hoch.
     expect(find.textContaining('kein Upload'), findsNothing);
+
+    // Nicht nur das Stichwort pruefen: die Zusicherung ist, dass der Text
+    // benennt WAS uebertragen wird und WOHIN. Sonst koennte die Aussage
+    // spaeter stillschweigend verwaessert werden, ohne dass ein Test bricht.
     expect(find.textContaining('Cloud-Synchronisierung'), findsOneWidget);
+    expect(find.textContaining('Streckenverlauf'), findsOneWidget);
+    expect(find.textContaining('übertragen'), findsOneWidget);
   });
 }
