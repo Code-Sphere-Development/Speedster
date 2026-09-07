@@ -2,9 +2,18 @@
 
 use App\Services\HeatGrid;
 
-function heatFixture(string $relative): array
+/**
+ * Die Fixtures liegen bewusst hier im Repo und nicht in der App: beide
+ * Seiten pruefen gegen dieselbe festgeschriebene Referenz. Aendert sich die
+ * Rasterung, werden die Dateien in der App neu erzeugt und hierher kopiert
+ * -- siehe README.
+ */
+function heatFixture(string $name): array
 {
-    return json_decode(file_get_contents(__DIR__.'/../../../'.$relative), true);
+    return json_decode(
+        file_get_contents(__DIR__.'/../fixtures/'.$name),
+        true
+    );
 }
 
 /** Kanonische Darstellung, identisch zu canonical() im Dart-Test. */
@@ -26,8 +35,8 @@ function heatCanonical(array $fold): array
 }
 
 it('rechnet identisch zur Dart-Implementierung', function () {
-    $fixtures = heatFixture('test/fixtures/heat_parity.json');
-    $expected = heatFixture('test/fixtures/heat_parity_expected.json');
+    $fixtures = heatFixture('heat_parity.json');
+    $expected = heatFixture('heat_parity_expected.json');
 
     foreach ($fixtures['cases'] as $case) {
         $actual = heatCanonical(HeatGrid::foldTrip($case['points']));
