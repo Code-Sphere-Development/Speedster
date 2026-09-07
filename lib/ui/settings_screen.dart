@@ -142,8 +142,8 @@ class SettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Fahre stets verantwortungsvoll. Es gilt die StVO. '
-              'Die Nutzung erfolgt auf eigene Gefahr. Alle Daten bleiben lokal '
-              'auf deinem Gerät.',
+              'Die Nutzung erfolgt auf eigene Gefahr. Ohne aktivierte '
+              'Cloud-Synchronisierung bleiben alle Daten auf deinem Gerät.',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

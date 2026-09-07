@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:speedster/cloud/token_store.dart';
 
-/// Base URL injected at build time: --dart-define=API_BASE_URL=https://...
+/// Basis-URL, zur Bauzeit ueberschreibbar:
+/// --dart-define=API_BASE_URL=https://...
 const kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:8000',
+  defaultValue: 'https://speedster.code-sphere.de',
 );
 
 /// Configures a Dio instance that attaches the bearer token from [TokenStore].
