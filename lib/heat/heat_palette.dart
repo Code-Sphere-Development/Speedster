@@ -31,19 +31,30 @@ class HeatStyle {
 
 /// Darstellung der Heatmap.
 ///
-/// Farbrampe von dunkel nach hell, gemessen an einer Referenz-App:
-/// dunkler Wein (selten befahren) -> Karmesin (mittel) -> helles Warmgrau
-/// (haeufigster Kern einer einzelnen Strecke). Zusaetzliches Ausbrennen zu
-/// Weiss an Kreuzungen entsteht nicht aus der Rampe selbst, sondern aus der
-/// additiven Ueberlagerung mehrerer Strecken beim Zeichnen (`BlendMode.plus`
-/// in `HeatGlowLayer`, siehe `lib/ui/heat_glow_layer.dart`).
+/// Farbrampe "Rotglut": dunkles Rot (einmal gefahren) -> kraeftiges Rot
+/// (mittel) -> Gold-Amber (taeglich). Das Ausbrennen zu Weiss entsteht
+/// nicht aus der Rampe, sondern aus der additiven Ueberlagerung mehrerer
+/// Strecken beim Zeichnen (`BlendMode.plus` in `HeatGlowLayer`).
+///
+/// Der oberste Stop ist bewusst eine gesaettigte Farbe und kein Weissgrau.
+/// Eine fruehere Fassung endete auf `#BEBEB2`; zusammen mit der additiven
+/// Ueberlagerung sattierte damit jede haeufig befahrene Strecke sofort zu
+/// reinem Weiss durch. Die Karte kannte danach nur noch zwei Zustaende --
+/// blasses Rosa oder Weiss -- und die Abstufung dazwischen, um die es bei
+/// einer Heatmap geht, war verschwunden. Nachgewiesen durch Rendern der
+/// Zeichenebene in eine Bilddatei, nicht durch Betrachten der Zahlen.
+///
+/// Aus demselben Grund liegen die Deckkraefte niedriger als naiv gedacht:
+/// bei additiver Mischung addiert sich jede Ueberlappung, ein Startwert
+/// von 0,35 fuer den Schein war bereits zu hoch.
 ///
 /// Haeufigkeit wird ueber Farbe, Deckkraft und Strichstaerke getragen. Eine
-/// fruehere Fassung faerbte selten befahrene Strecken fast schwarz -- und
-/// weil praktisch jede Strecke genau einmal gefahren wurde, war die Karte
-/// eine dunkle Kritzelei auf hellen Kacheln. Die dunkle Esri-Basiskarte
-/// (siehe `lib/ui/map_tiles.dart`) macht den dunklen Wein-Ton bei niedriger
-/// Intensitaet jetzt wieder lesbar, statt wie Schmutz zu wirken.
+/// noch fruehere Fassung faerbte selten befahrene Strecken fast schwarz --
+/// und weil praktisch jede Strecke genau einmal gefahren wurde, war die
+/// Karte eine dunkle Kritzelei auf hellen Kacheln. Die dunkle
+/// Esri-Basiskarte (siehe `lib/ui/map_tiles.dart`) macht den dunkelroten
+/// Ton bei niedriger Intensitaet lesbar, statt ihn wie Schmutz wirken zu
+/// lassen.
 ///
 /// WICHTIG: `resources/js/maps.js` im Speedster_Cloud-Repository spiegelt
 /// diese Rampe fuer den Webclient. Aendert sich [colorLow], [colorMid] oder
@@ -52,15 +63,16 @@ class HeatStyle {
 class HeatPalette {
   const HeatPalette._();
 
-  /// Selten befahren: dunkler Wein.
-  static const Color colorLow = Color(0xFF4A182C);
+  /// Einmal gefahren: dunkles Rot, auf der dunklen Karte gerade noch
+  /// deutlich als Farbe erkennbar.
+  static const Color colorLow = Color(0xFF3B0D12);
 
-  /// Mittlere Haeufigkeit: Karmesin.
-  static const Color colorMid = Color(0xFF842D42);
+  /// Mittlere Haeufigkeit: kraeftiges Rot, der Ton des App-Akzents.
+  static const Color colorMid = Color(0xFFC81E28);
 
-  /// Kern bei haeufigster Nutzung einer einzelnen Strecke: helles Warmgrau,
-  /// nahe am Ausbrennen.
-  static const Color colorHigh = Color(0xFFBEBEB2);
+  /// Haeufigste Nutzung einer einzelnen Strecke: Gold-Amber. Gesaettigt,
+  /// nicht weisslich -- siehe Klassenkommentar.
+  static const Color colorHigh = Color(0xFFFF9A3C);
 
   /// Normierte Haeufigkeit zwischen 0 und 1.
   ///
@@ -81,23 +93,35 @@ class HeatPalette {
     return Color.lerp(colorMid, colorHigh, (clamped - 0.5) / 0.5)!;
   }
 
+  /// Weichzeichnung der Schein-Ebene.
+  ///
+  /// Fest statt nach Intensitaet gestaffelt, weil der Weichzeichner nicht
+  /// mehr je Strecke, sondern einmal ueber die gesamte Ebene laeuft (siehe
+  /// `HeatGlowLayer`). Ein Blur je Strecke kostete bei mehreren tausend
+  /// Kanten ebenso viele Offscreen-Durchgaenge pro Bild -- die Karte war
+  /// dadurch nicht mehr fluessig zu bedienen. Die Staffelung nach
+  /// Haeufigkeit tragen weiterhin Farbe, Deckkraft und Strichstaerke.
+  static const double glowBlurSigma = 11.0;
+
   static HeatStyle styleFor(int count, int maxCount) {
     final t = intensity(count, maxCount);
     final color = colorFor(t);
 
     return HeatStyle(
-      // Breiter Schein, stark weichgezeichnet: traegt die weiche Kante und
-      // ist die Ebene, die an Kreuzungen additiv Richtung Weiss aufaddiert.
+      // Breiter Schein: traegt die weiche Kante und ist die Ebene, die an
+      // Kreuzungen additiv Richtung Weiss aufaddiert.
       glow: HeatLayer(
-        color: color.withValues(alpha: 0.35 + 0.35 * t),
+        color: color.withValues(alpha: 0.16 + 0.30 * t),
         strokeWidth: 14 + 10 * t,
-        blurSigma: 8 + 6 * t,
+        blurSigma: glowBlurSigma,
       ),
-      // Schmaler, fast scharfer Kern: gibt der Strecke Koerper und Kontur.
+      // Schmaler, scharfer Kern: gibt der Strecke Koerper und Kontur.
+      // Ohne eigene Weichzeichnung -- die des Scheins genuegt, und eine
+      // zweite kostete einen weiteren Ebenendurchgang je Bild.
       core: HeatLayer(
-        color: color.withValues(alpha: 0.85 + 0.15 * t),
+        color: color.withValues(alpha: 0.55 + 0.40 * t),
         strokeWidth: 2.5 + 2 * t,
-        blurSigma: 1 + 0.5 * t,
+        blurSigma: 0,
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/ranking_screen.dart';
@@ -19,7 +20,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.textContaining('Cloud-Sync'), findsOneWidget);
+    expect(find.textContaining('Cloud-Sync findest du'), findsOneWidget);
   });
 
   testWidgets('renders ranking entries and own rank', (tester) async {
@@ -38,6 +39,9 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          // Ohne diese Vorgabe griffe der echte SecureTokenStore auf einen
+          // Plattformkanal zu, den es im Test nicht gibt.
+          cloudActiveProvider.overrideWith((ref) async => true),
           rankingBoardProvider.overrideWith((ref, arg) async => board),
         ],
         child: const MaterialApp(home: Scaffold(body: RankingScreen())),
@@ -49,5 +53,29 @@ void main() {
     expect(find.text('Fast'), findsOneWidget);
     expect(find.text('Slow'), findsOneWidget);
     expect(find.text('Dein Rang'), findsOneWidget);
+  });
+
+  testWidgets('bietet die Anmeldung an, wenn die Cloud an, aber niemand '
+      'angemeldet ist', (tester) async {
+    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudActiveProvider.overrideWith((ref) async => false),
+        ],
+        child: const MaterialApp(home: Scaffold(body: RankingScreen())),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    // Ein abgelaufenes Token loeschen Sync und Heatmap von selbst; die
+    // Abfrage liefe danach in einen 401. Ein Fehlertext waere dafuer die
+    // falsche Antwort -- fehlt nur die Anmeldung, wird sie angeboten.
+    expect(find.textContaining('angemeldet sein'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Anmelden'), findsOneWidget);
   });
 }
