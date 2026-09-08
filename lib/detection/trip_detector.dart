@@ -8,7 +8,7 @@ class DetectorConfig {
     this.startSpeed = 2.8, // ~10 km/h
     this.stopSpeed = 0.8, // ~3 km/h
     this.startWindow = const Duration(seconds: 5),
-    this.stopWindow = const Duration(seconds: 45),
+    this.stopWindow = const Duration(seconds: 60),
     this.minAccuracy = 30,
   });
 
@@ -31,8 +31,38 @@ class TripDetector {
   bool _driving = false;
   DateTime? _movingSince;
   DateTime? _stillSince;
+  bool _carConnected = false;
 
   bool get isDriving => _driving;
+
+  /// Ob das Geraet gerade mit CarPlay oder Android Auto verbunden ist.
+  ///
+  /// Die Verbindung ist ein starkes Start-, aber ein schwaches
+  /// Stopp-Signal, und genau so wird sie hier behandelt: Sie **beendet
+  /// keine Fahrt** -- ein Abbruch im Tunnel oder in der Tiefgarage darf
+  /// die Aufzeichnung nicht zerreissen -- und sie **beginnt auch keine**.
+  /// Ihre einzige Wirkung ist, das Beenden zu unterdruecken, solange sie
+  /// besteht.
+  ///
+  /// Ohne diese Unterdrueckung endete jede Fahrt an einer laengeren
+  /// Ampel oder im Stau, und der Rest der Fahrt zaehlte als neue -- mit
+  /// falschen Distanzen, falschen 0-100-Zeiten und einer zerstueckelten
+  /// Heatmap.
+  ///
+  /// Dass die Fahrt nicht schon beim Verbinden beginnt, ist Absicht: die
+  /// Standzeit vor dem Losfahren gehoerte sonst zur Fahrt und drueckte
+  /// den Durchschnitt. Losgefahren wird weiterhin ueber [startSpeed]
+  /// erkannt.
+  set carConnected(bool connected) {
+    _carConnected = connected;
+    if (connected) {
+      // Das laufende Stopp-Fenster verwerfen: nach einem Wiederverbinden
+      // soll nicht die Standzeit von vorher weiterzaehlen.
+      _stillSince = null;
+    }
+  }
+
+  bool get carConnected => _carConnected;
 
   TripEvent? update(Sample s) {
     if (s.accuracy > config.minAccuracy) return null;
@@ -54,6 +84,14 @@ class TripDetector {
     }
 
     // Driving.
+    if (_carConnected) {
+      // Solange das Auto verbunden ist, sitzt der Nutzer nachweislich
+      // darin. Stehen heisst dann Ampel, Stau oder Tankstelle -- nicht
+      // Fahrtende.
+      _stillSince = null;
+      return null;
+    }
+
     if (s.speed <= config.stopSpeed) {
       _stillSince ??= now;
       if (now.difference(_stillSince!) >= config.stopWindow) {

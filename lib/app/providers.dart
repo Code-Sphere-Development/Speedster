@@ -69,6 +69,9 @@ final recorderProvider = Provider<TripRecorder>(
     source: ref.watch(sampleSourceProvider),
     detector: ref.watch(tripDetectorProvider),
     repo: ref.watch(tripRepositoryProvider),
+    // Der Detektor beendet keine Fahrt, solange das Auto verbunden ist:
+    // Ampel und Stau sind kein Fahrtende (siehe TripDetector.carConnected).
+    carConnected: ref.watch(carConnectionProvider).connected,
   ),
 );
 

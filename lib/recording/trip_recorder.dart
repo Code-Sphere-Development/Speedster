@@ -39,16 +39,30 @@ class TripRecorder {
     required this.source,
     required this.detector,
     required this.repo,
+    this.carConnected,
     this.flushEvery = 10,
   });
 
   final SampleSource source;
   final TripDetector detector;
   final TripRepository repo;
+
+  /// Meldet CarPlay- und Android-Auto-Verbindungen an den Detektor weiter.
+  ///
+  /// Bewusst ein blosser `Stream<bool>` statt der CarConnection-Klasse:
+  /// die Aufzeichnung soll nichts aus der App-Schicht kennen, und ein
+  /// Strom laesst sich im Test ohne Plattformkanal fuettern.
+  ///
+  /// Optional, weil ein Geraet ohne beides -- und jeder Test, den die
+  /// Verbindung nicht interessiert -- ohne auskommen muss.
+  final Stream<bool>? carConnected;
+
   final int flushEvery;
 
   final _stateController = StreamController<RecorderState>.broadcast();
   Stream<RecorderState> get state => _stateController.stream;
+
+  StreamSubscription<bool>? _carSubscription;
 
   int? _tripId;
   final List<TrackPoint> _buffer = [];
@@ -61,6 +75,13 @@ class TripRecorder {
   /// For an infinite (real device) stream, callers should NOT await this.
   Future<void> start() async {
     _stopped = false;
+    // Faellt der Plattformkanal aus, meldet er nichts, und der Detektor
+    // bleibt bei `false` -- die Erkennung verhaelt sich dann wie vor
+    // dieser Aenderung, statt haengen zu bleiben.
+    _carSubscription ??= carConnected?.listen(
+      (connected) => detector.carConnected = connected,
+      onError: (Object _) {},
+    );
     await for (final s in source.samples()) {
       if (_stopped) break;
       await _process(s);
@@ -69,6 +90,8 @@ class TripRecorder {
 
   Future<void> stop() async {
     _stopped = true;
+    await _carSubscription?.cancel();
+    _carSubscription = null;
     await _stateController.close();
   }
 
