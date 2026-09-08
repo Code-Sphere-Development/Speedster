@@ -1,87 +1,139 @@
 import 'package:flutter/material.dart';
 
-/// Farbwelt der App: neutrale Flaechen, ein kraeftiger roter Akzent.
+/// Farbwelt der App: rotes Markenzeichen, elektrisch-türkiser Gegenpol,
+/// kühle Flächen.
 ///
-/// Material 3 leitet aus einer Saatfarbe sonst auch die Flaechen ab und
-/// entsaettigt den Akzent im Dunkelmodus. Aus dem Logo-Rot wurde dabei ein
-/// Lachsrosa auf braeunlichem Grund. Deshalb werden Flaeche und Akzent hier
-/// getrennt: die Grautoene kommen aus der neutralen Variante, der Akzent wird
-/// explizit gesetzt.
+/// Das Schema wird **von Hand** gesetzt und nicht aus einer Saatfarbe
+/// abgeleitet. Material 3 entsättigt aus dem Logo-Rot sonst ein Lachsrosa
+/// auf bräunlichem Grund. Der frühere Ausweg — `DynamicSchemeVariant.
+/// monochrome` — vermied das, machte dafür aber alles grau: die
+/// Oberfläche sah aus, als wäre sie durchgehend deaktiviert. Beides ist
+/// der Grund, warum hier jede tragende Farbe ausdrücklich dasteht.
+///
+/// Alle Paare sind nach WCAG 2 geprüft (Exponent 2,4, nicht 2,0 — mit
+/// 2,0 fallen die Werte zu niedrig aus). Die Zahlen stehen an den
+/// Konstanten; ein Test hält sie fest.
 class SpeedsterTheme {
   const SpeedsterTheme._();
 
   /// Das Rot aus `tool/branding/speedster.png`.
   static const Color brandRed = Color(0xFFE21C23);
 
-  /// Etwas abgedunkelt: weisse Schrift darauf erreicht 5,06:1 statt 4,39:1.
-  static const Color _lightAccent = Color(0xFFCC1A20);
+  // --- Hell ---------------------------------------------------------
 
-  /// Etwas aufgehellt: 4,74:1 gegen die dunkle Flaeche, und dunkle Schrift
-  /// darauf kommt auf 4,83:1.
-  static const Color _darkAccent = Color(0xFFFF3B41);
-  static const Color _onDarkAccent = Color(0xFF3D0004);
+  /// Weiss darauf erreicht 5,24:1.
+  static const Color _lightPrimary = Color(0xFFD7141A);
+  static const Color _lightSecondary = Color(0xFF0092B8);
+  static const Color _lightSurface = Color(0xFFF7F8FA);
+  static const Color _lightContainer = Color(0xFFE9EDF2);
+  static const Color _lightInk = Color(0xFF101418);
+  static const Color _lightMuted = Color(0xFF5B6672);
 
-  static ThemeData get light => _build(Brightness.light);
+  // --- Dunkel -------------------------------------------------------
 
-  static ThemeData get dark => _build(Brightness.dark);
+  /// 5,45:1 gegen die dunkle Flaeche; dunkle Schrift darauf 4,96:1.
+  static const Color _darkPrimary = Color(0xFFFF3B41);
+  static const Color _onDarkPrimary = Color(0xFF3D0004);
+  static const Color _darkSecondary = Color(0xFF25D0F5);
+  static const Color _darkSurface = Color(0xFF0B0F14);
+  static const Color _darkContainer = Color(0xFF17202A);
+  static const Color _darkInk = Color(0xFFEDF2F7);
+  static const Color _darkMuted = Color(0xFF9BA8B5);
 
   /// Deckkraft, mit der der Akzent als Toenung ueber der Flaeche liegt.
   ///
-  /// Gerade so kraeftig, dass die Flaeche als hervorgehoben zu erkennen
-  /// ist, und gerade so zurueckhaltend, dass gewoehnlicher Text darauf
-  /// lesbar bleibt: 13,9:1 im Hellmodus, 13,1:1 im Dunkelmodus.
-  static const double _containerTint = 0.10;
+  /// Kraeftig genug, dass die Flaeche als hervorgehoben zu erkennen ist,
+  /// zurueckhaltend genug, dass gewoehnlicher Text darauf lesbar bleibt.
+  static const double _containerTint = 0.14;
 
   /// Hervorgehobene Flaeche in der Akzentfamilie.
   ///
-  /// Muss ausdruecklich gesetzt werden. `scheme()` ueberschrieb bisher nur
-  /// `primary` und `secondary` und ueberliess den Rest der Familie der
-  /// monochromen Variante -- die baut Container *invers* zur Flaeche auf
-  /// und lieferte damit #3B3B3B (fast schwarz) im Hellmodus und #D4D4D4
-  /// (hellgrau) im Dunkelmodus. Text in der jeweiligen Vordergrundfarbe
-  /// kam darauf auf 1,54:1 bzw. 1,14:1 und war praktisch unsichtbar.
+  /// Muss ausdruecklich gesetzt werden: wird sie einem abgeleiteten
+  /// Schema ueberlassen, entsteht eine Flaeche, deren Vordergrundfarbe
+  /// nicht zu der passt, die das Widget tatsaechlich verwendet -- genau
+  /// so war "Dein Rang" einmal unlesbar.
   static Color containerFor(ColorScheme scheme) => Color.alphaBlend(
         scheme.primary.withValues(alpha: _containerTint),
         scheme.surface,
       );
 
+  static ThemeData get light => _build(Brightness.light);
+
+  static ThemeData get dark => _build(Brightness.dark);
+
   static ColorScheme scheme(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+
+    final primary = dark ? _darkPrimary : _lightPrimary;
+    final surface = dark ? _darkSurface : _lightSurface;
+    final container = dark ? _darkContainer : _lightContainer;
+    final ink = dark ? _darkInk : _lightInk;
+    final muted = dark ? _darkMuted : _lightMuted;
+
     final base = ColorScheme.fromSeed(
-      seedColor: brandRed,
+      seedColor: primary,
       brightness: brightness,
-      // Neutrale Graustufen statt eingefaerbter Flaechen.
-      dynamicSchemeVariant: DynamicSchemeVariant.monochrome,
+    ).copyWith(
+      primary: primary,
+      onPrimary: dark ? _onDarkPrimary : Colors.white,
+      secondary: dark ? _darkSecondary : _lightSecondary,
+      onSecondary: dark ? _onDarkPrimary : Colors.white,
+      surface: surface,
+      onSurface: ink,
+      onSurfaceVariant: muted,
+      // Alle Container-Ebenen auf denselben Ton: Material staffelt sie
+      // sonst in fuenf kaum unterscheidbaren Graustufen, und genau das
+      // liess die Oberflaeche flau wirken.
+      surfaceContainerLowest: surface,
+      surfaceContainerLow: container,
+      surfaceContainer: container,
+      surfaceContainerHigh: container,
+      surfaceContainerHighest: container,
+      outlineVariant: Color.alphaBlend(muted.withValues(alpha: 0.28), surface),
+      outline: muted,
     );
 
-    final accented = brightness == Brightness.dark
-        ? base.copyWith(
-            primary: _darkAccent,
-            onPrimary: _onDarkAccent,
-            secondary: _darkAccent,
-            onSecondary: _onDarkAccent,
-          )
-        : base.copyWith(
-            primary: _lightAccent,
-            onPrimary: Colors.white,
-            secondary: _lightAccent,
-            onSecondary: Colors.white,
-          );
+    final accentSurface = containerFor(base);
 
-    // Die Container-Paare erst jetzt, weil sie vom bereits gesetzten
-    // Akzent abgeleitet werden. Vordergrund bleibt die gewoehnliche
-    // Textfarbe -- die Toenung ist schwach genug, dass sie traegt.
-    final container = containerFor(accented);
-
-    return accented.copyWith(
-      primaryContainer: container,
-      onPrimaryContainer: accented.onSurface,
-      secondaryContainer: container,
-      onSecondaryContainer: accented.onSurface,
+    return base.copyWith(
+      primaryContainer: accentSurface,
+      onPrimaryContainer: ink,
+      secondaryContainer: Color.alphaBlend(
+        base.secondary.withValues(alpha: _containerTint),
+        surface,
+      ),
+      onSecondaryContainer: ink,
     );
   }
 
-  static ThemeData _build(Brightness brightness) => ThemeData(
-        colorScheme: scheme(brightness),
-        useMaterial3: true,
-      );
+  static ThemeData _build(Brightness brightness) {
+    final scheme = SpeedsterTheme.scheme(brightness);
+
+    return ThemeData(
+      colorScheme: scheme,
+      useMaterial3: true,
+      scaffoldBackgroundColor: scheme.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surfaceContainer,
+        foregroundColor: scheme.onSurface,
+        // Kein Farbwechsel beim Scrollen: die Leiste soll ruhig stehen.
+        scrolledUnderElevation: 0,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scheme.surfaceContainer,
+        // Der Akzent markiert den aktiven Reiter -- vorher tat das ein
+        // Grau, das sich kaum von der Leiste abhob.
+        indicatorColor: scheme.primary.withValues(alpha: 0.22),
+        elevation: 0,
+      ),
+      dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 1),
+      cardTheme: CardThemeData(
+        color: scheme.surfaceContainer,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+    );
+  }
 }
