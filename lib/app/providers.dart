@@ -6,6 +6,8 @@ import 'package:speedster/cloud/auth_repository.dart';
 import 'package:speedster/cloud/cloud_sync_service.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/cloud/token_store.dart';
+import 'package:speedster/cloud/trip_cache_service.dart';
+import 'package:speedster/cloud/trip_source.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
@@ -13,6 +15,7 @@ import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/cloud_heat_source.dart';
 import 'package:speedster/heat/heat_folder.dart';
 import 'package:speedster/heat/heat_map.dart';
+import 'package:speedster/heat/heat_snapshot_store.dart';
 import 'package:speedster/heat/heat_source.dart';
 import 'package:speedster/heat/local_heat_source.dart';
 import 'package:speedster/recording/trip_recorder.dart';
@@ -75,8 +78,22 @@ final heatFolderProvider = Provider<HeatFolder>(
   (ref) => HeatFolder(ref.watch(databaseProvider)),
 );
 
+/// Cloud, wenn eingeloggt — sonst und bei Netzfehlern lokal.
+final tripSourceProvider = Provider<TripSource>(
+  (ref) => FallbackTripSource(
+    CloudTripSource(ref.watch(apiClientProvider).dio),
+    LocalTripSource(ref.watch(tripRepositoryProvider)),
+    ref.watch(tokenStoreProvider),
+    ref.watch(tripRepositoryProvider),
+  ),
+);
+
 final keptTripsProvider = FutureProvider<List<Trip>>(
-  (ref) => ref.watch(tripRepositoryProvider).keptTrips(),
+  (ref) => ref.watch(tripSourceProvider).keptTrips(),
+);
+
+final heatSnapshotStoreProvider = Provider<HeatSnapshotStore>(
+  (ref) => HeatSnapshotStore(ref.watch(databaseProvider)),
 );
 
 /// Cloud, wenn eingeloggt — sonst und bei Netzfehlern lokal.
@@ -88,6 +105,7 @@ final heatSourceProvider = Provider<HeatSource>(
       ref.watch(heatFolderProvider),
     ),
     ref.watch(tokenStoreProvider),
+    ref.watch(heatSnapshotStoreProvider),
   ),
 );
 
@@ -117,6 +135,14 @@ final authRepositoryProvider = Provider<AuthRepository>(
 
 final cloudSyncServiceProvider = Provider<CloudSyncService>(
   (ref) => CloudSyncService(
+    dio: ref.watch(apiClientProvider).dio,
+    repo: ref.watch(tripRepositoryProvider),
+    tokenStore: ref.watch(tokenStoreProvider),
+  ),
+);
+
+final tripCacheServiceProvider = Provider<TripCache>(
+  (ref) => TripCacheService(
     dio: ref.watch(apiClientProvider).dio,
     repo: ref.watch(tripRepositoryProvider),
     tokenStore: ref.watch(tokenStoreProvider),

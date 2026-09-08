@@ -57,7 +57,13 @@ class SettingsScreen extends ConsumerWidget {
       if (loggedIn != true) return; // user cancelled → stay disabled
     }
     await controller.setCloudEnabled(true);
+    // Reihenfolge zaehlt: erst hochladen, dann den Vorrat aufbauen. Der
+    // Cache-Lauf raeumt nur bestaetigt hochgeladene Fahrten weg -- lief er
+    // zuerst, blieben die eben erst lokal aufgezeichneten Fahrten liegen
+    // und wuerden erst beim naechsten Start weggeraeumt.
     await ref.read(cloudSyncServiceProvider).syncOnce();
+    await ref.read(tripCacheServiceProvider).refresh();
+    ref.invalidate(keptTripsProvider);
   }
 
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
 import 'package:speedster/recording/trip_recorder.dart';
@@ -27,6 +28,7 @@ Widget wrap(SharedPreferences prefs, Stream<RecorderState> states) =>
         cloudActiveProvider.overrideWith((ref) async => false),
         keptTripsProvider.overrideWith((ref) => []),
         recorderStateProvider.overrideWith((ref) => states),
+        tripCacheServiceProvider.overrideWithValue(_NoCache()),
       ],
       child: const MaterialApp(home: HomeShell()),
     );
@@ -38,6 +40,15 @@ Future<SharedPreferences> prefs() async {
 
 int selectedTab(WidgetTester tester) =>
     tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
+
+/// Kein Cache-Lauf in diesen Tests: der Vorrat wird eigens in
+/// test/cloud/trip_cache_service_test.dart geprueft, hier geht es um die
+/// Tab-Auswahl. Ohne diese Umsetzung zoege der Start-Lauf Datenbank und
+/// HTTP-Client in den Test.
+class _NoCache implements TripCache {
+  @override
+  Future<CacheResult> refresh() async => CacheResult.skipped;
+}
 
 void main() {
   testWidgets('startet auf der Heatmap, wenn nicht gefahren wird',

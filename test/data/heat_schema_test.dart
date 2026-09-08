@@ -9,8 +9,8 @@ void main() {
   setUp(() => db = AppDatabase.forTesting(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  test('Schemaversion ist 3', () async {
-    expect(db.schemaVersion, 3);
+  test('Schemaversion ist 4', () async {
+    expect(db.schemaVersion, 4);
   });
 
   test('Heat-Tabellen existieren und nehmen Zeilen auf', () async {

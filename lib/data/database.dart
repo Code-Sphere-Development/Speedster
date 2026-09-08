@@ -61,7 +61,35 @@ class HeatEdges extends Table {
   Set<Column> get primaryKey => {level, aRow, aCol, bRow, bCol};
 }
 
-@DriftDatabase(tables: [Trips, TrackPoints, HeatCells, HeatEdges])
+/// Zwischengespeicherte Antwort der Cloud-Heatmap, je Rasterebene und
+/// Zeitraum eine Zeile.
+///
+/// Bei aktiver Cloud kann die Heatmap nicht mehr lokal nachgerechnet
+/// werden: es liegen nur noch die zuletzt gefahrenen Strecken als Punkte
+/// auf dem Geraet (siehe TripCacheService), alle aelteren nicht. Ohne Netz
+/// zeigt deshalb die zuletzt erfolgreich geladene Serverantwort -- deutlich
+/// naeher am Wahren als eine Heatmap aus zehn Fahrten.
+///
+/// Gespeichert wird nur die ungefilterte Abfrage (ohne Kartenausschnitt);
+/// eine auf einen Ausschnitt beschnittene Antwort waere als Vorrat
+/// wertlos, sobald der Nutzer die Karte verschiebt.
+@DataClassName('HeatSnapshotRow')
+class HeatSnapshots extends Table {
+  IntColumn get level => integer()();
+  TextColumn get range => text()();
+
+  /// Kanten und Maximum als JSON. Ein eigenes Tabellenschema dafuer waere
+  /// eine zweite, konkurrierende Darstellung derselben Kanten neben
+  /// HeatEdges -- der Vorrat wird nur als Ganzes geschrieben und gelesen,
+  /// nie einzeln abgefragt.
+  TextColumn get payload => text()();
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {level, range};
+}
+
+@DriftDatabase(tables: [Trips, TrackPoints, HeatCells, HeatEdges, HeatSnapshots])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
@@ -69,7 +97,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -84,6 +112,9 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(heatEdges);
             // Bestandsfahrten bleiben heatFoldedAt = NULL und werden beim
             // ersten Laden der Heatmap nachgefaltet (siehe HeatFolder).
+          }
+          if (from < 4) {
+            await m.createTable(heatSnapshots);
           }
         },
       );

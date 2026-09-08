@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/heat/heat_map.dart';
+import 'package:speedster/heat/heat_snapshot_store.dart';
 import 'package:speedster/heat/heat_source.dart';
 
 /// Liest die serverseitig aggregierte Heatmap. Nur hier greifen die
@@ -56,11 +57,12 @@ class CloudHeatSource implements HeatSource {
 /// Die Heatmap ist der Start-Screen: sie darf nie in einen Fehlerzustand
 /// kippen, nur weil das Netz weg ist.
 class FallbackHeatSource implements HeatSource {
-  FallbackHeatSource(this.cloud, this.local, this.tokenStore);
+  FallbackHeatSource(this.cloud, this.local, this.tokenStore, this.snapshots);
 
   final HeatSource cloud;
   final HeatSource local;
   final TokenStore tokenStore;
+  final HeatSnapshotStore snapshots;
 
   @override
   Future<HeatMap> load(HeatQuery query) async {
@@ -68,14 +70,22 @@ class FallbackHeatSource implements HeatSource {
       return local.load(query);
     }
     try {
-      return await cloud.load(query);
+      final map = await cloud.load(query);
+      await snapshots.write(query, map);
+      return map;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         // Token abgelaufen: loeschen wie beim Sync, damit die Quellenwahl
-        // beim naechsten Aufruf von selbst auf lokal umschaltet.
+        // beim naechsten Aufruf von selbst auf lokal umschaltet. Danach
+        // ist die lokale Quelle die richtige, nicht der Cloud-Vorrat.
         await tokenStore.clear();
+        return local.load(query);
       }
-      return local.load(query);
+      // Kein Netz: der zuletzt geladene Serverstand ist der beste
+      // verfuegbare. Lokal liegen bei aktiver Cloud nur die zuletzt
+      // gefahrenen Strecken als Punkte, daraus entstuende ein
+      // irrefuehrend leeres Bild.
+      return await snapshots.read(query) ?? await local.load(query);
     }
   }
 }

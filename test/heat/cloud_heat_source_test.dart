@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/cloud/token_store.dart';
+import 'package:drift/native.dart';
+import 'package:speedster/data/database.dart';
 import 'package:speedster/heat/cloud_heat_source.dart';
+import 'package:speedster/heat/heat_snapshot_store.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
 
@@ -92,7 +95,8 @@ void main() {
   test('ohne Token wird direkt lokal geladen', () async {
     final local = _LocalStub();
     final source =
-        FallbackHeatSource(_FailingSource(), local, InMemoryTokenStore());
+        FallbackHeatSource(_FailingSource(), local, InMemoryTokenStore(),
+            HeatSnapshotStore(AppDatabase.forTesting(NativeDatabase.memory())));
 
     final map = await source.load(const HeatQuery(level: 0));
     expect(local.called, isTrue);
@@ -104,7 +108,8 @@ void main() {
     await store.write('token');
     final local = _LocalStub();
 
-    final map = await FallbackHeatSource(_FailingSource(), local, store)
+    final map = await FallbackHeatSource(_FailingSource(), local, store,
+            HeatSnapshotStore(AppDatabase.forTesting(NativeDatabase.memory())))
         .load(const HeatQuery(level: 0));
 
     expect(local.called, isTrue);
@@ -117,10 +122,99 @@ void main() {
     await store.write('abgelaufen');
     final local = _LocalStub();
 
-    final map = await FallbackHeatSource(_FailingSource(401), local, store)
+    final map = await FallbackHeatSource(_FailingSource(401), local, store,
+            HeatSnapshotStore(AppDatabase.forTesting(NativeDatabase.memory())))
         .load(const HeatQuery(level: 0));
 
     expect(await store.read(), isNull, reason: 'Token muss geloescht sein');
     expect(map.maxCount, 7);
   });
+
+  group('Cloud-Vorrat', () {
+    late AppDatabase db;
+    late HeatSnapshotStore snapshots;
+    late InMemoryTokenStore store;
+
+    setUp(() async {
+      db = AppDatabase.forTesting(NativeDatabase.memory());
+      snapshots = HeatSnapshotStore(db);
+      store = InMemoryTokenStore();
+      await store.write('token');
+    });
+    tearDown(() => db.close());
+
+    test('legt eine erfolgreiche Cloud-Antwort ab', () async {
+      final source = FallbackHeatSource(
+        _ConstantSource(const HeatMap(edges: [], maxCount: 42)),
+        _LocalStub(),
+        store,
+        snapshots,
+      );
+
+      await source.load(const HeatQuery(level: 1));
+
+      expect((await snapshots.read(const HeatQuery(level: 1)))?.maxCount, 42);
+    });
+
+    test('bedient sich ohne Netz aus dem Vorrat statt aus der lokalen Quelle',
+        () async {
+      await snapshots.write(
+        const HeatQuery(level: 1),
+        const HeatMap(edges: [], maxCount: 99),
+      );
+      final local = _LocalStub();
+
+      final map =
+          await FallbackHeatSource(_FailingSource(), local, store, snapshots)
+              .load(const HeatQuery(level: 1));
+
+      expect(map.maxCount, 99);
+      expect(
+        local.called,
+        isFalse,
+        reason: 'lokal liegen bei aktiver Cloud nur die letzten Fahrten',
+      );
+    });
+
+    test('faellt ohne Vorrat weiterhin auf die lokale Quelle zurueck',
+        () async {
+      final local = _LocalStub();
+
+      final map =
+          await FallbackHeatSource(_FailingSource(), local, store, snapshots)
+              .load(const HeatQuery(level: 1));
+
+      expect(local.called, isTrue);
+      expect(map.maxCount, 7);
+    });
+
+    test('nutzt nach einem 401 die lokale Quelle, nicht den Vorrat', () async {
+      await snapshots.write(
+        const HeatQuery(level: 1),
+        const HeatMap(edges: [], maxCount: 99),
+      );
+      final local = _LocalStub();
+
+      final map =
+          await FallbackHeatSource(_FailingSource(401), local, store, snapshots)
+              .load(const HeatQuery(level: 1));
+
+      expect(await store.read(), isNull);
+      expect(
+        map.maxCount,
+        7,
+        reason: 'abgemeldet ist die lokale Datenbank wieder die Wahrheit',
+      );
+      expect(local.called, isTrue);
+    });
+  });
+}
+
+class _ConstantSource implements HeatSource {
+  _ConstantSource(this.map);
+
+  final HeatMap map;
+
+  @override
+  Future<HeatMap> load(HeatQuery query) async => map;
 }
