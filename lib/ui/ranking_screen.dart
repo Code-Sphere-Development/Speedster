@@ -184,13 +184,34 @@ class _BoardList extends StatelessWidget {
     return Column(
       children: [
         if (board.me != null)
-          Container(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: ListTile(
-              leading: Text('#${board.me!.rank}'),
-              title: const Text('Dein Rang'),
-              trailing: Text(formatValue(metric, board.me!.value, unit)),
-            ),
+          Builder(
+            builder: (context) {
+              final scheme = Theme.of(context).colorScheme;
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  // Akzentkante links, wie in der Web-Bestenliste: die
+                  // Toenung allein ist absichtlich schwach, die Kante
+                  // macht die Hervorhebung auch beim Ueberfliegen
+                  // eindeutig.
+                  border: Border(
+                    left: BorderSide(color: scheme.primary, width: 4),
+                  ),
+                ),
+                child: ListTile(
+                  textColor: scheme.onPrimaryContainer,
+                  leading: Text(
+                    '#${board.me!.rank}',
+                    style: TextStyle(color: scheme.onPrimaryContainer),
+                  ),
+                  title: const Text('Dein Rang'),
+                  trailing: Text(
+                    formatValue(metric, board.me!.value, unit),
+                    style: TextStyle(color: scheme.onPrimaryContainer),
+                  ),
+                ),
+              );
+            },
           ),
         Expanded(
           child: board.entries.isEmpty

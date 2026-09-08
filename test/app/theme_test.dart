@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,8 @@ Brightness shownBrightness(WidgetTester tester) =>
     Theme.of(tester.element(find.byType(ConsentScreen))).brightness;
 
 void main() {
+  _containerTests();
+
   testWidgets('uebernimmt den hellen Systemmodus', (tester) async {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
@@ -102,3 +106,58 @@ void main() {
     expect(find.textContaining('OpenStreetMap'), findsOneWidget);
   });
 }
+
+/// WCAG-2-Kontrastverhaeltnis zweier Farben.
+///
+/// Die Linearisierung nutzt den Exponenten 2,4, nicht 2,0. Mit 2,0 fallen
+/// alle Werte zu niedrig aus, und eine Rampe erscheint schlechter als sie
+/// ist -- ein Fehler, der in diesem Projekt schon einmal zu einer
+/// unnoetigen Farbaenderung gefuehrt hat.
+double contrastRatio(Color a, Color b) {
+  double channel(double c) =>
+      c <= 0.03928 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
+  double luminance(Color c) =>
+      0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b);
+
+  final la = luminance(a);
+  final lb = luminance(b);
+  final hi = math.max(la, lb);
+  final lo = math.min(la, lb);
+
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+void _containerTests() {
+  for (final brightness in Brightness.values) {
+    test('hervorgehobene Flaeche traegt lesbaren Text ($brightness)', () {
+      final scheme = SpeedsterTheme.scheme(brightness);
+
+      // Die Regression: scheme() ueberschrieb nur primary und secondary
+      // und ueberliess primaryContainer der monochromen Variante. Die baut
+      // Container invers zur Flaeche auf -- fast schwarz im Hellmodus,
+      // hellgrau im Dunkelmodus. Text darauf kam auf 1,54:1 bzw. 1,14:1
+      // und war unsichtbar.
+      final ratio = contrastRatio(
+        scheme.onPrimaryContainer,
+        scheme.primaryContainer,
+      );
+
+      expect(ratio, greaterThanOrEqualTo(4.5), reason: 'WCAG AA fuer Text');
+    });
+
+    test('hervorgehobene Flaeche hebt sich von der gewoehnlichen ab '
+        '($brightness)', () {
+      final scheme = SpeedsterTheme.scheme(brightness);
+
+      // Ohne diesen Unterschied waere die Hervorhebung zwar lesbar, aber
+      // nicht als Hervorhebung zu erkennen.
+      expect(scheme.primaryContainer, isNot(scheme.surface));
+      expect(
+        contrastRatio(scheme.primary, scheme.primaryContainer),
+        greaterThanOrEqualTo(3.0),
+        reason: 'die Akzentkante muss auf der Toenung sichtbar bleiben',
+      );
+    });
+  }
+}
+

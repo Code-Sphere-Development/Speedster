@@ -25,6 +25,26 @@ class SpeedsterTheme {
 
   static ThemeData get dark => _build(Brightness.dark);
 
+  /// Deckkraft, mit der der Akzent als Toenung ueber der Flaeche liegt.
+  ///
+  /// Gerade so kraeftig, dass die Flaeche als hervorgehoben zu erkennen
+  /// ist, und gerade so zurueckhaltend, dass gewoehnlicher Text darauf
+  /// lesbar bleibt: 13,9:1 im Hellmodus, 13,1:1 im Dunkelmodus.
+  static const double _containerTint = 0.10;
+
+  /// Hervorgehobene Flaeche in der Akzentfamilie.
+  ///
+  /// Muss ausdruecklich gesetzt werden. `scheme()` ueberschrieb bisher nur
+  /// `primary` und `secondary` und ueberliess den Rest der Familie der
+  /// monochromen Variante -- die baut Container *invers* zur Flaeche auf
+  /// und lieferte damit #3B3B3B (fast schwarz) im Hellmodus und #D4D4D4
+  /// (hellgrau) im Dunkelmodus. Text in der jeweiligen Vordergrundfarbe
+  /// kam darauf auf 1,54:1 bzw. 1,14:1 und war praktisch unsichtbar.
+  static Color containerFor(ColorScheme scheme) => Color.alphaBlend(
+        scheme.primary.withValues(alpha: _containerTint),
+        scheme.surface,
+      );
+
   static ColorScheme scheme(Brightness brightness) {
     final base = ColorScheme.fromSeed(
       seedColor: brandRed,
@@ -33,7 +53,7 @@ class SpeedsterTheme {
       dynamicSchemeVariant: DynamicSchemeVariant.monochrome,
     );
 
-    return brightness == Brightness.dark
+    final accented = brightness == Brightness.dark
         ? base.copyWith(
             primary: _darkAccent,
             onPrimary: _onDarkAccent,
@@ -46,6 +66,18 @@ class SpeedsterTheme {
             secondary: _lightAccent,
             onSecondary: Colors.white,
           );
+
+    // Die Container-Paare erst jetzt, weil sie vom bereits gesetzten
+    // Akzent abgeleitet werden. Vordergrund bleibt die gewoehnliche
+    // Textfarbe -- die Toenung ist schwach genug, dass sie traegt.
+    final container = containerFor(accented);
+
+    return accented.copyWith(
+      primaryContainer: container,
+      onPrimaryContainer: accented.onSurface,
+      secondaryContainer: container,
+      onSecondaryContainer: accented.onSurface,
+    );
   }
 
   static ThemeData _build(Brightness brightness) => ThemeData(
