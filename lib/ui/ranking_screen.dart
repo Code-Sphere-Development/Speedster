@@ -4,6 +4,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
+import 'package:speedster/ui/auth_screen.dart';
 
 const _metricLabels = {
   RankMetric.maxSpeed: 'Max Speed',
@@ -42,17 +43,41 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
       settingsControllerProvider.select((s) => s.cloudEnabled),
     );
     if (!cloudOn) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Aktiviere Cloud-Sync in den Einstellungen, um Rankings zu sehen.',
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return const _CloudRequired(
+        message: 'Das Ranking vergleicht dich mit anderen Fahrern und lebt '
+            'deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es '
+            'niemanden, mit dem sich vergleichen liesse.',
+        hint: 'Cloud-Sync findest du in den Einstellungen.',
       );
     }
 
+    // Der eingeschaltete Schalter allein genuegt nicht: laeuft das Token
+    // ab, loeschen Sync und Heatmap es (siehe FallbackHeatSource), und die
+    // Abfrage liefe in einen 401. Ein Fehlertext waere dafuer die falsche
+    // Antwort -- fehlt nur die Anmeldung, soll sie angeboten werden.
+    //
+    // Bewusst erst die Pruefung abwarten, statt waehrenddessen schon die
+    // Rangliste zu laden: fuer ein abgemeldetes Konto waere das eine
+    // Abfrage, die zwangslaeufig in einen 401 laeuft.
+    return ref.watch(cloudActiveProvider).when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          // Faellt die Pruefung selbst aus, ist die Anmeldung der einzige
+          // Weg, der dem Nutzer offensteht.
+          error: (_, _) => const _CloudRequired(
+            message: 'Der Anmeldestatus liess sich nicht pruefen.',
+            showLogin: true,
+          ),
+          data: (signedIn) => signedIn
+              ? _board(context)
+              : const _CloudRequired(
+                  message: 'Fuer das Ranking musst du in der Speedster Cloud '
+                      'angemeldet sein.',
+                  showLogin: true,
+                ),
+        );
+  }
+
+  Widget _board(BuildContext context) {
     final unit = ref.watch(settingsControllerProvider.select((s) => s.unit));
     final board = ref.watch(rankingBoardProvider((_scope, _metric)));
 
@@ -95,6 +120,54 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Hinweis statt Fehler, wenn die Voraussetzung fuer das Ranking fehlt.
+class _CloudRequired extends StatelessWidget {
+  const _CloudRequired({
+    required this.message,
+    this.hint,
+    this.showLogin = false,
+  });
+
+  final String message;
+  final String? hint;
+  final bool showLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).textTheme.bodySmall?.color;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off, size: 40, color: muted),
+            const SizedBox(height: 16),
+            Text(message, textAlign: TextAlign.center),
+            if (hint != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                hint!,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            if (showLogin) ...[
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () => Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                ),
+                child: const Text('Anmelden'),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
