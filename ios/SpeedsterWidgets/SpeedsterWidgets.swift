@@ -255,9 +255,28 @@ private struct WidgetContainer: ViewModifier {
     if #available(iOS 17.0, *) {
       content
         .padding(padded ? 12 : 0)
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) { WidgetBackground() }
     } else {
       content.padding(padded ? 12 : 0)
     }
+  }
+}
+
+/// Der Systemhintergrund (`.fill.tertiary`) allein laesst die Kachel auf
+/// dem Homescreen wie eine abgeblendete Systemkachel aussehen. Darueber
+/// liegt deshalb ein schwacher Verlauf in der Markenfarbe -- gerade genug,
+/// dass die Kachel als Speedster erkennbar ist, und schwach genug, dass
+/// die Zahlen darauf lesbar bleiben.
+private struct WidgetBackground: View {
+  var body: some View {
+    Rectangle()
+      .fill(.fill.tertiary)
+      .overlay {
+        LinearGradient(
+          colors: [Color("AccentColor").opacity(0.22), .clear],
+          startPoint: .topLeading,
+          endPoint: .bottomTrailing
+        )
+      }
   }
 }
