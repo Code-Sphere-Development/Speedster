@@ -344,6 +344,12 @@ abstract class AppLocalizations {
   /// **'Beste 0–100'**
   String get rankingMetricZeroToHundred;
 
+  /// No description provided for @rankingSpeedNotice.
+  ///
+  /// In de, this message translates to:
+  /// **'Es gilt immer die StVO. Diese Wertung ist kein Grund, eine Geschwindigkeitsbegrenzung zu überschreiten.'**
+  String get rankingSpeedNotice;
+
   /// No description provided for @rankingYourRank.
   ///
   /// In de, this message translates to:
@@ -811,6 +817,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Fahrt wird aufgezeichnet'**
   String get liveRecording;
+
+  /// No description provided for @liveSpeedNotice.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahr vorausschauend — es gilt immer die zulässige Höchstgeschwindigkeit.'**
+  String get liveSpeedNotice;
 
   /// No description provided for @liveReady.
   ///
