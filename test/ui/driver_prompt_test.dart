@@ -5,6 +5,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/stats/stats_engine.dart';
 import 'package:speedster/ui/driver_prompt.dart';
 
@@ -46,6 +47,9 @@ void main() {
       ProviderScope(
         overrides: [tripRepositoryProvider.overrideWithValue(repo)],
         child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: DriverPrompt(tripId: 7)),
         ),
       ),

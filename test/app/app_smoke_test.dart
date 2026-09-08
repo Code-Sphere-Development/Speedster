@@ -26,7 +26,7 @@ class _NoCache implements TripCache {
 }
 
 void main() {
-  testWidgets('renders the five-tab shell when consent accepted',
+  testWidgets('renders the shell when consent accepted',
       (tester) async {
     SharedPreferences.setMockInitialValues({'consentAccepted': true});
     final prefs = await SharedPreferences.getInstance();
@@ -51,7 +51,8 @@ void main() {
 
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.text('Heatmap'), findsWidgets);
-    expect(find.text('Live'), findsOneWidget);
+    // "Live" fehlt, solange nicht gefahren wird -- siehe start_tab_test.
+    expect(find.text('Live'), findsNothing);
     expect(find.text('Fahrten'), findsOneWidget);
     expect(find.text('Ranking'), findsOneWidget);
     expect(find.text('Einstellungen'), findsOneWidget);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/auth_repository.dart';
 import 'package:speedster/cloud/username.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -66,42 +67,46 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   void _socialSoon(String provider) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$provider-Login folgt in Kürze.')),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).authSocialSoon(provider)),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(_register ? 'Registrieren' : 'Anmelden')),
+      appBar: AppBar(title: Text(_register ? l.authRegister : l.authSignIn)),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
           if (_register) ...[
             TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: l.authName),
             ),
             TextField(
               controller: _username,
               autocorrect: false,
               enableSuggestions: false,
               textCapitalization: TextCapitalization.none,
-              decoration: const InputDecoration(
-                labelText: 'Benutzername',
-                helperText: '3–30 Zeichen: a–z, 0–9 und _',
+              decoration: InputDecoration(
+                labelText: l.authUsername,
+                helperText: l.authUsernameHint,
               ),
             ),
           ],
           TextField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'E-Mail'),
+            decoration: InputDecoration(labelText: l.authEmail),
           ),
           TextField(
             controller: _password,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Passwort'),
+            decoration: InputDecoration(labelText: l.authPassword),
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
@@ -113,25 +118,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           const SizedBox(height: 20),
           FilledButton(
             onPressed: _busy ? null : _submit,
-            child: Text(_register ? 'Konto erstellen' : 'Anmelden'),
+            child: Text(_register ? l.authCreateAccount : l.authSignIn),
           ),
           TextButton(
             onPressed: _busy ? null : () => setState(() => _register = !_register),
-            child: Text(_register
-                ? 'Schon ein Konto? Anmelden'
-                : 'Neu hier? Konto erstellen'),
+            child: Text(_register ? l.authHaveAccount : l.authNoAccount),
           ),
           const Divider(height: 32),
           OutlinedButton.icon(
             onPressed: () => _socialSoon('Apple'),
             icon: const Icon(Icons.apple),
-            label: const Text('Mit Apple anmelden'),
+            label: Text(l.authWithApple),
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () => _socialSoon('Google'),
             icon: const Icon(Icons.g_mobiledata),
-            label: const Text('Mit Google anmelden'),
+            label: Text(l.authWithGoogle),
           ),
         ],
       ),

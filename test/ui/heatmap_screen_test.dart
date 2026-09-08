@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:speedster/app/providers.dart';
-import 'package:speedster/sensors/last_known_location.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/sensors/last_known_location.dart';
 import 'package:speedster/ui/heat_glow_layer.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/map_tiles.dart';
@@ -36,7 +37,10 @@ Widget wrap(
         lastKnownLocationProvider
             .overrideWithValue(FakeLastKnownLocation(lastKnown)),
       ],
-      child: const MaterialApp(home: HeatmapScreen()),
+      child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: HeatmapScreen()),
     );
 
 const _oneEdge = HeatMap(

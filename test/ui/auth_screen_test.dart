@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/auth_repository.dart';
 import 'package:speedster/cloud/token_store.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/auth_screen.dart';
 
 /// Merkt sich nur, ob registriert wurde — die Vorabprüfung des
@@ -29,7 +30,10 @@ class _RecordingAuthRepository extends AuthRepository {
 void main() {
   testWidgets('renders login form with email and social buttons', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: AuthScreen())),
+      const ProviderScope(child: MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: AuthScreen())),
     );
 
     expect(find.widgetWithText(TextField, 'E-Mail'), findsOneWidget);
@@ -40,7 +44,10 @@ void main() {
 
   testWidgets('toggles to register mode', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: AuthScreen())),
+      const ProviderScope(child: MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: AuthScreen())),
     );
 
     await tester.tap(find.text('Neu hier? Konto erstellen'));
@@ -52,7 +59,10 @@ void main() {
 
   testWidgets('register mode asks for a username', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: AuthScreen())),
+      const ProviderScope(child: MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: AuthScreen())),
     );
 
     await tester.tap(find.text('Neu hier? Konto erstellen'));
@@ -67,7 +77,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [authRepositoryProvider.overrideWithValue(repo)],
-        child: const MaterialApp(home: AuthScreen()),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: AuthScreen()),
       ),
     );
 

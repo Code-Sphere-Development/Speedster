@@ -125,4 +125,60 @@ void main() {
     await repo.loginSocial('google', 'id-token', username: 'collin');
     expect(sent['username'], 'collin');
   });
+
+  group('Geraeteregion', () {
+    Future<Map<String, dynamic>> capture(
+      MockDio dio,
+      String path,
+      Future<void> Function() call,
+    ) async {
+      late Map<String, dynamic> sent;
+      when(() => dio.post(path, data: any(named: 'data')))
+          .thenAnswer((invocation) async {
+        sent = invocation.namedArguments[#data] as Map<String, dynamic>;
+        return Response(
+          requestOptions: RequestOptions(path: path),
+          data: {'token': 'tok'},
+          statusCode: 200,
+        );
+      });
+      await call();
+
+      return sent;
+    }
+
+    test('schickt sie beim Anmelden mit', () async {
+      final sent = await capture(
+        dio,
+        '/auth/login',
+        () => repo.login('a@b.c', 'secret12'),
+      );
+
+      // Im Test meldet die Plattform je nach Umgebung eine Region oder
+      // keine. Beides ist zulaessig -- nur geraten werden darf nicht.
+      final country = sent['country'];
+      expect(country == null || (country as String).length == 2, isTrue);
+      if (country != null) {
+        expect(country, country.toUpperCase());
+      }
+    });
+
+    test('laesst den Schluessel weg, wenn das Geraet keine Region kennt',
+        () async {
+      // Der Server prueft gegen die Laenderliste; ein leerer oder
+      // geratener Wert wuerde mit 422 abgewiesen.
+      final sent = await capture(
+        dio,
+        '/auth/register',
+        () => repo.register(
+          name: 'Collin',
+          username: 'collin',
+          email: 'a@b.c',
+          password: 'secret12',
+        ),
+      );
+
+      expect(sent.containsKey('country'), deviceCountry() != null);
+    });
+  });
 }

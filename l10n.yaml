@@ -1,0 +1,11 @@
+# Deutsch ist die Ausgangssprache: die Oberflaeche wurde darin geschrieben,
+# und eine Uebersetzung geht davon aus -- nicht umgekehrt.
+arb-dir: lib/l10n
+template-arb-file: app_de.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/l10n/generated
+output-class: AppLocalizations
+
+# Ohne diese Datei faellt eine fehlende Uebersetzung nur beim Nutzer auf.
+untranslated-messages-file: lib/l10n/untranslated.json
+nullable-getter: false

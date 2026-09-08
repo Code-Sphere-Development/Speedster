@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/trip_detail_screen.dart';
 
@@ -45,7 +46,10 @@ void main() {
             ],
           ),
         ],
-        child: MaterialApp(home: TripDetailScreen(trip: sampleTrip())),
+        child: MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: TripDetailScreen(trip: sampleTrip())),
       ),
     );
     await tester.pump();

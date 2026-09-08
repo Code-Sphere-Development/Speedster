@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:speedster/ui/map_tiles.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
+import 'package:speedster/ui/map_tiles.dart';
 
 /// Schluessel der Punkte-Abfrage: die stabile `client_uuid` und, sofern
 /// die Fahrt lokal vorliegt, ihre Zeilen-Id. Ein Record, weil Riverpod-
@@ -32,6 +33,7 @@ class TripDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unit = ref.watch(settingsControllerProvider).unit;
+    final l = AppLocalizations.of(context);
     final pointsAsync = ref.watch(
       tripPointsProvider(
         (clientUuid: trip.clientUuid, localId: trip.id),
@@ -46,7 +48,8 @@ class TripDetailScreen extends ConsumerWidget {
             height: 260,
             child: pointsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Karte nicht verfügbar: $e')),
+              error: (e, _) =>
+                Center(child: Text(l.tripMapUnavailable(e.toString()))),
               data: (points) => _TripMap(points: points),
             ),
           ),
@@ -56,12 +59,16 @@ class TripDetailScreen extends ConsumerWidget {
               spacing: 12,
               runSpacing: 12,
               children: [
-                _StatTile('Max', SpeedFormat.speed(trip.maxSpeed, unit)),
-                _StatTile('Ø', SpeedFormat.speed(trip.avgSpeed, unit)),
-                _StatTile('Distanz', SpeedFormat.distance(trip.distance, unit)),
-                _StatTile('Dauer', Formatters.duration(trip.durationSeconds)),
-                _StatTile('0–100', Formatters.seconds(trip.zeroToHundredSeconds)),
-                _StatTile('Höhenmeter', Formatters.meters(trip.elevationGain)),
+                _StatTile(l.metricMax, SpeedFormat.speed(trip.maxSpeed, unit)),
+                _StatTile(l.metricAverage, SpeedFormat.speed(trip.avgSpeed, unit)),
+                _StatTile(
+                    l.metricDistance, SpeedFormat.distance(trip.distance, unit)),
+                _StatTile(
+                    l.metricDuration, Formatters.duration(trip.durationSeconds)),
+                _StatTile(l.metricZeroToHundred,
+                    Formatters.seconds(trip.zeroToHundredSeconds)),
+                _StatTile(
+                    l.metricElevation, Formatters.meters(trip.elevationGain)),
               ],
             ),
           ),
@@ -78,16 +85,17 @@ class _TripMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     if (points.isEmpty) {
       // Bei aktiver Cloud liegen nur die zuletzt gefahrenen Strecken als
       // Punkte auf dem Geraet (siehe TripCacheService); fuer aeltere
       // Fahrten kommt die Strecke aus dem Netz.
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            'Keine Streckendaten. Ältere Fahrten liegen nur in der Cloud — '
-            'ihre Karte braucht eine Verbindung.',
+            l.tripNoRoute,
             textAlign: TextAlign.center,
           ),
         ),

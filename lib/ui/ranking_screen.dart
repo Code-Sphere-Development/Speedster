@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 
-const _metricLabels = {
-  RankMetric.maxSpeed: 'Max Speed',
-  RankMetric.totalDistance: 'Distanz',
-  RankMetric.tripCount: 'Fahrten',
-  RankMetric.bestZeroToHundred: 'Beste 0–100',
-};
+/// Beschriftung einer Kennzahl.
+///
+/// Eine Funktion statt einer Konstanten: eine Konstante liesse sich nicht
+/// uebersetzen, weil sie ohne Kontext ausgewertet wird.
+String metricLabel(AppLocalizations l, RankMetric metric) => switch (metric) {
+      RankMetric.maxSpeed => l.rankingMetricMaxSpeed,
+      RankMetric.totalDistance => l.rankingMetricDistance,
+      RankMetric.tripCount => l.rankingMetricTrips,
+      RankMetric.bestZeroToHundred => l.rankingMetricZeroToHundred,
+    };
 
 String formatValue(RankMetric metric, double value, UnitSystem unit) {
   switch (metric) {
@@ -39,15 +44,14 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final cloudOn = ref.watch(
       settingsControllerProvider.select((s) => s.cloudEnabled),
     );
     if (!cloudOn) {
-      return const _CloudRequired(
-        message: 'Das Ranking vergleicht dich mit anderen Fahrern und lebt '
-            'deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es '
-            'niemanden, mit dem sich vergleichen liesse.',
-        hint: 'Cloud-Sync findest du in den Einstellungen.',
+      return _CloudRequired(
+        message: l.rankingCloudOffTitle,
+        hint: l.rankingCloudOffHint,
       );
     }
 
@@ -63,21 +67,21 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           // Faellt die Pruefung selbst aus, ist die Anmeldung der einzige
           // Weg, der dem Nutzer offensteht.
-          error: (_, _) => const _CloudRequired(
-            message: 'Der Anmeldestatus liess sich nicht pruefen.',
+          error: (_, _) => _CloudRequired(
+            message: l.rankingStatusUnknown,
             showLogin: true,
           ),
           data: (signedIn) => signedIn
               ? _board(context)
-              : const _CloudRequired(
-                  message: 'Fuer das Ranking musst du in der Speedster Cloud '
-                      'angemeldet sein.',
+              : _CloudRequired(
+                  message: l.rankingSignInNeeded,
                   showLogin: true,
                 ),
         );
   }
 
   Widget _board(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final unit = ref.watch(settingsControllerProvider.select((s) => s.unit));
     final board = ref.watch(rankingBoardProvider((_scope, _metric)));
 
@@ -86,10 +90,13 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
         Padding(
           padding: const EdgeInsets.all(12),
           child: SegmentedButton<RankScope>(
-            segments: const [
-              ButtonSegment(value: RankScope.world, label: Text('Welt')),
-              ButtonSegment(value: RankScope.country, label: Text('Land')),
-              ButtonSegment(value: RankScope.friends, label: Text('Freunde')),
+            segments: [
+              ButtonSegment(
+                  value: RankScope.world, label: Text(l.rankingScopeWorld)),
+              ButtonSegment(
+                  value: RankScope.country, label: Text(l.rankingScopeCountry)),
+              ButtonSegment(
+                  value: RankScope.friends, label: Text(l.rankingScopeFriends)),
             ],
             selected: {_scope},
             onSelectionChanged: (s) => setState(() => _scope = s.first),
@@ -105,7 +112,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text(_metricLabels[m]!),
+                    label: Text(metricLabel(l, m)),
                     selected: _metric == m,
                     onSelected: (_) => setState(() => _metric = m),
                   ),
@@ -116,7 +123,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
         Expanded(
           child: board.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Fehler: $e')),
+            error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
             data: (b) => _BoardList(board: b, metric: _metric, unit: unit),
           ),
         ),
@@ -182,6 +189,8 @@ class _BoardList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return Column(
       children: [
         if (board.me != null)
@@ -205,7 +214,7 @@ class _BoardList extends StatelessWidget {
                     '#${board.me!.rank}',
                     style: TextStyle(color: scheme.onPrimaryContainer),
                   ),
-                  title: const Text('Dein Rang'),
+                  title: Text(l.rankingYourRank),
                   trailing: Text(
                     formatValue(metric, board.me!.value, unit),
                     style: TextStyle(color: scheme.onPrimaryContainer),
@@ -216,7 +225,7 @@ class _BoardList extends StatelessWidget {
           ),
         Expanded(
           child: board.entries.isEmpty
-              ? const Center(child: Text('Noch keine Einträge.'))
+              ? Center(child: Text(l.rankingEmpty))
               : ListView.builder(
                   itemCount: board.entries.length,
                   itemBuilder: (context, i) {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/friend_repository.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/friends_screen.dart';
 
 Friend friend(int id, String username, String status) => Friend(
@@ -17,7 +18,10 @@ Widget wrap(FriendOverview overview, {String? username = 'ich'}) =>
       overrides: [
         friendOverviewProvider.overrideWith((ref) async => overview),
       ],
-      child: MaterialApp(home: FriendsScreen(username: username)),
+      child: MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: FriendsScreen(username: username)),
     );
 
 void main() {

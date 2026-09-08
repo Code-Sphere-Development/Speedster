@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/links.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/friend_repository.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 
 /// Freunde verwalten: hinzufuegen, annehmen, entfernen.
 ///
@@ -36,6 +37,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   }
 
   Future<void> _run(Future<void> Function() action, String success) async {
+    // Die Texte vor dem Warten holen: danach ist nicht gesichert, dass der
+    // Kontex noch zu einem eingehaengten Widget gehoert.
+    final fallback = AppLocalizations.of(context).commonNoConnection;
     setState(() => _busy = true);
     try {
       await action();
@@ -44,7 +48,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     } on FriendException catch (e) {
       _report(e.message);
     } catch (_) {
-      _report('Das hat nicht geklappt. Besteht eine Verbindung?');
+      _report(fallback);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -55,7 +59,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     if (name.isEmpty) return;
     await _run(
       () => ref.read(friendRepositoryProvider).request(name),
-      'Anfrage verschickt.',
+      AppLocalizations.of(context).friendsRequestSent,
     );
     _username.clear();
   }
@@ -63,23 +67,25 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   Future<void> _copyInvite() async {
     final name = widget.username;
     if (name == null) return;
+    final message = AppLocalizations.of(context).friendsInviteCopied;
     await Clipboard.setData(ClipboardData(text: AppLinks.invitation(name)));
-    _report('Einladungslink kopiert.');
+    _report(message);
   }
 
   @override
   Widget build(BuildContext context) {
     final overview = ref.watch(friendOverviewProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Freunde')),
+      appBar: AppBar(title: Text(l.friendsTitle)),
       body: overview.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => const Center(
+        error: (e, _) => Center(
           child: Padding(
-            padding: EdgeInsets.all(32),
+            padding: const EdgeInsets.all(32),
             child: Text(
-              'Die Freundesliste konnte nicht geladen werden.',
+              l.friendsLoadFailed,
               textAlign: TextAlign.center,
             ),
           ),
@@ -88,8 +94,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Freunde sehen voneinander nur Kennzahlen — keine einzelnen '
-              'Fahrten und keine Strecken.',
+              l.friendsLead,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
@@ -101,9 +106,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                     autocorrect: false,
                     enableSuggestions: false,
                     textCapitalization: TextCapitalization.none,
-                    decoration: const InputDecoration(
-                      labelText: 'Benutzername',
-                      helperText: 'Die eindeutige Kennung, kein Anzeigename',
+                    decoration: InputDecoration(
+                      labelText: l.friendsUsernameLabel,
+                      helperText: l.friendsUsernameHint,
                     ),
                     onSubmitted: (_) => _busy ? null : _add(),
                   ),
@@ -111,7 +116,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                 const SizedBox(width: 12),
                 FilledButton(
                   onPressed: _busy ? null : _add,
-                  child: const Text('Anfragen'),
+                  child: Text(l.friendsRequest),
                 ),
               ],
             ),
@@ -120,12 +125,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
               OutlinedButton.icon(
                 onPressed: _copyInvite,
                 icon: const Icon(Icons.link),
-                label: const Text('Einladungslink kopieren'),
+                label: Text(l.friendsCopyInvite),
               ),
             ],
             if (data.incoming.isNotEmpty)
               _Section(
-                title: 'Offene Anfragen an dich',
+                title: l.friendsIncoming,
                 children: [
                   for (final f in data.incoming)
                     ListTile(
@@ -135,7 +140,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            tooltip: 'Annehmen',
+                            tooltip: l.friendsAccept,
                             icon: const Icon(Icons.check),
                             onPressed: _busy
                                 ? null
@@ -143,11 +148,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                                       () => ref
                                           .read(friendRepositoryProvider)
                                           .accept(f.id),
-                                      'Ihr seid jetzt befreundet.',
+                                      l.friendsNowFriends,
                                     ),
                           ),
                           IconButton(
-                            tooltip: 'Ablehnen',
+                            tooltip: l.friendsDecline,
                             icon: const Icon(Icons.close),
                             onPressed: _busy
                                 ? null
@@ -155,7 +160,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                                       () => ref
                                           .read(friendRepositoryProvider)
                                           .remove(f.id),
-                                      'Abgelehnt.',
+                                      l.friendsDeclined,
                                     ),
                           ),
                         ],
@@ -164,15 +169,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                 ],
               ),
             _Section(
-              title: 'Freunde',
+              title: l.friendsTitle,
               children: data.friends.isEmpty
                   ? [
-                      const ListTile(
-                        title: Text('Noch niemand.'),
-                        subtitle: Text(
-                          'Teile deinen Einladungslink oder füge jemanden '
-                          'über seinen Benutzernamen hinzu.',
-                        ),
+                      ListTile(
+                        title: Text(l.friendsEmpty),
+                        subtitle: Text(l.friendsEmptyHint),
                       ),
                     ]
                   : [
@@ -181,7 +183,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                           title: Text('@${f.username}'),
                           subtitle: Text(f.displayName),
                           trailing: IconButton(
-                            tooltip: 'Entfernen',
+                            tooltip: l.friendsRemove,
                             icon: const Icon(Icons.person_remove),
                             onPressed: _busy
                                 ? null
@@ -189,7 +191,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                                       () => ref
                                           .read(friendRepositoryProvider)
                                           .remove(f.id),
-                                      'Entfernt.',
+                                      l.friendsRemoved,
                                     ),
                           ),
                         ),
@@ -197,13 +199,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
             ),
             if (data.outgoing.isNotEmpty)
               _Section(
-                title: 'Von dir verschickt',
+                title: l.friendsOutgoing,
                 children: [
                   for (final f in data.outgoing)
                     ListTile(
                       title: Text('@${f.username}'),
                       trailing: IconButton(
-                        tooltip: 'Zurückziehen',
+                        tooltip: l.friendsWithdraw,
                         icon: const Icon(Icons.undo),
                         onPressed: _busy
                             ? null
@@ -211,7 +213,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                                   () => ref
                                       .read(friendRepositoryProvider)
                                       .remove(f.id),
-                                  'Zurückgezogen.',
+                                  l.friendsWithdrawn,
                                 ),
                       ),
                     ),

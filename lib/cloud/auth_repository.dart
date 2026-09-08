@@ -1,5 +1,25 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:dio/dio.dart';
 import 'package:speedster/cloud/token_store.dart';
+
+/// Die Region des Geraets, etwa "DE".
+///
+/// Sie fuellt das Land fuer die Laenderwertung. Der Server nimmt sie nur
+/// an, solange dort noch keines steht -- eine Wahl auf der Kontoseite
+/// soll nicht bei jeder Anmeldung ueberschrieben werden.
+///
+/// Bewusst die Geraeteregion und nicht die GPS-Position: die Region gibt
+/// es ohne Berechtigung, ohne Dienst und ohne dass Koordinaten das Geraet
+/// verlassen. Fuer eine Rangliste ist sie genau genug.
+///
+/// Ein Geraet ohne gesetzte Region liefert null; dann bleibt das Feld
+/// leer, statt geraten zu werden.
+String? deviceCountry() {
+  final code = PlatformDispatcher.instance.locale.countryCode;
+
+  return code == null || code.length != 2 ? null : code.toUpperCase();
+}
 
 class AuthException implements Exception {
   AuthException(this.message);
@@ -29,10 +49,18 @@ class AuthRepository {
         'username': username,
         'email': email,
         'password': password,
+        'country': ?deviceCountry(),
       });
 
   Future<void> login(String email, String password) =>
-      _authenticate('/auth/login', {'email': email, 'password': password});
+      _authenticate('/auth/login', {
+        'email': email,
+        'password': password,
+        // Auch beim Anmelden: der Server traegt das Land nur nach, wenn
+        // noch keines hinterlegt ist. So bekommen auch Bestandskonten
+        // eine Laenderwertung, ohne dass jemand etwas eintragen muss.
+        'country': ?deviceCountry(),
+      });
 
   /// [username] wird nur beim erstmaligen Anmelden gebraucht: der Server
   /// sucht zuerst über `provider` + `provider_id` und verlangt den
@@ -48,6 +76,7 @@ class AuthRepository {
         'provider': provider,
         'id_token': idToken,
         'username': ?username,
+        'country': ?deviceCountry(),
       });
 
   Future<void> logout() async {

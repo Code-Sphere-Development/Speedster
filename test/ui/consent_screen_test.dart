@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
 
@@ -9,7 +10,10 @@ void main() {
   testWidgets('shows disclaimer and accept button', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: MaterialApp(home: ConsentScreen()),
+        child: MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: ConsentScreen()),
       ),
     );
     expect(find.textContaining('eigene Gefahr'), findsOneWidget);
@@ -24,7 +28,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const MaterialApp(home: ConsentScreen()),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: ConsentScreen()),
       ),
     );
 

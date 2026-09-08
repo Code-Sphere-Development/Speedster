@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
@@ -12,6 +13,7 @@ class LiveScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unit = ref.watch(settingsControllerProvider).unit;
+    final l = AppLocalizations.of(context);
     final stateAsync = ref.watch(recorderStateProvider);
 
     final state = stateAsync.asData?.value;
@@ -34,7 +36,7 @@ class LiveScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text('Fahrt wird aufgezeichnet'),
+              Text(l.liveRecording),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -42,26 +44,26 @@ class LiveScreen extends ConsumerWidget {
                   _LiveMetric(
                     icon: Icons.straighten,
                     value: SpeedFormat.distance(distanceM, unit),
-                    label: 'Distanz',
+                    label: l.liveDistance,
                   ),
                   const SizedBox(width: 40),
                   _LiveMetric(
                     icon: Icons.timer_outlined,
                     value: Formatters.duration(elapsed),
-                    label: 'Dauer',
+                    label: l.liveDuration,
                   ),
                 ],
               ),
             ] else ...[
               const Icon(Icons.speed, size: 96),
               const SizedBox(height: 16),
-              const Text(
-                'Bereit.\nDeine Fahrt wird automatisch erkannt.',
+              Text(
+                l.liveReady,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 8),
-              Text('Einheit: ${unit == UnitSystem.kmh ? 'km/h' : 'mph'}'),
+              Text(l.liveUnit(unit == UnitSystem.kmh ? 'km/h' : 'mph')),
             ],
           ],
         ),
