@@ -52,17 +52,58 @@ void main() {
     expect(SpeedsterTheme.brandRed, const Color(0xFFE21C23));
   });
 
-  test('Flaechen bleiben neutral, ohne Farbstich', () {
+  test('Flaechen tragen einen kuehlen Stich, aber keinen kraeftigen', () {
+    // Frueher galt hier das Gegenteil: die Flaechen sollten neutral grau
+    // sein. Das Ergebnis wirkte durchgehend deaktiviert. Sie tragen jetzt
+    // einen leichten kuehlen Stich -- deutlich genug, dass die Oberflaeche
+    // eine Handschrift hat, und schwach genug, dass sie nicht blau wird.
     for (final brightness in Brightness.values) {
       final surface = SpeedsterTheme.scheme(brightness).surface;
-      // Material 3 faerbt Flaechen sonst mit der Saatfarbe ein; hier muessen
-      // die Kanaele nahezu gleich sein.
-      final spread = [surface.r, surface.g, surface.b];
+
       expect(
-        spread.reduce((a, b) => a > b ? a : b) -
-            spread.reduce((a, b) => a < b ? a : b),
-        lessThan(0.02),
-        reason: 'Flaeche bei $brightness hat einen Farbstich: $surface',
+        surface.b,
+        greaterThan(surface.r),
+        reason: 'Flaeche bei $brightness ist nicht kuehl: $surface',
+      );
+      expect(
+        surface.b - surface.r,
+        lessThan(0.08),
+        reason: 'Flaeche bei $brightness ist zu blau: $surface',
+      );
+    }
+  });
+
+  test('Akzent und Zweitfarbe liegen auf gegenueberliegenden Seiten', () {
+    // Bewusst nicht ueber das Kontrastverhaeltnis geprueft: das beruht auf
+    // Helligkeit, und Rot und Tuerkis liegen dort nah beieinander,
+    // obwohl sie sofort zu unterscheiden sind. Gemeint ist die
+    // Gegenlaeufigkeit -- der Akzent warm, die Zweitfarbe kuehl. Ohne
+    // zweiten Ton wird jede Hervorhebung rot, und dann hebt sich nichts
+    // mehr ab.
+    for (final brightness in Brightness.values) {
+      final scheme = SpeedsterTheme.scheme(brightness);
+
+      expect(
+        scheme.primary.r - scheme.primary.b,
+        greaterThan(0.4),
+        reason: 'Akzent bei $brightness ist nicht warm genug',
+      );
+      expect(
+        scheme.secondary.b - scheme.secondary.r,
+        greaterThan(0.4),
+        reason: 'Zweitfarbe bei $brightness ist nicht kuehl genug',
+      );
+    }
+  });
+
+  test('die Zweitfarbe bleibt auf der Flaeche lesbar', () {
+    for (final brightness in Brightness.values) {
+      final scheme = SpeedsterTheme.scheme(brightness);
+
+      expect(
+        contrastRatio(scheme.secondary, scheme.surface),
+        greaterThanOrEqualTo(3.0),
+        reason: 'Zweitfarbe bei $brightness zu schwach',
       );
     }
   });
