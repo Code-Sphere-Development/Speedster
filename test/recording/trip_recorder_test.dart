@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
+import 'package:speedster/heat/usual_speed.dart';
+import 'package:speedster/live/live_activity.dart';
 import 'package:speedster/domain/sample.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/sensors/location_service.dart';
@@ -118,5 +120,92 @@ void main() {
     expect((await repo.keptTrips()).single.endTime, isNotNull);
     await rec.stop();
     await db.close();
+  });
+
+  group('Sperrbildschirm', () {
+    test('startet, aktualisiert und beendet die Anzeige mit der Fahrt',
+        () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final activity = RecordingLiveActivity();
+      final rec = TripRecorder(
+        source: FakeSampleSource([
+          s(10, 0), s(10, 6), // Fahrtbeginn
+          s(20, 10), s(28, 14),
+          s(0, 20), s(0, 85), // Fahrtende
+        ]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        liveActivity: activity,
+      );
+
+      await rec.start();
+
+      expect(activity.started, hasLength(1));
+      expect(activity.updated, isNotEmpty);
+      expect(activity.ended, 1);
+      await rec.stop();
+      await db.close();
+    });
+
+    test('drosselt die Aktualisierungen auf eine je Sekunde', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final activity = RecordingLiveActivity();
+      // Vier Messungen in derselben Sekunde: GPS liefert je nach Geraet
+      // mehrfach pro Sekunde, ActivityKit drosselt zu haeufige
+      // Aktualisierungen ohnehin.
+      final samples = [
+        s(10, 0), s(10, 6),
+        for (var i = 0; i < 4; i++) s(20, 7),
+        s(20, 8),
+      ];
+      final rec = TripRecorder(
+        source: FakeSampleSource(samples),
+        detector: TripDetector(const DetectorConfig()),
+        repo: DriftTripRepository(db),
+        liveActivity: activity,
+      );
+
+      await rec.start();
+
+      expect(activity.updated, hasLength(2), reason: 'Sekunde 7 und 8');
+      await rec.stop();
+      await db.close();
+    });
+
+    test('urteilt ohne eigene Messungen am Ort nicht', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final activity = RecordingLiveActivity();
+      final rec = TripRecorder(
+        source: FakeSampleSource([s(10, 0), s(10, 6), s(20, 10)]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: DriftTripRepository(db),
+        liveActivity: activity,
+        usualSpeed: UsualSpeedReader(db),
+      );
+
+      await rec.start();
+
+      // Lieber keine Aussage als eine erfundene.
+      expect(activity.started.single.verdict, SpeedVerdict.noReference);
+      await rec.stop();
+      await db.close();
+    });
+
+    test('zeichnet ohne Anzeige unveraendert auf', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final rec = TripRecorder(
+        source: FakeSampleSource([s(10, 0), s(10, 6), s(0, 20), s(0, 85)]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+      );
+
+      await rec.start();
+
+      expect((await repo.keptTrips()).single.endTime, isNotNull);
+      await rec.stop();
+      await db.close();
+    });
   });
 }

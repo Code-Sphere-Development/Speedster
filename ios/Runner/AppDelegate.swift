@@ -5,6 +5,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var carSink: FlutterEventSink?
+  private let liveActivity = LiveActivityBridge()
 
   override func application(
     _ application: UIApplication,
@@ -20,6 +21,8 @@ import UIKit
       name: "de.codesphere.speedster/car_connection",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     ).setStreamHandler(self)
+
+    liveActivity.register(messenger: engineBridge.applicationRegistrar.messenger())
   }
 
   /// CarPlay meldet sich als Audio-Ausgang vom Typ `carAudio`. Das laesst
