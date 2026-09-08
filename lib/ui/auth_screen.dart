@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/auth_repository.dart';
+import 'package:speedster/cloud/username.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -12,6 +13,7 @@ class AuthScreen extends ConsumerStatefulWidget {
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _name = TextEditingController();
+  final _username = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _register = false;
@@ -21,12 +23,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _username.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
+    // Vorab prüfen, damit ein Formatfehler nicht erst nach dem
+    // Netzwerk-Roundtrip als 422 zurückkommt. Über die Eindeutigkeit
+    // entscheidet weiterhin nur der Server.
+    if (_register) {
+      final problem = validateUsername(_username.text);
+      if (problem != null) {
+        setState(() => _error = problem);
+        return;
+      }
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -34,7 +47,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final auth = ref.read(authRepositoryProvider);
     try {
       if (_register) {
-        await auth.register(_name.text.trim(), _email.text.trim(), _password.text);
+        await auth.register(
+          name: _name.text.trim(),
+          username: normaliseUsername(_username.text),
+          email: _email.text.trim(),
+          password: _password.text,
+        );
       } else {
         await auth.login(_email.text.trim(), _password.text);
       }
@@ -59,11 +77,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          if (_register)
+          if (_register) ...[
             TextField(
               controller: _name,
               decoration: const InputDecoration(labelText: 'Name'),
             ),
+            TextField(
+              controller: _username,
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.none,
+              decoration: const InputDecoration(
+                labelText: 'Benutzername',
+                helperText: '3–30 Zeichen: a–z, 0–9 und _',
+              ),
+            ),
+          ],
           TextField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,

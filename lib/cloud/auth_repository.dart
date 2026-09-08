@@ -15,9 +15,18 @@ class AuthRepository {
   final Dio dio;
   final TokenStore tokenStore;
 
-  Future<void> register(String name, String email, String password) =>
+  /// Benannte Parameter, weil hier vier gleichartige Strings stehen und
+  /// eine vertauschte Reihenfolge sonst still ein Konto mit falschem
+  /// Benutzernamen anlegen würde.
+  Future<void> register({
+    required String name,
+    required String username,
+    required String email,
+    required String password,
+  }) =>
       _authenticate('/auth/register', {
         'name': name,
+        'username': username,
         'email': email,
         'password': password,
       });
@@ -25,8 +34,21 @@ class AuthRepository {
   Future<void> login(String email, String password) =>
       _authenticate('/auth/login', {'email': email, 'password': password});
 
-  Future<void> loginSocial(String provider, String idToken) =>
-      _authenticate('/auth/social', {'provider': provider, 'id_token': idToken});
+  /// [username] wird nur beim erstmaligen Anmelden gebraucht: der Server
+  /// sucht zuerst über `provider` + `provider_id` und verlangt den
+  /// Benutzernamen ausschließlich, wenn er das Konto anlegen muss. Für ein
+  /// bestehendes Konto darf er fehlen — mitgeschickt würde er dort gegen
+  /// den eigenen, bereits gespeicherten Namen auf `unique` prüfen.
+  Future<void> loginSocial(
+    String provider,
+    String idToken, {
+    String? username,
+  }) =>
+      _authenticate('/auth/social', {
+        'provider': provider,
+        'id_token': idToken,
+        'username': ?username,
+      });
 
   Future<void> logout() async {
     try {

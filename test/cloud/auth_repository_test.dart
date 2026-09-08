@@ -45,4 +45,84 @@ void main() {
     expect(() => repo.login('a@b.c', 'wrong'), throwsA(isA<AuthException>()));
     expect(await store.read(), isNull);
   });
+
+  test('register sends the username alongside name, email and password',
+      () async {
+    late Map<String, dynamic> sent;
+    when(() => dio.post('/auth/register', data: any(named: 'data')))
+        .thenAnswer((invocation) async {
+      sent = invocation.namedArguments[#data] as Map<String, dynamic>;
+      return Response(
+        requestOptions: RequestOptions(path: '/auth/register'),
+        data: {'token': 'tok'},
+        statusCode: 201,
+      );
+    });
+
+    await repo.register(
+      name: 'Collin',
+      username: 'collin',
+      email: 'a@b.c',
+      password: 'secret12',
+    );
+
+    expect(sent['username'], 'collin');
+    expect(sent['name'], 'Collin');
+    expect(await store.read(), 'tok');
+  });
+
+  test('register surfaces the server message when the username is taken',
+      () async {
+    when(() => dio.post('/auth/register', data: any(named: 'data'))).thenThrow(
+      DioException(
+        requestOptions: RequestOptions(path: '/auth/register'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/auth/register'),
+          statusCode: 422,
+          data: {
+            'message': 'Dieser Benutzername ist bereits vergeben.',
+            'errors': {
+              'username': ['Dieser Benutzername ist bereits vergeben.'],
+            },
+          },
+        ),
+      ),
+    );
+
+    await expectLater(
+      repo.register(
+        name: 'Collin',
+        username: 'collin',
+        email: 'a@b.c',
+        password: 'secret12',
+      ),
+      throwsA(
+        isA<AuthException>().having(
+          (e) => e.message,
+          'message',
+          contains('bereits vergeben'),
+        ),
+      ),
+    );
+    expect(await store.read(), isNull);
+  });
+
+  test('loginSocial omits the username when none is given', () async {
+    late Map<String, dynamic> sent;
+    when(() => dio.post('/auth/social', data: any(named: 'data')))
+        .thenAnswer((invocation) async {
+      sent = invocation.namedArguments[#data] as Map<String, dynamic>;
+      return Response(
+        requestOptions: RequestOptions(path: '/auth/social'),
+        data: {'token': 'tok'},
+        statusCode: 200,
+      );
+    });
+
+    await repo.loginSocial('google', 'id-token');
+    expect(sent.containsKey('username'), isFalse);
+
+    await repo.loginSocial('google', 'id-token', username: 'collin');
+    expect(sent['username'], 'collin');
+  });
 }
