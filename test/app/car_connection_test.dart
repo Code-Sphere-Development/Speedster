@@ -39,8 +39,24 @@ Future<SharedPreferences> prefs() async {
   return SharedPreferences.getInstance();
 }
 
-int selectedTab(WidgetTester tester) =>
-    tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex;
+/// Beschriftung des gewaehlten Reiters.
+///
+/// Bewusst nicht der Index: "Live" erscheint nur waehrend der Fahrt, die
+/// Positionen verschieben sich also. Ein Index truege dann je nach
+/// Fahrzustand eine andere Bedeutung.
+String selectedTab(WidgetTester tester) {
+  final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+
+  return (bar.destinations[bar.selectedIndex] as NavigationDestination).label;
+}
+
+List<String> tabLabels(WidgetTester tester) {
+  final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+
+  return [
+    for (final d in bar.destinations) (d as NavigationDestination).label,
+  ];
+}
 
 /// Kein Cache-Lauf in diesen Tests: der Vorrat wird eigens in
 /// test/cloud/trip_cache_service_test.dart geprueft, hier geht es um die
@@ -60,13 +76,13 @@ void main() {
   testWidgets('ohne Auto-Verbindung startet die Heatmap', (tester) async {
     await tester.pumpWidget(wrap(await prefs(), carConnected: false));
     await tester.pumpAndSettle();
-    expect(selectedTab(tester), HomeShell.heatmapTab);
+    expect(selectedTab(tester), 'Heatmap');
   });
 
   testWidgets('mit Auto-Verbindung startet Live, auch ohne isDriving',
       (tester) async {
     await tester.pumpWidget(wrap(await prefs(), carConnected: true));
     await tester.pumpAndSettle();
-    expect(selectedTab(tester), HomeShell.liveTab);
+    expect(selectedTab(tester), 'Live');
   });
 }
