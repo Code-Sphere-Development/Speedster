@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:speedster/app/links.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
@@ -16,21 +17,20 @@ class SettingsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    final l = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Alle Daten löschen?'),
-        content: const Text(
-          'Alle aufgezeichneten Fahrten werden unwiderruflich gelöscht.',
-        ),
+        title: Text(l.settingsDeleteAllTitle),
+        content: Text(l.settingsDeleteAllBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Abbrechen'),
+            child: Text(l.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Löschen'),
+            child: Text(l.commonDelete),
           ),
         ],
       ),
@@ -71,21 +71,20 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Account löschen?'),
-        content: const Text(
-          'Dein Cloud-Konto und alle hochgeladenen Fahrten werden gelöscht.',
-        ),
+        title: Text(l.settingsDeleteAccountTitle),
+        content: Text(l.settingsDeleteAccountBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Abbrechen'),
+            child: Text(l.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Löschen'),
+            child: Text(l.commonDelete),
           ),
         ],
       ),
@@ -104,6 +103,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
+    final l = AppLocalizations.of(context);
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return Scaffold(
@@ -111,40 +111,37 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           SwitchListTile(
             key: const Key('unitSwitch'),
-            title: const Text('Einheit: Meilen (mph)'),
-            subtitle: const Text('Aus = km/h'),
+            title: Text(l.settingsUnitTitle),
+            subtitle: Text(l.settingsUnitSubtitle),
             value: settings.unit == UnitSystem.mph,
             onChanged: (v) =>
                 controller.setUnit(v ? UnitSystem.mph : UnitSystem.kmh),
           ),
           SwitchListTile(
             key: const Key('pauseSwitch'),
-            title: const Text('Tracking pausieren'),
-            subtitle: const Text('Keine automatische Fahrterkennung'),
+            title: Text(l.settingsPauseTitle),
+            subtitle: Text(l.settingsPauseSubtitle),
             value: settings.trackingPaused,
             onChanged: controller.setTrackingPaused,
           ),
           const Divider(),
           SwitchListTile(
             key: const Key('cloudSwitch'),
-            title: const Text('Cloud-Sync aktivieren'),
-            subtitle: const Text(
-              'Fahrten in die Cloud sichern (Backup + Rankings). '
-              'Aus = alles bleibt nur auf dem Gerät.',
-            ),
+            title: Text(l.settingsCloudTitle),
+            subtitle: Text(l.settingsCloudSubtitle),
             value: settings.cloudEnabled,
             onChanged: (v) => _toggleCloud(context, ref, v),
           ),
           if (settings.cloudEnabled)
             ListTile(
               leading: const Icon(Icons.person_remove),
-              title: const Text('Cloud-Account löschen'),
+              title: Text(l.settingsDeleteAccount),
               onTap: () => _deleteAccount(context, ref),
             ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.delete_forever),
-            title: const Text('Alle Daten löschen'),
+            title: Text(l.settingsDeleteAll),
             onTap: () => _confirmDeleteAll(context, ref),
           ),
           const _CloudAccountSection(),
@@ -154,9 +151,7 @@ class SettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Fahre stets verantwortungsvoll. Es gilt die StVO. '
-              'Die Nutzung erfolgt auf eigene Gefahr. Ohne aktivierte '
-              'Cloud-Synchronisierung bleiben alle Daten auf deinem Gerät.',
+              l.settingsDisclaimer,
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -178,6 +173,7 @@ class _CloudAccountSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final account = ref.watch(cloudAccountProvider).asData?.value;
     if (account == null) return const SizedBox.shrink();
+    final l = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,16 +181,16 @@ class _CloudAccountSection extends ConsumerWidget {
         const Divider(),
         ListTile(
           leading: const Icon(Icons.alternate_email),
-          title: const Text('Benutzername'),
+          title: Text(l.settingsUsername),
           subtitle: Text(
             // Bestandskonten haben noch keinen; vergeben wird er im Web.
-            account.username ?? 'Noch keiner vergeben — im Web nachholen',
+            account.username ?? l.settingsUsernameMissing,
           ),
         ),
         ListTile(
           leading: const Icon(Icons.people_outline),
-          title: const Text('Freunde'),
-          subtitle: const Text('Kennzahlen mit Bekannten vergleichen'),
+          title: Text(l.settingsFriends),
+          subtitle: Text(l.settingsFriendsSubtitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.of(context).push<void>(
             MaterialPageRoute(
@@ -213,44 +209,66 @@ class _AboutSection extends StatelessWidget {
 
   Future<void> _open(BuildContext context, String url) async {
     final messenger = ScaffoldMessenger.of(context);
+    // Vor dem Warten holen: danach ist der Kontext moeglicherweise nicht
+    // mehr eingehaengt.
+    final failure = AppLocalizations.of(context).settingsLinkFailed;
     final opened = await launchUrl(
       Uri.parse(url),
       mode: LaunchMode.externalApplication,
     );
     if (!opened) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Der Link liess sich nicht oeffnen.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(failure)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ListTile(
           leading: const Icon(Icons.help_outline),
-          title: const Text('Hilfe'),
-          subtitle: const Text('Dokumentation und Fehlermeldungen auf GitHub'),
+          title: Text(l.settingsHelp),
+          subtitle: Text(l.settingsHelpSubtitle),
           onTap: () => _open(context, AppLinks.help),
         ),
         ListTile(
           leading: const Icon(Icons.star_outline),
-          title: const Text('Bewerte die App'),
+          title: Text(l.settingsRate),
           onTap: () => _open(context, AppLinks.review),
         ),
         ListTile(
           leading: const Icon(Icons.rate_review_outlined),
-          title: const Text('Feedback'),
-          subtitle: const Text('Im App Store'),
+          title: Text(l.settingsFeedback),
+          subtitle: Text(l.settingsFeedbackSubtitle),
           onTap: () => _open(context, AppLinks.appStore),
         ),
         ListTile(
+          leading: const Icon(Icons.mail_outline),
+          title: Text(l.settingsContact),
+          subtitle: Text(l.settingsContactSubtitle),
+          onTap: () => _open(context, AppLinks.contact),
+        ),
+        ListTile(
           leading: const Icon(Icons.volunteer_activism_outlined),
-          title: const Text('Trinkgeld'),
-          subtitle: const Text('Die Entwicklung unterstützen'),
+          title: Text(l.settingsTip),
+          subtitle: Text(l.settingsTipSubtitle),
           onTap: () => _open(context, AppLinks.tip),
+        ),
+        const Divider(),
+        // Rechtstexte liegen in der Cloud, nicht in der App: ein Text
+        // statt zweier, und Aenderungen brauchen kein App-Update.
+        ListTile(
+          leading: const Icon(Icons.gavel_outlined),
+          title: Text(l.settingsImprint),
+          onTap: () => _open(context, AppLinks.imprint),
+        ),
+        ListTile(
+          leading: const Icon(Icons.privacy_tip_outlined),
+          title: Text(l.settingsPrivacy),
+          onTap: () => _open(context, AppLinks.privacy),
         ),
         const _VersionTile(),
       ],
@@ -276,7 +294,7 @@ class _VersionTile extends StatelessWidget {
 
         return ListTile(
           leading: const Icon(Icons.info_outline),
-          title: const Text('Version'),
+          title: Text(AppLocalizations.of(context).settingsVersion),
           subtitle: Text(
             info == null ? '—' : '${info.version} (${info.buildNumber})',
           ),

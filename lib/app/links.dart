@@ -24,4 +24,17 @@ class AppLinks {
   static const String cloud = 'https://speedster.code-sphere.de';
 
   static String invitation(String username) => '$cloud/einladung/$username';
+
+  /// Impressum und Datenschutz liegen in der Cloud, nicht in der App.
+  ///
+  /// Ein Text statt zweier: Aenderungen brauchen kein App-Update, und die
+  /// Uebersetzung liegt am selben Ort wie die der uebrigen Cloud-Seiten.
+  /// Der Preis ist, dass beide ohne Netz nicht lesbar sind.
+  static const String imprint = '$cloud/impressum';
+
+  static const String privacy = '$cloud/datenschutz';
+
+  /// Betreff vorbelegt, damit eine Zuschrift zuzuordnen ist.
+  static const String contact =
+      'mailto:c.ilgner@code-sphere.de?subject=Speedster';
 }

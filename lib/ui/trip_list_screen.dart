@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
@@ -14,16 +15,15 @@ class TripListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final unit = ref.watch(settingsControllerProvider).unit;
     final tripsAsync = ref.watch(keptTripsProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       body: tripsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Fehler: $e')),
+        error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
         data: (trips) {
           if (trips.isEmpty) {
-            return const Center(
-              child: Text('Noch keine Fahrten aufgezeichnet.'),
-            );
+            return Center(child: Text(l.tripsEmpty));
           }
           return ListView.builder(
             itemCount: trips.length,

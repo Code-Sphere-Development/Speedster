@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 
 /// Passenger protection: after a trip ends, ask whether the user actually drove.
@@ -24,20 +25,19 @@ class DriverPrompt extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+
     return AlertDialog(
-      title: const Text('Selbst gefahren?'),
-      content: const Text(
-        'Warst du der Fahrer? Nur eigene Fahrten werden behalten. '
-        'Als Beifahrer aufgezeichnete Fahrten kannst du verwerfen.',
-      ),
+      title: Text(l.driverTitle),
+      content: Text(l.driverBody),
       actions: [
         TextButton(
           onPressed: () => _resolve(ref, context, false),
-          child: const Text('Verwerfen'),
+          child: Text(l.driverDiscard),
         ),
         FilledButton(
           onPressed: () => _resolve(ref, context, true),
-          child: const Text('Behalten'),
+          child: Text(l.driverKeep),
         ),
       ],
     );

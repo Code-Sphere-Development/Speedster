@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
 
@@ -33,7 +34,10 @@ void main() {
             (ref) => [trip(1, 10), trip(2, 20)],
           ),
         ],
-        child: const MaterialApp(home: TripListScreen()),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: TripListScreen()),
       ),
     );
     await tester.pump();

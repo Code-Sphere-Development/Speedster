@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/sample.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/live_screen.dart';
@@ -36,7 +37,10 @@ void main() {
             ),
           ),
         ],
-        child: const MaterialApp(home: LiveScreen()),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: LiveScreen()),
       ),
     );
     await tester.pump();

@@ -9,6 +9,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/settings/settings_controller.dart';
 
@@ -31,7 +32,10 @@ Widget wrap(SharedPreferences prefs, {required bool carConnected}) =>
         carConnectedProvider.overrideWith((ref) => Stream.value(carConnected)),
         tripCacheServiceProvider.overrideWithValue(_NoCache()),
       ],
-      child: const MaterialApp(home: HomeShell()),
+      child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: HomeShell()),
     );
 
 Future<SharedPreferences> prefs() async {

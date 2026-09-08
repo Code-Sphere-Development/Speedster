@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/ranking_screen.dart';
 
@@ -16,7 +17,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const MaterialApp(home: Scaffold(body: RankingScreen())),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: Scaffold(body: RankingScreen())),
       ),
     );
     await tester.pump();
@@ -45,7 +49,10 @@ void main() {
           cloudActiveProvider.overrideWith((ref) async => true),
           rankingBoardProvider.overrideWith((ref, arg) async => board),
         ],
-        child: const MaterialApp(home: Scaffold(body: RankingScreen())),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: Scaffold(body: RankingScreen())),
       ),
     );
     await tester.pump();
@@ -67,7 +74,10 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           cloudActiveProvider.overrideWith((ref) async => false),
         ],
-        child: const MaterialApp(home: Scaffold(body: RankingScreen())),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: Scaffold(body: RankingScreen())),
       ),
     );
     await tester.pump();
@@ -100,6 +110,9 @@ void main() {
           rankingBoardProvider.overrideWith((ref, arg) async => board),
         ],
         child: MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
           theme: SpeedsterTheme.light,
           home: const Scaffold(body: RankingScreen()),
         ),

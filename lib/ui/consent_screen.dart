@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 
 /// First-launch disclaimer + consent. Data stays local (GDPR).
@@ -8,30 +9,20 @@ class ConsentScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Willkommen bei Speedster')),
+      appBar: AppBar(title: Text(l.consentTitle)),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Expanded(
+            Expanded(
               child: SingleChildScrollView(
                 child: Text(
-                  'Speedster zeichnet Geschwindigkeit und Route deiner Fahrten auf.\n\n'
-                  'Bitte fahre stets verantwortungsvoll. Es gilt immer die '
-                  'Straßenverkehrsordnung (StVO). Auf Streckenabschnitten ohne '
-                  'Tempolimit (z. B. Teile deutscher Autobahnen) gilt die '
-                  'Richtgeschwindigkeit — passe deine Geschwindigkeit stets an '
-                  'Verkehr, Wetter und Sicht an.\n\n'
-                  'Die Nutzung erfolgt auf eigene Gefahr. Speedster fordert nicht '
-                  'zu überhöhter Geschwindigkeit auf.\n\n'
-                  'Datenschutz: Deine Fahrten werden auf dem Gerät gespeichert. '
-                  'Erst wenn du die Cloud-Synchronisierung in den Einstellungen '
-                  'aktivierst, werden sie samt Streckenverlauf auf unseren '
-                  'Server übertragen. Du kannst deine Daten jederzeit in '
-                  'den Einstellungen löschen.',
-                  style: TextStyle(height: 1.4),
+                  l.consentBody,
+                  style: const TextStyle(height: 1.4),
                 ),
               ),
             ),
@@ -41,7 +32,7 @@ class ConsentScreen extends ConsumerWidget {
               child: FilledButton(
                 onPressed: () =>
                     ref.read(settingsControllerProvider.notifier).acceptConsent(),
-                child: const Text('Akzeptieren'),
+                child: Text(l.consentAcceptShort),
               ),
             ),
           ],

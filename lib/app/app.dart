@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
@@ -22,6 +23,12 @@ class SpeedsterApp extends ConsumerWidget {
         ref.watch(settingsControllerProvider.select((s) => s.consentAccepted));
     return MaterialApp(
       title: 'Speedster',
+      // Deutsch zuerst: die Oberflaeche wurde darin geschrieben, Englisch
+      // ist die Uebersetzung. Welche Sprache greift, entscheidet das
+      // Geraet -- eine eigene Auswahl in der App waere eine zweite
+      // Einstellung neben der des Systems, die auseinanderlaufen kann.
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: SpeedsterTheme.light,
       darkTheme: SpeedsterTheme.dark,
       // Ohne darkTheme faellt ThemeMode.system stillschweigend auf das helle
@@ -46,16 +53,25 @@ class HomeShell extends ConsumerStatefulWidget {
 /// Index gewaehlt spraenge die Auswahl beim Auftauchen und Verschwinden
 /// des Reiters auf einen fremden Inhalt.
 enum AppTab {
-  heatmap('Heatmap', Icons.local_fire_department),
-  live('Live', Icons.speed),
-  trips('Fahrten', Icons.list),
-  ranking('Ranking', Icons.leaderboard),
-  settings('Einstellungen', Icons.settings);
+  heatmap(Icons.local_fire_department),
+  live(Icons.speed),
+  trips(Icons.list),
+  ranking(Icons.leaderboard),
+  settings(Icons.settings);
 
-  const AppTab(this.title, this.icon);
+  const AppTab(this.icon);
 
-  final String title;
   final IconData icon;
+
+  /// Die Beschriftung kommt aus den Sprachdateien, nicht aus der
+  /// Aufzaehlung: eine Konstante liesse sich nicht uebersetzen.
+  String title(AppLocalizations l) => switch (this) {
+        AppTab.heatmap => l.tabHeatmap,
+        AppTab.live => l.tabLive,
+        AppTab.trips => l.tabTrips,
+        AppTab.ranking => l.tabRanking,
+        AppTab.settings => l.tabSettings,
+      };
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> {
@@ -165,15 +181,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     // Startansicht und zeigt die eben gefahrene Strecke.
     final tab = visible.contains(_tab) ? _tab : AppTab.heatmap;
 
+    final l = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(tab.title)),
+      appBar: AppBar(title: Text(tab.title(l))),
       body: IndexedStack(index: tab.index, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: visible.indexOf(tab),
         onDestinationSelected: (i) => setState(() => _tab = visible[i]),
         destinations: [
           for (final t in visible)
-            NavigationDestination(icon: Icon(t.icon), label: t.title),
+            NavigationDestination(icon: Icon(t.icon), label: t.title(l)),
         ],
       ),
     );

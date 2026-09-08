@@ -53,3 +53,8 @@ backend/
 
 # Arbeitsverzeichnis der Prozess-Skills, reiner Zwischenstand.
 .superpowers/
+
+# Bericht von gen-l10n ueber fehlende Uebersetzungen. Wird bei jedem Bauen
+# neu geschrieben; der Test in test/l10n liest ihn, kommt aber ohne ihn
+# aus. Eingecheckt waere er nur Rauschen im Diff.
+lib/l10n/untranslated.json

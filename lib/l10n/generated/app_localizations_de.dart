@@ -1,0 +1,395 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for German (`de`).
+class AppLocalizationsDe extends AppLocalizations {
+  AppLocalizationsDe([String locale = 'de']) : super(locale);
+
+  @override
+  String get appTitle => 'Speedster';
+
+  @override
+  String get tabHeatmap => 'Heatmap';
+
+  @override
+  String get tabLive => 'Live';
+
+  @override
+  String get tabTrips => 'Fahrten';
+
+  @override
+  String get tabRanking => 'Ranking';
+
+  @override
+  String get tabSettings => 'Einstellungen';
+
+  @override
+  String get commonCancel => 'Abbrechen';
+
+  @override
+  String get commonDelete => 'Löschen';
+
+  @override
+  String get commonSave => 'Speichern';
+
+  @override
+  String commonError(String message) {
+    return 'Fehler: $message';
+  }
+
+  @override
+  String get commonNoConnection =>
+      'Das hat nicht geklappt. Besteht eine Verbindung?';
+
+  @override
+  String get tripsEmpty => 'Noch keine Fahrten aufgezeichnet.';
+
+  @override
+  String get tripNoRoute =>
+      'Keine Streckendaten. Ältere Fahrten liegen nur in der Cloud — ihre Karte braucht eine Verbindung.';
+
+  @override
+  String tripMapUnavailable(String message) {
+    return 'Karte nicht verfügbar: $message';
+  }
+
+  @override
+  String get metricMax => 'Max';
+
+  @override
+  String get metricAverage => 'Ø';
+
+  @override
+  String get metricDistance => 'Distanz';
+
+  @override
+  String get metricDuration => 'Dauer';
+
+  @override
+  String get metricZeroToHundred => '0–100';
+
+  @override
+  String get metricElevation => 'Höhenmeter';
+
+  @override
+  String get heatmapEmpty => 'Noch keine Strecken aufgezeichnet';
+
+  @override
+  String get heatmapRangeAll => 'Alles';
+
+  @override
+  String get heatmapRange12m => '12 Monate';
+
+  @override
+  String get heatmapRange3m => '3 Monate';
+
+  @override
+  String get heatmapLegendRare => 'selten';
+
+  @override
+  String get heatmapLegendOften => 'oft';
+
+  @override
+  String get liveSpeed => 'Geschwindigkeit';
+
+  @override
+  String get liveWaiting => 'Warte auf Fahrtbeginn …';
+
+  @override
+  String get liveDistance => 'Distanz';
+
+  @override
+  String get liveDuration => 'Dauer';
+
+  @override
+  String get driverTitle => 'Selbst gefahren?';
+
+  @override
+  String get driverBody =>
+      'Warst du der Fahrer? Nur eigene Fahrten werden behalten. Als Beifahrer aufgezeichnete Fahrten kannst du verwerfen.';
+
+  @override
+  String get driverKeep => 'Behalten';
+
+  @override
+  String get driverDiscard => 'Verwerfen';
+
+  @override
+  String get rankingScopeWorld => 'Welt';
+
+  @override
+  String get rankingScopeCountry => 'Land';
+
+  @override
+  String get rankingScopeFriends => 'Freunde';
+
+  @override
+  String get rankingMetricMaxSpeed => 'Max Speed';
+
+  @override
+  String get rankingMetricDistance => 'Distanz';
+
+  @override
+  String get rankingMetricTrips => 'Fahrten';
+
+  @override
+  String get rankingMetricZeroToHundred => 'Beste 0–100';
+
+  @override
+  String get rankingYourRank => 'Dein Rang';
+
+  @override
+  String get rankingEmpty => 'Noch keine Einträge.';
+
+  @override
+  String get rankingCloudOffTitle =>
+      'Das Ranking vergleicht dich mit anderen Fahrern und lebt deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es niemanden, mit dem sich vergleichen liesse.';
+
+  @override
+  String get rankingCloudOffHint =>
+      'Cloud-Sync findest du in den Einstellungen.';
+
+  @override
+  String get rankingSignInNeeded =>
+      'Für das Ranking musst du in der Speedster Cloud angemeldet sein.';
+
+  @override
+  String get rankingStatusUnknown =>
+      'Der Anmeldestatus liess sich nicht prüfen.';
+
+  @override
+  String get authSignIn => 'Anmelden';
+
+  @override
+  String get authRegister => 'Registrieren';
+
+  @override
+  String get authCreateAccount => 'Konto erstellen';
+
+  @override
+  String get authName => 'Name';
+
+  @override
+  String get authUsername => 'Benutzername';
+
+  @override
+  String get authEmail => 'E-Mail';
+
+  @override
+  String get authPassword => 'Passwort';
+
+  @override
+  String get authUsernameHint => '3–30 Zeichen: a–z, 0–9 und _';
+
+  @override
+  String get authHaveAccount => 'Schon ein Konto? Anmelden';
+
+  @override
+  String get authNoAccount => 'Neu hier? Konto erstellen';
+
+  @override
+  String get authWithApple => 'Mit Apple anmelden';
+
+  @override
+  String get authWithGoogle => 'Mit Google anmelden';
+
+  @override
+  String authSocialSoon(String provider) {
+    return '$provider-Login folgt in Kürze.';
+  }
+
+  @override
+  String get friendsTitle => 'Freunde';
+
+  @override
+  String get friendsLead =>
+      'Freunde sehen voneinander nur Kennzahlen — keine einzelnen Fahrten und keine Strecken.';
+
+  @override
+  String get friendsUsernameLabel => 'Benutzername';
+
+  @override
+  String get friendsUsernameHint => 'Die eindeutige Kennung, kein Anzeigename';
+
+  @override
+  String get friendsRequest => 'Anfragen';
+
+  @override
+  String get friendsCopyInvite => 'Einladungslink kopieren';
+
+  @override
+  String get friendsInviteCopied => 'Einladungslink kopiert.';
+
+  @override
+  String get friendsIncoming => 'Offene Anfragen an dich';
+
+  @override
+  String get friendsOutgoing => 'Von dir verschickt';
+
+  @override
+  String get friendsAccept => 'Annehmen';
+
+  @override
+  String get friendsDecline => 'Ablehnen';
+
+  @override
+  String get friendsRemove => 'Entfernen';
+
+  @override
+  String get friendsWithdraw => 'Zurückziehen';
+
+  @override
+  String get friendsEmpty => 'Noch niemand.';
+
+  @override
+  String get friendsEmptyHint =>
+      'Teile deinen Einladungslink oder füge jemanden über seinen Benutzernamen hinzu.';
+
+  @override
+  String get friendsLoadFailed =>
+      'Die Freundesliste konnte nicht geladen werden.';
+
+  @override
+  String get friendsRequestSent => 'Anfrage verschickt.';
+
+  @override
+  String get friendsNowFriends => 'Ihr seid jetzt befreundet.';
+
+  @override
+  String get friendsDeclined => 'Abgelehnt.';
+
+  @override
+  String get friendsRemoved => 'Entfernt.';
+
+  @override
+  String get friendsWithdrawn => 'Zurückgezogen.';
+
+  @override
+  String get settingsUnitTitle => 'Einheit: Meilen (mph)';
+
+  @override
+  String get settingsUnitSubtitle => 'Aus = km/h';
+
+  @override
+  String get settingsPauseTitle => 'Tracking pausieren';
+
+  @override
+  String get settingsPauseSubtitle => 'Keine automatische Fahrterkennung';
+
+  @override
+  String get settingsCloudTitle => 'Cloud-Sync aktivieren';
+
+  @override
+  String get settingsCloudSubtitle =>
+      'Fahrten in die Cloud sichern (Backup + Rankings). Aus = alles bleibt nur auf dem Gerät.';
+
+  @override
+  String get settingsDeleteAccount => 'Cloud-Account löschen';
+
+  @override
+  String get settingsDeleteAccountBody =>
+      'Dein Cloud-Konto und alle hochgeladenen Fahrten werden gelöscht.';
+
+  @override
+  String get settingsDeleteAll => 'Alle Daten löschen';
+
+  @override
+  String get settingsDeleteAllTitle => 'Alle Daten löschen?';
+
+  @override
+  String get settingsDeleteAllBody =>
+      'Alle aufgezeichneten Fahrten werden unwiderruflich gelöscht.';
+
+  @override
+  String get settingsUsername => 'Benutzername';
+
+  @override
+  String get settingsUsernameMissing =>
+      'Noch keiner vergeben — im Web nachholen';
+
+  @override
+  String get settingsFriends => 'Freunde';
+
+  @override
+  String get settingsFriendsSubtitle => 'Kennzahlen mit Bekannten vergleichen';
+
+  @override
+  String get settingsHelp => 'Hilfe';
+
+  @override
+  String get settingsHelpSubtitle =>
+      'Dokumentation und Fehlermeldungen auf GitHub';
+
+  @override
+  String get settingsRate => 'Bewerte die App';
+
+  @override
+  String get settingsFeedback => 'Feedback';
+
+  @override
+  String get settingsFeedbackSubtitle => 'Im App Store';
+
+  @override
+  String get settingsTip => 'Trinkgeld';
+
+  @override
+  String get settingsTipSubtitle => 'Die Entwicklung unterstützen';
+
+  @override
+  String get settingsImprint => 'Impressum';
+
+  @override
+  String get settingsPrivacy => 'Datenschutz';
+
+  @override
+  String get settingsContact => 'Entwickler kontaktieren';
+
+  @override
+  String get settingsContactSubtitle => 'Per E-Mail';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsLinkFailed => 'Der Link liess sich nicht öffnen.';
+
+  @override
+  String get settingsDisclaimer =>
+      'Fahre stets verantwortungsvoll. Es gilt die StVO. Die Nutzung erfolgt auf eigene Gefahr. Ohne aktivierte Cloud-Synchronisierung bleiben alle Daten auf deinem Gerät.';
+
+  @override
+  String get consentTitle => 'Willkommen bei Speedster';
+
+  @override
+  String get consentAccept => 'Verstanden und einverstanden';
+
+  @override
+  String get liveRecording => 'Fahrt wird aufgezeichnet';
+
+  @override
+  String get liveReady => 'Bereit.\nDeine Fahrt wird automatisch erkannt.';
+
+  @override
+  String liveUnit(String unit) {
+    return 'Einheit: $unit';
+  }
+
+  @override
+  String get heatmapUnavailable => 'Heatmap nicht verfügbar';
+
+  @override
+  String get heatmapLoading => 'Heatmap wird geladen …';
+
+  @override
+  String get consentBody =>
+      'Speedster zeichnet Geschwindigkeit und Route deiner Fahrten auf.\n\nBitte fahre stets verantwortungsvoll. Es gilt immer die Straßenverkehrsordnung (StVO). Auf Streckenabschnitten ohne Tempolimit (z. B. Teile deutscher Autobahnen) gilt die Richtgeschwindigkeit — passe deine Geschwindigkeit stets an Verkehr, Wetter und Sicht an.\n\nDie Nutzung erfolgt auf eigene Gefahr. Speedster fordert nicht zu überhöhter Geschwindigkeit auf.\n\nDatenschutz: Deine Fahrten werden auf dem Gerät gespeichert. Erst wenn du die Cloud-Synchronisierung in den Einstellungen aktivierst, werden sie samt Streckenverlauf auf unseren Server übertragen. Du kannst deine Daten jederzeit in den Einstellungen löschen.';
+
+  @override
+  String get consentAcceptShort => 'Akzeptieren';
+
+  @override
+  String get settingsDeleteAccountTitle => 'Account löschen?';
+}

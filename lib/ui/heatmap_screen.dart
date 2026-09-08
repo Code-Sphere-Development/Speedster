@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:speedster/ui/map_tiles.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_palette.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/heat_glow_layer.dart';
+import 'package:speedster/ui/map_tiles.dart';
 
 /// Karte aller gefahrenen Strecken, eingefaerbt nach Befahrungshaeufigkeit.
 class HeatmapScreen extends ConsumerStatefulWidget {
@@ -97,6 +97,7 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(heatMapProvider(_query));
+    final l = AppLocalizations.of(context);
     // Sobald die letzte bekannte Position eintrifft, soll die Kamera sie
     // nutzen koennen, falls noch keine Strecken vorliegen.
     ref.watch(mapFallbackCenterProvider);
@@ -148,10 +149,10 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                     return Wrap(
                       spacing: 8,
                       children: [
-                        for (final (range, label) in const [
-                          (HeatRange.all, 'Alles'),
-                          (HeatRange.months12, '12 Monate'),
-                          (HeatRange.months3, '3 Monate'),
+                        for (final (range, label) in [
+                          (HeatRange.all, l.heatmapRangeAll),
+                          (HeatRange.months12, l.heatmapRange12m),
+                          (HeatRange.months3, l.heatmapRange3m),
                         ])
                           ChoiceChip(
                             label: Text(label),
@@ -164,25 +165,25 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                 ),
               ),
               if (async.hasError)
-                const Positioned(
+                Positioned(
                   left: 12,
                   right: 12,
                   bottom: 56,
-                  child: _Notice('Heatmap nicht verfügbar'),
+                  child: _Notice(l.heatmapUnavailable),
                 )
               else if (async.isLoading)
-                const Positioned(
+                Positioned(
                   left: 12,
                   right: 12,
                   bottom: 56,
-                  child: _Notice('Heatmap wird geladen …'),
+                  child: _Notice(l.heatmapLoading),
                 )
               else if (map.edges.isEmpty)
-                const Positioned(
+                Positioned(
                   left: 12,
                   right: 12,
                   bottom: 56,
-                  child: _Notice('Noch keine Strecken aufgezeichnet'),
+                  child: _Notice(l.heatmapEmpty),
                 ),
             ],
       ),

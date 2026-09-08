@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/token_store.dart';
+import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/settings_screen.dart';
@@ -22,7 +23,10 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: SettingsScreen()),
       ),
     );
 
@@ -44,7 +48,10 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           tokenStoreProvider.overrideWithValue(InMemoryTokenStore()),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(
+        locale: Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,home: SettingsScreen()),
       ),
     );
 
