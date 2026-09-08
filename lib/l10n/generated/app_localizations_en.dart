@@ -386,4 +386,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDeleteAccountTitle => 'Delete account?';
+
+  @override
+  String get friendsPendingTitle => 'Friend requests';
+
+  @override
+  String friendsPendingLead(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people would like to connect with you.',
+      one: 'Someone would like to connect with you.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsPendingLater => 'Later';
+
+  @override
+  String get friendsPendingManage => 'See all';
 }

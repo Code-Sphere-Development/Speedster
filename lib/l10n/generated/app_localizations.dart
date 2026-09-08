@@ -817,6 +817,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Account löschen?'**
   String get settingsDeleteAccountTitle;
+
+  /// No description provided for @friendsPendingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Freundschaftsanfragen'**
+  String get friendsPendingTitle;
+
+  /// No description provided for @friendsPendingLead.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{Eine Person möchte sich mit dir verbinden.} other{{count} Personen möchten sich mit dir verbinden.}}'**
+  String friendsPendingLead(int count);
+
+  /// No description provided for @friendsPendingLater.
+  ///
+  /// In de, this message translates to:
+  /// **'Später'**
+  String get friendsPendingLater;
+
+  /// No description provided for @friendsPendingManage.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle ansehen'**
+  String get friendsPendingManage;
 }
 
 class _AppLocalizationsDelegate
