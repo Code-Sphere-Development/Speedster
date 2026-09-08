@@ -1,4 +1,4 @@
-package de.mediacologne.speedster
+package de.codesphere.speedster
 
 import androidx.car.app.connection.CarConnection
 import androidx.lifecycle.LiveData
@@ -16,7 +16,7 @@ class MainActivity : FlutterActivity() {
 
         EventChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            "de.mediacologne.speedster/car_connection",
+            "de.codesphere.speedster/car_connection",
         ).setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                 // Liefert den Verbindungsstatus zu Android Auto, ohne dass
