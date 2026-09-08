@@ -8,6 +8,7 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
+import 'package:speedster/ui/username_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -186,6 +187,17 @@ class _CloudAccountSection extends ConsumerWidget {
             // Bestandskonten haben noch keinen; vergeben wird er im Web.
             account.username ?? l.settingsUsernameMissing,
           ),
+          // Ohne Namen fuehrt der Weg ueber das Web -- die App aendert
+          // nur einen bestehenden.
+          trailing: account.username == null
+              ? null
+              : const Icon(Icons.edit_outlined),
+          onTap: account.username == null
+              ? null
+              : () => showDialog<void>(
+                    context: context,
+                    builder: (_) => UsernameDialog(account: account),
+                  ),
         ),
         ListTile(
           leading: const Icon(Icons.people_outline),

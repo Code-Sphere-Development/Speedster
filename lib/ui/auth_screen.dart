@@ -37,7 +37,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     if (_register) {
       final problem = validateUsername(_username.text);
       if (problem != null) {
-        setState(() => _error = problem);
+        // Den Text waehlt die Oberflaeche: validateUsername kennt die
+        // Sprache nicht, in der die App gerade laeuft.
+        final l = AppLocalizations.of(context);
+        setState(() => _error = switch (problem) {
+              UsernameProblem.empty => l.authUsernameRequired,
+              UsernameProblem.format => l.authUsernameFormat,
+            });
         return;
       }
     }

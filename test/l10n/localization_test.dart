@@ -115,5 +115,15 @@ void main() {
 
       expect(other.tabTrips, 'Fahrten');
     });
+
+    test('nennt beim Benutzernamen die Regel, nicht nur "ungueltig"', () {
+      // Der Text stand frueher in validateUsername und war damit
+      // zwangslaeufig deutsch. Jetzt steht er hier -- und muss in beiden
+      // Sprachen sagen, woran es liegt.
+      for (final locale in ['de', 'en']) {
+        expect(arb(locale)['authUsernameFormat'], contains('3'));
+        expect(arb(locale)['authUsernameFormat'], contains('30'));
+      }
+    });
   });
 }

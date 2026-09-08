@@ -69,6 +69,8 @@
   "authEmail": "E-Mail",
   "authPassword": "Passwort",
   "authUsernameHint": "3–30 Zeichen: a–z, 0–9 und _",
+  "authUsernameRequired": "Bitte einen Benutzernamen angeben.",
+  "authUsernameFormat": "Benutzername: 3 bis 30 Zeichen, nur Kleinbuchstaben, Ziffern und Unterstrich (_).",
   "authHaveAccount": "Schon ein Konto? Anmelden",
   "authNoAccount": "Neu hier? Konto erstellen",
   "authWithApple": "Mit Apple anmelden",
@@ -115,6 +117,17 @@
   "settingsDeleteAllBody": "Alle aufgezeichneten Fahrten werden unwiderruflich gelöscht.",
   "settingsUsername": "Benutzername",
   "settingsUsernameMissing": "Noch keiner vergeben — im Web nachholen",
+  "settingsUsernameChangeTitle": "Benutzername ändern",
+  "settingsUsernameChangeLead": "Unter diesem Namen findet man dich in der Bestenliste und über Einladungslinks. Nach einem Wechsel bleibt dein alter Name eine Zeit lang für dich reserviert, und du kannst erst danach wieder wechseln.",
+  "settingsUsernameLocked": "Wechsel wieder möglich am {date}",
+  "@settingsUsernameLocked": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUsernameSaved": "Benutzername geändert.",
   "settingsFriends": "Freunde",
   "settingsFriendsSubtitle": "Kennzahlen mit Bekannten vergleichen",
   "settingsHelp": "Hilfe",

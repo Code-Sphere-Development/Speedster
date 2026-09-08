@@ -55,6 +55,8 @@
   "authEmail": "Email",
   "authPassword": "Password",
   "authUsernameHint": "3–30 characters: a–z, 0–9 and _",
+  "authUsernameRequired": "Please choose a username.",
+  "authUsernameFormat": "Username: 3 to 30 characters, lowercase letters, digits and underscore (_) only.",
   "authHaveAccount": "Already have an account? Sign in",
   "authNoAccount": "New here? Create an account",
   "authWithApple": "Sign in with Apple",
@@ -94,6 +96,17 @@
   "settingsDeleteAllBody": "All recorded drives will be deleted irreversibly.",
   "settingsUsername": "Username",
   "settingsUsernameMissing": "None chosen yet — set it on the web",
+  "settingsUsernameChangeTitle": "Change username",
+  "settingsUsernameChangeLead": "This is the name people find you under in the leaderboard and through invitation links. After a change your old name stays reserved for you for a while, and you can only change again after that.",
+  "settingsUsernameLocked": "You can change again on {date}",
+  "@settingsUsernameLocked": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUsernameSaved": "Username changed.",
   "settingsFriends": "Friends",
   "settingsFriendsSubtitle": "Compare figures with people you know",
   "settingsHelp": "Help",

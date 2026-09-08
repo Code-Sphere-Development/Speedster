@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:speedster/cloud/api_error.dart';
 
 /// Ein Freund oder eine offene Anfrage.
 class Friend {
@@ -80,7 +81,9 @@ class FriendRepository {
     try {
       await dio.post('/friends', data: {'username': username});
     } on DioException catch (e) {
-      throw FriendException(_messageFrom(e));
+      throw FriendException(
+        serverMessage(e) ?? 'Die Anfrage konnte nicht gesendet werden.',
+      );
     }
   }
 
@@ -89,22 +92,4 @@ class FriendRepository {
   /// Deckt Ablehnen, Zurueckziehen und Beenden ab -- drei Vorgaenge, ein
   /// Ergebnis: die Zeile verschwindet.
   Future<void> remove(int id) => dio.delete('/friends/$id');
-
-  /// Holt die Meldung des Servers heraus, statt eine eigene zu erfinden:
-  /// "gibt es nicht", "laeuft bereits" und "seid bereits befreundet" sind
-  /// dort unterschieden, und der Nutzer soll den Unterschied sehen.
-  String _messageFrom(DioException e) {
-    final data = e.response?.data;
-    if (data is Map<String, dynamic>) {
-      final errors = data['errors'];
-      if (errors is Map<String, dynamic>) {
-        final first = errors.values.first;
-        if (first is List && first.isNotEmpty) return '${first.first}';
-      }
-      final message = data['message'];
-      if (message is String && message.isNotEmpty) return message;
-    }
-
-    return 'Die Anfrage konnte nicht gesendet werden.';
-  }
 }
