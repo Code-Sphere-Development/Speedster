@@ -43,6 +43,19 @@ class HeatCells extends Table {
   RealColumn get lngSum => real().withDefault(const Constant(0))();
   IntColumn get n => integer().withDefault(const Constant(0))();
 
+  /// Summe der gemessenen Geschwindigkeiten in dieser Zelle, in m/s.
+  ///
+  /// Geteilt durch [n] ergibt sie, wie schnell hier ueblicherweise
+  /// gefahren wird -- die Bezugsgroesse fuer "zu schnell" auf dem
+  /// Sperrbildschirm. Die App kennt keine Tempolimits, und es gibt dafuer
+  /// keine brauchbare freie Quelle; verglichen wird deshalb mit der
+  /// eigenen Gewohnheit.
+  ///
+  /// Bewusst **nicht** Teil von `HeatGrid`: jenes ist der zeilengetreue
+  /// Spiegel von `HeatGrid.php`, und eine zusaetzliche Spalte hier duerfte
+  /// die Rasterparitaet zwischen Dart und PHP nicht beruehren.
+  RealColumn get speedSum => real().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {level, cellRow, cellCol};
 }
@@ -97,7 +110,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -115,6 +128,13 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 4) {
             await m.createTable(heatSnapshots);
+          }
+          if (from < 5) {
+            await m.addColumn(heatCells, heatCells.speedSum);
+            // Bestandszellen starten bei 0 und fuellen sich, sobald wieder
+            // gefahren wird. Ein Neuaufbau aus den Punkten waere moeglich,
+            // aber bei aktiver Cloud liegen die Punkte aelterer Fahrten gar
+            // nicht mehr auf dem Geraet (siehe TripCacheService).
           }
         },
       );
