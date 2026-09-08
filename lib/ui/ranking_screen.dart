@@ -89,6 +89,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             segments: const [
               ButtonSegment(value: RankScope.world, label: Text('Welt')),
               ButtonSegment(value: RankScope.country, label: Text('Land')),
+              ButtonSegment(value: RankScope.friends, label: Text('Freunde')),
             ],
             selected: {_scope},
             onSelectionChanged: (s) => setState(() => _scope = s.first),

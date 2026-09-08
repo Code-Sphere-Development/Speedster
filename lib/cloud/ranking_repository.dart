@@ -2,7 +2,11 @@ import 'package:dio/dio.dart';
 
 enum RankScope {
   world('world'),
-  country('country');
+  country('country'),
+  // Nur bestaetigte Freunde und man selbst. Der Bereich ignoriert
+  // ranking_opt_in: eine angenommene Anfrage ist die staerkere
+  // Einwilligung (siehe docs/specs/2026-09-08-freunde-design.md).
+  friends('friends');
 
   const RankScope(this.wire);
   final String wire;
