@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:speedster/app/links.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
+import 'package:speedster/ui/friends_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -143,6 +147,9 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Alle Daten löschen'),
             onTap: () => _confirmDeleteAll(context, ref),
           ),
+          const _CloudAccountSection(),
+          const Divider(),
+          const _AboutSection(),
           const Divider(),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -158,6 +165,123 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Benutzername und Freunde -- nur sichtbar, wenn die Cloud in Gebrauch
+/// ist. Ohne Konto gibt es weder das eine noch das andere.
+class _CloudAccountSection extends ConsumerWidget {
+  const _CloudAccountSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final account = ref.watch(cloudAccountProvider).asData?.value;
+    if (account == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.alternate_email),
+          title: const Text('Benutzername'),
+          subtitle: Text(
+            // Bestandskonten haben noch keinen; vergeben wird er im Web.
+            account.username ?? 'Noch keiner vergeben — im Web nachholen',
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.people_outline),
+          title: const Text('Freunde'),
+          subtitle: const Text('Kennzahlen mit Bekannten vergleichen'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push<void>(
+            MaterialPageRoute(
+              builder: (_) => FriendsScreen(username: account.username),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Rechtliches, Hilfe und Unterstuetzung.
+class _AboutSection extends StatelessWidget {
+  const _AboutSection();
+
+  Future<void> _open(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final opened = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Der Link liess sich nicht oeffnen.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.help_outline),
+          title: const Text('Hilfe'),
+          subtitle: const Text('Dokumentation und Fehlermeldungen auf GitHub'),
+          onTap: () => _open(context, AppLinks.help),
+        ),
+        ListTile(
+          leading: const Icon(Icons.star_outline),
+          title: const Text('Bewerte die App'),
+          onTap: () => _open(context, AppLinks.review),
+        ),
+        ListTile(
+          leading: const Icon(Icons.rate_review_outlined),
+          title: const Text('Feedback'),
+          subtitle: const Text('Im App Store'),
+          onTap: () => _open(context, AppLinks.appStore),
+        ),
+        ListTile(
+          leading: const Icon(Icons.volunteer_activism_outlined),
+          title: const Text('Trinkgeld'),
+          subtitle: const Text('Die Entwicklung unterstützen'),
+          onTap: () => _open(context, AppLinks.tip),
+        ),
+        const _VersionTile(),
+      ],
+    );
+  }
+}
+
+/// Version und Build-Nummer.
+///
+/// Aus dem Paket gelesen statt aus einer Konstanten: eine von Hand
+/// gepflegte Zahl weicht frueher oder spaeter von der tatsaechlich
+/// installierten ab -- und dann ist sie in einem Fehlerbericht schlimmer
+/// als keine Angabe.
+class _VersionTile extends StatelessWidget {
+  const _VersionTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        final info = snapshot.data;
+
+        return ListTile(
+          leading: const Icon(Icons.info_outline),
+          title: const Text('Version'),
+          subtitle: Text(
+            info == null ? '—' : '${info.version} (${info.buildNumber})',
+          ),
+        );
+      },
     );
   }
 }

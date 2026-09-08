@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/cloud/api_client.dart';
+import 'package:speedster/cloud/account_repository.dart';
 import 'package:speedster/cloud/auth_repository.dart';
+import 'package:speedster/cloud/friend_repository.dart';
 import 'package:speedster/cloud/cloud_sync_service.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/cloud/token_store.dart';
@@ -148,6 +150,31 @@ final tripCacheServiceProvider = Provider<TripCache>(
     tokenStore: ref.watch(tokenStoreProvider),
   ),
 );
+
+final friendRepositoryProvider = Provider<FriendRepository>(
+  (ref) => FriendRepository(ref.watch(apiClientProvider).dio),
+);
+
+final friendOverviewProvider = FutureProvider<FriendOverview>(
+  (ref) => ref.watch(friendRepositoryProvider).load(),
+);
+
+final accountRepositoryProvider = Provider<AccountRepository>(
+  (ref) => AccountRepository(ref.watch(apiClientProvider).dio),
+);
+
+/// Das eigene Cloud-Konto. Traegt den Benutzernamen, den die App anzeigt
+/// und aus dem der Einladungslink entsteht.
+final cloudAccountProvider = FutureProvider<CloudAccount?>((ref) async {
+  if (await ref.watch(tokenStoreProvider).read() == null) return null;
+  try {
+    return await ref.watch(accountRepositoryProvider).me();
+  } on Exception {
+    // Ohne Netz bleibt der Bereich leer statt in einen Fehler zu kippen;
+    // die Einstellungen muessen auch offline bedienbar sein.
+    return null;
+  }
+});
 
 final rankingRepositoryProvider = Provider<RankingRepository>(
   (ref) => RankingRepository(ref.watch(apiClientProvider).dio),
