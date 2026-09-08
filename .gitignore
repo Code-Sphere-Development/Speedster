@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Das Laravel-Backend liegt in einem eigenen Repository
+# (Code-Sphere-Development/Speedster_Cloud). Der Ordner steht hier nur,
+# falls jemand beide nebeneinander auscheckt -- eingecheckt gehoert er
+# nicht. Ein pauschales `git add` hat die Reste des Repo-Splits schon
+# einmal wieder hereingezogen, samt vendor/ und einer lokalen .env.
+backend/
