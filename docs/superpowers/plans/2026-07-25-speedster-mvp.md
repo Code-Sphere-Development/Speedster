@@ -8,6 +8,12 @@
 
 **Tech Stack:** Flutter, Dart, Riverpod (state), drift + sqlite3 (persistence), geolocator (GPS), sensors_plus (accelerometer), flutter_map + latlong2 (OSM map), permission_handler, mocktail (tests).
 
+> **Nachtrag 2026-09-08:** Die Paketkennung wurde nachträglich von
+> `de.mediacologne` auf `de.codesphere` geändert — mediacologne hat mit
+> Speedster nichts zu tun, die Kennung stammte aus dem `flutter create
+> --org` beim Anlegen des Projekts. Die Stellen unten sind entsprechend
+> angepasst; zum Zeitpunkt der Ausführung stand dort `de.mediacologne`.
+
 ## Global Constraints
 
 - Framework: Flutter stable; Dart SDK `>=3.4.0 <4.0.0`.
@@ -32,7 +38,7 @@
 
 ```bash
 cd /Users/colilg/PhpstormProjects/Speedster
-flutter create --org de.mediacologne --project-name speedster --platforms ios,android .
+flutter create --org de.codesphere --project-name speedster --platforms ios,android .
 ```
 
 - [ ] **Step 2: Add dependencies.**

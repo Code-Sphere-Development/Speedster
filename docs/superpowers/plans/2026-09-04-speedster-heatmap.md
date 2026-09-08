@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-04-speedster-heatmap-design.md`
 
+> **Nachtrag 2026-09-08:** Die Paketkennung wurde nachträglich von
+> `de.mediacologne` auf `de.codesphere` geändert — mediacologne hat mit
+> Speedster nichts zu tun, die Kennung stammte aus dem `flutter create
+> --org` beim Anlegen des Projekts. Die Stellen unten sind entsprechend
+> angepasst; zum Zeitpunkt der Ausführung stand dort `de.mediacologne`.
+
 ## Global Constraints
 
 - **Commits nur auf ausdrückliche Ansage des Nutzers.** Die Commit-Schritte in diesem Plan bedeuten: Änderungen mit `git diff` zeigen und auf Freigabe warten. (Projektregel aus `CLAUDE.md`.)
@@ -1616,7 +1622,7 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                   TileLayer(
                     urlTemplate:
                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'de.mediacologne.speedster',
+                    userAgentPackageName: 'de.codesphere.speedster',
                   ),
                   PolylineLayer(
                     polylines: [
@@ -3564,7 +3570,7 @@ class PlatformCarConnection implements CarConnection {
   const PlatformCarConnection();
 
   static const _channel =
-      EventChannel('de.mediacologne.speedster/car_connection');
+      EventChannel('de.codesphere.speedster/car_connection');
 
   @override
   Stream<bool> get connected => _channel
@@ -3626,10 +3632,10 @@ Commit-Nachricht nach Freigabe: `feat(app): show live tab when the car is connec
 ### Task 16: Android — CarConnection über androidx.car.app
 
 **Files:**
-- Modify: `android/app/build.gradle.kts`, `android/app/src/main/kotlin/de/mediacologne/speedster/MainActivity.kt`
+- Modify: `android/app/build.gradle.kts`, `android/app/src/main/kotlin/de/codesphere/speedster/MainActivity.kt`
 
 **Interfaces:**
-- Consumes: EventChannel-Name `de.mediacologne.speedster/car_connection` (Task 15).
+- Consumes: EventChannel-Name `de.codesphere.speedster/car_connection` (Task 15).
 - Produces: Ereignisse `true`/`false` auf diesem Kanal.
 
 - [x] **Step 1: Dependency ergänzen**
@@ -3647,7 +3653,7 @@ dependencies {
 - [x] **Step 2: MainActivity erweitern**
 
 ```kotlin
-package de.mediacologne.speedster
+package de.codesphere.speedster
 
 import androidx.car.app.connection.CarConnection
 import androidx.lifecycle.Observer
@@ -3663,7 +3669,7 @@ class MainActivity : FlutterActivity() {
 
         EventChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            "de.mediacologne.speedster/car_connection",
+            "de.codesphere.speedster/car_connection",
         ).setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                 val liveData = CarConnection(this@MainActivity).type
@@ -3724,7 +3730,7 @@ import UIKit
   ) -> Bool {
     let controller = window?.rootViewController as! FlutterViewController
     let channel = FlutterEventChannel(
-      name: "de.mediacologne.speedster/car_connection",
+      name: "de.codesphere.speedster/car_connection",
       binaryMessenger: controller.binaryMessenger
     )
     channel.setStreamHandler(self)
