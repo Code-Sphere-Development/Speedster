@@ -55,6 +55,7 @@
   "rankingMetricDistance": "Distanz",
   "rankingMetricTrips": "Fahrten",
   "rankingMetricZeroToHundred": "Beste 0–100",
+  "rankingSpeedNotice": "Es gilt immer die StVO. Diese Wertung ist kein Grund, eine Geschwindigkeitsbegrenzung zu überschreiten.",
   "rankingYourRank": "Dein Rang",
   "rankingEmpty": "Noch keine Einträge.",
   "rankingCloudOffTitle": "Das Ranking vergleicht dich mit anderen Fahrern und lebt deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es niemanden, mit dem sich vergleichen liesse.",
@@ -147,6 +148,7 @@
   "consentTitle": "Willkommen bei Speedster",
   "consentAccept": "Verstanden und einverstanden",
   "liveRecording": "Fahrt wird aufgezeichnet",
+  "liveSpeedNotice": "Fahr vorausschauend — es gilt immer die zulässige Höchstgeschwindigkeit.",
   "liveReady": "Bereit.\nDeine Fahrt wird automatisch erkannt.",
   "liveUnit": "Einheit: {unit}",
   "@liveUnit": {

@@ -138,6 +138,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankingMetricZeroToHundred => 'Best 0–100';
 
   @override
+  String get rankingSpeedNotice =>
+      'Road traffic law always applies. This ranking is no reason to exceed a speed limit.';
+
+  @override
   String get rankingYourRank => 'Your rank';
 
   @override
@@ -384,6 +388,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get liveRecording => 'Recording your drive';
+
+  @override
+  String get liveSpeedNotice =>
+      'Drive with foresight — the legal speed limit always applies.';
 
   @override
   String get liveReady => 'Ready.\nYour drive is detected automatically.';

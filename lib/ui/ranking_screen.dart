@@ -120,6 +120,20 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             ],
           ),
         ),
+        // Nur bei den beiden Tempo-Wertungen: bei Distanz und Fahrtenzahl
+        // gibt es nichts zu relativieren, und ein Hinweis, der ueberall
+        // steht, wird zur Tapete, die niemand mehr liest.
+        if (_metric == RankMetric.maxSpeed ||
+            _metric == RankMetric.bestZeroToHundred)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Text(
+              l.rankingSpeedNotice,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
         Expanded(
           child: board.when(
             loading: () => const Center(child: CircularProgressIndicator()),

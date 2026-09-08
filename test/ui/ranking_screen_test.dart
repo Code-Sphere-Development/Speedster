@@ -144,4 +144,54 @@ void main() {
     );
     expect((box.decoration as BoxDecoration).color, scheme.primaryContainer);
   });
+
+  testWidgets('mahnt bei der Tempo-Wertung, nicht bei der Distanz',
+      (tester) async {
+    // Der Hinweis steht dort, wo die App selbst einen Anreiz setzt.
+    // Ueberall gezeigt wuerde er zur Tapete -- und entwertete damit auch
+    // den im Onboarding.
+    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    final prefs = await SharedPreferences.getInstance();
+
+    const board = RankingBoard(
+      entries: [
+        RankingEntry(rank: 1, displayName: 'Fast', country: 'DE', value: 54.2),
+      ],
+      me: null,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudActiveProvider.overrideWith((ref) async => true),
+          rankingBoardProvider.overrideWith((ref, arg) async => board),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: RankingScreen()),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('kein Grund'), findsOneWidget);
+
+    await tester.tap(find.text('Distanz'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('kein Grund'), findsNothing);
+
+    // Die 0-100-Wertung laedt zum Beschleunigen im oeffentlichen Raum
+    // ein und bekommt denselben Hinweis, nicht weniger.
+    await tester.tap(find.text('Beste 0–100'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('kein Grund'), findsOneWidget);
+  });
 }

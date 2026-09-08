@@ -47,5 +47,35 @@ void main() {
     expect(find.textContaining('36 km/h'), findsOneWidget);
     expect(find.text('1.5 km'), findsOneWidget);
     expect(find.text('2m 05s'), findsOneWidget);
+    // Waehrend der Fahrt, statisch: eine Warnung, die bei hohem Tempo
+    // aufpoppt, zoege den Blick genau dann aufs Display, wenn er dort
+    // nicht hingehoert.
+    expect(find.textContaining('zulässige Höchstgeschwindigkeit'),
+        findsOneWidget);
+  });
+
+  testWidgets('mahnt nicht, solange keine Fahrt laeuft', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          recorderStateProvider.overrideWith(
+            (ref) => Stream.value(const RecorderState(isDriving: false)),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: LiveScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('zulässige Höchstgeschwindigkeit'), findsNothing);
   });
 }

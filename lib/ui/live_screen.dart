@@ -54,6 +54,20 @@ class LiveScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 32),
+              // Statisch und unaufdringlich. Bewusst keine Warnung, die
+              // bei hohem Tempo aufpoppt: die zoege den Blick genau in dem
+              // Moment aufs Display, in dem er dort nicht hingehoert.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  l.liveSpeedNotice,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
             ] else ...[
               const Icon(Icons.speed, size: 96),
               const SizedBox(height: 16),

@@ -139,6 +139,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rankingMetricZeroToHundred => 'Beste 0–100';
 
   @override
+  String get rankingSpeedNotice =>
+      'Es gilt immer die StVO. Diese Wertung ist kein Grund, eine Geschwindigkeitsbegrenzung zu überschreiten.';
+
+  @override
   String get rankingYourRank => 'Dein Rang';
 
   @override
@@ -390,6 +394,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get liveRecording => 'Fahrt wird aufgezeichnet';
+
+  @override
+  String get liveSpeedNotice =>
+      'Fahr vorausschauend — es gilt immer die zulässige Höchstgeschwindigkeit.';
 
   @override
   String get liveReady => 'Bereit.\nDeine Fahrt wird automatisch erkannt.';
