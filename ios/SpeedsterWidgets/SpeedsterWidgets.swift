@@ -267,6 +267,7 @@ private struct WidgetContainer: ViewModifier {
 /// liegt deshalb ein schwacher Verlauf in der Markenfarbe -- gerade genug,
 /// dass die Kachel als Speedster erkennbar ist, und schwach genug, dass
 /// die Zahlen darauf lesbar bleiben.
+@available(iOS 17.0, *)
 private struct WidgetBackground: View {
   var body: some View {
     Rectangle()
