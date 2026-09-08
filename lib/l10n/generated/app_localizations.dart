@@ -428,6 +428,18 @@ abstract class AppLocalizations {
   /// **'3–30 Zeichen: a–z, 0–9 und _'**
   String get authUsernameHint;
 
+  /// No description provided for @authUsernameRequired.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte einen Benutzernamen angeben.'**
+  String get authUsernameRequired;
+
+  /// No description provided for @authUsernameFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername: 3 bis 30 Zeichen, nur Kleinbuchstaben, Ziffern und Unterstrich (_).'**
+  String get authUsernameFormat;
+
   /// No description provided for @authHaveAccount.
   ///
   /// In de, this message translates to:
@@ -661,6 +673,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Noch keiner vergeben — im Web nachholen'**
   String get settingsUsernameMissing;
+
+  /// No description provided for @settingsUsernameChangeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername ändern'**
+  String get settingsUsernameChangeTitle;
+
+  /// No description provided for @settingsUsernameChangeLead.
+  ///
+  /// In de, this message translates to:
+  /// **'Unter diesem Namen findet man dich in der Bestenliste und über Einladungslinks. Nach einem Wechsel bleibt dein alter Name eine Zeit lang für dich reserviert, und du kannst erst danach wieder wechseln.'**
+  String get settingsUsernameChangeLead;
+
+  /// No description provided for @settingsUsernameLocked.
+  ///
+  /// In de, this message translates to:
+  /// **'Wechsel wieder möglich am {date}'**
+  String settingsUsernameLocked(String date);
+
+  /// No description provided for @settingsUsernameSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername geändert.'**
+  String get settingsUsernameSaved;
 
   /// No description provided for @settingsFriends.
   ///

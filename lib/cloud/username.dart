@@ -21,16 +21,24 @@ final RegExp _usernamePattern = RegExp(r'^[a-z0-9_]{3,30}$');
 /// auch speichert — die Regel selbst bleibt unverändert.
 String normaliseUsername(String value) => value.trim().toLowerCase();
 
-/// Deutsche Fehlermeldung, oder `null`, wenn der normalisierte Wert den
-/// Regeln entspricht.
-String? validateUsername(String value) {
+/// Woran eine Eingabe scheitert, oder `null`, wenn sie den Regeln
+/// entspricht.
+///
+/// Bewusst ohne Text: die App spricht seit der Zweisprachigkeit auch
+/// Englisch, und eine hier festgeschriebene deutsche Meldung erschien
+/// dort mitten in einer englischen Oberflaeche. Den Text waehlt die
+/// Oberflaeche aus ihren eigenen Uebersetzungen -- er ist woertlich vom
+/// Server uebernommen, damit derselbe Fehler nicht in zwei
+/// Formulierungen auftaucht.
+enum UsernameProblem { empty, format }
+
+UsernameProblem? validateUsername(String value) {
   final username = normaliseUsername(value);
   if (username.isEmpty) {
-    return 'Bitte einen Benutzernamen angeben.';
+    return UsernameProblem.empty;
   }
   if (_usernamePattern.hasMatch(username)) {
     return null;
   }
-  return 'Benutzername: 3 bis 30 Zeichen, nur Kleinbuchstaben, '
-      'Ziffern und Unterstrich (_).';
+  return UsernameProblem.format;
 }

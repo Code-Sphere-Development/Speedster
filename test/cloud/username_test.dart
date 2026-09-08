@@ -47,12 +47,10 @@ void main() {
     });
 
     test('reports an empty field as missing, not as a format error', () {
-      expect(validateUsername('   '), 'Bitte einen Benutzernamen angeben.');
-    });
-
-    test('names the rule instead of only saying invalid', () {
-      final message = validateUsername('ab')!;
-      expect(message, contains('3 bis 30'));
+      // Two different mistakes, two different sentences in the UI: "you
+      // forgot this" reads nothing like "this is not allowed here".
+      expect(validateUsername('   '), UsernameProblem.empty);
+      expect(validateUsername('ab'), UsernameProblem.format);
     });
   });
 }

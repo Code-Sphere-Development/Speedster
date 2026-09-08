@@ -182,6 +182,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authUsernameHint => '3–30 characters: a–z, 0–9 and _';
 
   @override
+  String get authUsernameRequired => 'Please choose a username.';
+
+  @override
+  String get authUsernameFormat =>
+      'Username: 3 to 30 characters, lowercase letters, digits and underscore (_) only.';
+
+  @override
   String get authHaveAccount => 'Already have an account? Sign in';
 
   @override
@@ -304,6 +311,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsUsernameMissing => 'None chosen yet — set it on the web';
+
+  @override
+  String get settingsUsernameChangeTitle => 'Change username';
+
+  @override
+  String get settingsUsernameChangeLead =>
+      'This is the name people find you under in the leaderboard and through invitation links. After a change your old name stays reserved for you for a while, and you can only change again after that.';
+
+  @override
+  String settingsUsernameLocked(String date) {
+    return 'You can change again on $date';
+  }
+
+  @override
+  String get settingsUsernameSaved => 'Username changed.';
 
   @override
   String get settingsFriends => 'Friends';
