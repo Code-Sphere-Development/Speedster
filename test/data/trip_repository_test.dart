@@ -129,4 +129,84 @@ void main() {
     // Verworfene Beifahrer-Fahrten duerfen in der Heatmap nicht leuchten.
     expect(await db.select(db.heatEdges).get(), isEmpty);
   });
+
+  group('evictSyncedBeyond', () {
+    Future<int> synced(DateTime start, {String uuid = ''}) => repo.createTrip(
+          Trip(
+            startTime: start,
+            endTime: start.add(const Duration(minutes: 10)),
+            maxSpeed: 20,
+            avgSpeed: 10,
+            distance: 5000,
+            elevationGain: 10,
+            durationSeconds: 600,
+            zeroToHundredSeconds: null,
+            kept: true,
+            clientUuid: uuid,
+            syncedAt: DateTime(2026, 6),
+          ),
+        );
+
+    test('loescht die Punkte der verworfenen Fahrten mit', () async {
+      final alt = await synced(DateTime(2026, 1, 1), uuid: 'alt');
+      await repo.addPoints(alt, [
+        TrackPoint(
+          tripId: alt,
+          lat: 50,
+          lng: 7,
+          speed: 10,
+          altitude: 50,
+          accuracy: 5,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      ]);
+      final neu = await synced(DateTime(2026, 2, 1), uuid: 'neu');
+
+      expect(await repo.evictSyncedBeyond(1), 1);
+      expect(await repo.pointsFor(alt), isEmpty);
+      expect(await repo.pointsFor(neu), isEmpty);
+      expect((await repo.keptTrips()).single.clientUuid, 'neu');
+    });
+
+    test('laesst die Heatmap-Aggregate stehen', () async {
+      final alt = await synced(DateTime(2026, 1, 1), uuid: 'alt');
+      await repo.addPoints(alt, [
+        for (var i = 0; i < 40; i++)
+          TrackPoint(
+            tripId: alt,
+            lat: 50 + i * 0.0005,
+            lng: 7,
+            speed: 10,
+            altitude: 50,
+            accuracy: 5,
+            timestamp: DateTime(2026, 1, 1).add(Duration(seconds: i)),
+          ),
+      ]);
+      await HeatFolder(db).foldPending();
+      final vorher = (await db.select(db.heatEdges).get()).length;
+      expect(vorher, greaterThan(0), reason: 'sonst prueft der Test nichts');
+
+      await synced(DateTime(2026, 2, 1), uuid: 'neu');
+      expect(await repo.evictSyncedBeyond(1), 1);
+
+      expect(
+        (await db.select(db.heatEdges).get()).length,
+        vorher,
+        reason: 'der Vorrat darf die Heatmap nicht schmaelern',
+      );
+    });
+
+    test('verschont eine noch nicht bestaetigte Fahrt', () async {
+      await repo.createTrip(newTrip());
+      await synced(DateTime(2026, 2, 1), uuid: 'neu');
+
+      expect(await repo.evictSyncedBeyond(1), 0);
+      expect(await repo.keptTrips(), hasLength(2));
+    });
+
+    test('tut nichts, wenn nichts jenseits der Grenze liegt', () async {
+      await synced(DateTime(2026, 2, 1), uuid: 'neu');
+      expect(await repo.evictSyncedBeyond(10), 0);
+    });
+  });
 }

@@ -10,10 +10,18 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
 
-/// Points for a given trip id.
+/// Schluessel der Punkte-Abfrage: die stabile `client_uuid` und, sofern
+/// die Fahrt lokal vorliegt, ihre Zeilen-Id. Ein Record, weil Riverpod-
+/// Families Wertgleichheit brauchen -- [Trip] hat keine.
+typedef TripPointsKey = ({String clientUuid, int? localId});
+
+/// Punkte einer Fahrt, aus dem lokalen Vorrat oder aus der Cloud.
 final tripPointsProvider =
-    FutureProvider.family<List<TrackPoint>, int>((ref, tripId) {
-  return ref.watch(tripRepositoryProvider).pointsFor(tripId);
+    FutureProvider.family<List<TrackPoint>, TripPointsKey>((ref, key) {
+  return ref.watch(tripSourceProvider).pointsFor(
+        clientUuid: key.clientUuid,
+        localId: key.localId,
+      );
 });
 
 class TripDetailScreen extends ConsumerWidget {
@@ -24,7 +32,11 @@ class TripDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unit = ref.watch(settingsControllerProvider).unit;
-    final pointsAsync = ref.watch(tripPointsProvider(trip.id ?? -1));
+    final pointsAsync = ref.watch(
+      tripPointsProvider(
+        (clientUuid: trip.clientUuid, localId: trip.id),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(Formatters.dateTime(trip.startTime))),
@@ -67,7 +79,19 @@ class _TripMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (points.isEmpty) {
-      return const Center(child: Text('Keine Routendaten'));
+      // Bei aktiver Cloud liegen nur die zuletzt gefahrenen Strecken als
+      // Punkte auf dem Geraet (siehe TripCacheService); fuer aeltere
+      // Fahrten kommt die Strecke aus dem Netz.
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'Keine Streckendaten. Ältere Fahrten liegen nur in der Cloud — '
+            'ihre Karte braucht eine Verbindung.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
     final coords = points.map((p) => LatLng(p.lat, p.lng)).toList();
     return FlutterMap(

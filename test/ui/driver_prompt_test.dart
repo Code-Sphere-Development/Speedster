@@ -32,6 +32,10 @@ class _FakeRepo implements TripRepository {
   Future<List<Trip>> unsyncedTrips() async => [];
   @override
   Future<void> markSynced(String clientUuid) async {}
+  @override
+  Future<Map<String, int>> clientUuidIndex() async => {};
+  @override
+  Future<int> evictSyncedBeyond(int keep) async => 0;
 }
 
 void main() {

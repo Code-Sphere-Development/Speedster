@@ -17,6 +17,25 @@ abstract class TripRepository {
   Future<void> deleteAll();
   Future<List<domain.Trip>> unsyncedTrips();
   Future<void> markSynced(String clientUuid);
+
+  /// Lokal bekannte `client_uuid`s auf ihre lokale Zeilen-Id.
+  ///
+  /// Zwei Aufgaben: der Cache ueberspringt damit Fahrten, die schon hier
+  /// liegen (und laesst sich deshalb nach einem Netzabbruch beliebig oft
+  /// wiederholen), und die Cloud-Fahrtenliste findet darueber heraus,
+  /// welche ihrer Eintraege lokal vorliegen -- fuer die braucht die
+  /// Detailansicht dann kein Netz.
+  Future<Map<String, int>> clientUuidIndex();
+
+  /// Verwirft lokale Fahrten jenseits der [keep] neuesten.
+  ///
+  /// Nur Fahrten mit gesetztem `syncedAt` werden verworfen: was der Server
+  /// noch nicht bestaetigt hat, existiert nur hier und darf nicht
+  /// weggeraeumt werden. Gibt die Zahl der verworfenen Fahrten zurueck.
+  ///
+  /// Die Heatmap-Aggregate bleiben unangetastet -- sie haengen nicht am
+  /// Fremdschluessel und sollen den Cache ueberdauern.
+  Future<int> evictSyncedBeyond(int keep);
 }
 
 class DriftTripRepository implements TripRepository {
@@ -160,6 +179,46 @@ class DriftTripRepository implements TripRepository {
   Future<void> markSynced(String clientUuid) async {
     await (db.update(db.trips)..where((t) => t.clientUuid.equals(clientUuid)))
         .write(TripsCompanion(syncedAt: Value(DateTime.now())));
+  }
+
+  @override
+  Future<Map<String, int>> clientUuidIndex() async {
+    final rows = await (db.selectOnly(db.trips)
+          ..addColumns([db.trips.clientUuid, db.trips.id]))
+        .get();
+    final index = <String, int>{};
+    for (final row in rows) {
+      final uuid = row.read(db.trips.clientUuid);
+      final id = row.read(db.trips.id);
+      if (uuid != null && uuid.isNotEmpty && id != null) {
+        index[uuid] = id;
+      }
+    }
+    return index;
+  }
+
+  @override
+  Future<int> evictSyncedBeyond(int keep) async {
+    final newest = await (db.select(db.trips)
+          ..orderBy([(t) => OrderingTerm.desc(t.startTime)])
+          ..limit(keep))
+        .get();
+    final protectedIds = newest.map((t) => t.id).toList();
+
+    final victims = await (db.select(db.trips)
+          ..where((t) => t.syncedAt.isNotNull() & t.id.isNotIn(protectedIds)))
+        .get();
+    if (victims.isEmpty) return 0;
+
+    final ids = victims.map((t) => t.id).toList();
+    // Punkte ausdruecklich loeschen: der Fremdschluessel traegt zwar
+    // onDelete: cascade, aber SQLite setzt das nur bei eingeschaltetem
+    // `PRAGMA foreign_keys` durch, und die App schaltet es nicht ein.
+    // Ohne diese Zeile blieben verwaiste Punkte liegen -- also genau der
+    // Speicher, den der Cache einsparen soll.
+    await (db.delete(db.trackPoints)..where((p) => p.tripId.isIn(ids))).go();
+    await (db.delete(db.trips)..where((t) => t.id.isIn(ids))).go();
+    return victims.length;
   }
 
   domain.Trip _toDomainTrip(Trip r) => domain.Trip(

@@ -18,6 +18,7 @@ Trip sampleTrip() => Trip(
       durationSeconds: 1800,
       zeroToHundredSeconds: null,
       kept: true,
+      clientUuid: 'fahrt-1',
     );
 
 void main() {
@@ -29,7 +30,8 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          tripPointsProvider(1).overrideWith(
+          tripPointsProvider((clientUuid: 'fahrt-1', localId: 1))
+              .overrideWith(
             (ref) => <TrackPoint>[
               TrackPoint(
                 tripId: 1,

@@ -67,7 +67,24 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStartTracking());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeStartTracking();
+      _refreshTripCache();
+    });
+  }
+
+  /// Holt beim Start den lokalen Vorrat der zuletzt gefahrenen Strecken
+  /// auf Stand und raeumt aeltere, bestaetigt hochgeladene Fahrten weg.
+  ///
+  /// Ohne Cloud tut der Dienst nichts -- dann ist die lokale Datenbank
+  /// kein Vorrat, sondern der einzige Bestand.
+  Future<void> _refreshTripCache() async {
+    final result = await ref.read(tripCacheServiceProvider).refresh();
+    // Nur neu laden, wenn sich lokal etwas geaendert hat: die Liste selbst
+    // kommt bei aktiver Cloud ohnehin vom Server, aber die nachgetragenen
+    // lokalen Ids entscheiden, welche Detailansicht ohne Netz auskommt.
+    if (!mounted || (result.cached == 0 && result.evicted == 0)) return;
+    ref.invalidate(keptTripsProvider);
   }
 
   Future<void> _maybeStartTracking() async {
