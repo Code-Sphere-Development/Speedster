@@ -1320,6 +1320,18 @@ class $HeatCellsTable extends HeatCells
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _speedSumMeta = const VerificationMeta(
+    'speedSum',
+  );
+  @override
+  late final GeneratedColumn<double> speedSum = GeneratedColumn<double>(
+    'speed_sum',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     level,
@@ -1328,6 +1340,7 @@ class $HeatCellsTable extends HeatCells
     latSum,
     lngSum,
     n,
+    speedSum,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1380,6 +1393,12 @@ class $HeatCellsTable extends HeatCells
     if (data.containsKey('n')) {
       context.handle(_nMeta, n.isAcceptableOrUnknown(data['n']!, _nMeta));
     }
+    if (data.containsKey('speed_sum')) {
+      context.handle(
+        _speedSumMeta,
+        speedSum.isAcceptableOrUnknown(data['speed_sum']!, _speedSumMeta),
+      );
+    }
     return context;
   }
 
@@ -1413,6 +1432,10 @@ class $HeatCellsTable extends HeatCells
         DriftSqlType.int,
         data['${effectivePrefix}n'],
       )!,
+      speedSum: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}speed_sum'],
+      )!,
     );
   }
 
@@ -1429,6 +1452,19 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
   final double latSum;
   final double lngSum;
   final int n;
+
+  /// Summe der gemessenen Geschwindigkeiten in dieser Zelle, in m/s.
+  ///
+  /// Geteilt durch [n] ergibt sie, wie schnell hier ueblicherweise
+  /// gefahren wird -- die Bezugsgroesse fuer "zu schnell" auf dem
+  /// Sperrbildschirm. Die App kennt keine Tempolimits, und es gibt dafuer
+  /// keine brauchbare freie Quelle; verglichen wird deshalb mit der
+  /// eigenen Gewohnheit.
+  ///
+  /// Bewusst **nicht** Teil von `HeatGrid`: jenes ist der zeilengetreue
+  /// Spiegel von `HeatGrid.php`, und eine zusaetzliche Spalte hier duerfte
+  /// die Rasterparitaet zwischen Dart und PHP nicht beruehren.
+  final double speedSum;
   const HeatCellRow({
     required this.level,
     required this.cellRow,
@@ -1436,6 +1472,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
     required this.latSum,
     required this.lngSum,
     required this.n,
+    required this.speedSum,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1446,6 +1483,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
     map['lat_sum'] = Variable<double>(latSum);
     map['lng_sum'] = Variable<double>(lngSum);
     map['n'] = Variable<int>(n);
+    map['speed_sum'] = Variable<double>(speedSum);
     return map;
   }
 
@@ -1457,6 +1495,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
       latSum: Value(latSum),
       lngSum: Value(lngSum),
       n: Value(n),
+      speedSum: Value(speedSum),
     );
   }
 
@@ -1472,6 +1511,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
       latSum: serializer.fromJson<double>(json['latSum']),
       lngSum: serializer.fromJson<double>(json['lngSum']),
       n: serializer.fromJson<int>(json['n']),
+      speedSum: serializer.fromJson<double>(json['speedSum']),
     );
   }
   @override
@@ -1484,6 +1524,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
       'latSum': serializer.toJson<double>(latSum),
       'lngSum': serializer.toJson<double>(lngSum),
       'n': serializer.toJson<int>(n),
+      'speedSum': serializer.toJson<double>(speedSum),
     };
   }
 
@@ -1494,6 +1535,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
     double? latSum,
     double? lngSum,
     int? n,
+    double? speedSum,
   }) => HeatCellRow(
     level: level ?? this.level,
     cellRow: cellRow ?? this.cellRow,
@@ -1501,6 +1543,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
     latSum: latSum ?? this.latSum,
     lngSum: lngSum ?? this.lngSum,
     n: n ?? this.n,
+    speedSum: speedSum ?? this.speedSum,
   );
   HeatCellRow copyWithCompanion(HeatCellsCompanion data) {
     return HeatCellRow(
@@ -1510,6 +1553,7 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
       latSum: data.latSum.present ? data.latSum.value : this.latSum,
       lngSum: data.lngSum.present ? data.lngSum.value : this.lngSum,
       n: data.n.present ? data.n.value : this.n,
+      speedSum: data.speedSum.present ? data.speedSum.value : this.speedSum,
     );
   }
 
@@ -1521,13 +1565,15 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
           ..write('cellCol: $cellCol, ')
           ..write('latSum: $latSum, ')
           ..write('lngSum: $lngSum, ')
-          ..write('n: $n')
+          ..write('n: $n, ')
+          ..write('speedSum: $speedSum')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(level, cellRow, cellCol, latSum, lngSum, n);
+  int get hashCode =>
+      Object.hash(level, cellRow, cellCol, latSum, lngSum, n, speedSum);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1537,7 +1583,8 @@ class HeatCellRow extends DataClass implements Insertable<HeatCellRow> {
           other.cellCol == this.cellCol &&
           other.latSum == this.latSum &&
           other.lngSum == this.lngSum &&
-          other.n == this.n);
+          other.n == this.n &&
+          other.speedSum == this.speedSum);
 }
 
 class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
@@ -1547,6 +1594,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
   final Value<double> latSum;
   final Value<double> lngSum;
   final Value<int> n;
+  final Value<double> speedSum;
   final Value<int> rowid;
   const HeatCellsCompanion({
     this.level = const Value.absent(),
@@ -1555,6 +1603,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
     this.latSum = const Value.absent(),
     this.lngSum = const Value.absent(),
     this.n = const Value.absent(),
+    this.speedSum = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HeatCellsCompanion.insert({
@@ -1564,6 +1613,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
     this.latSum = const Value.absent(),
     this.lngSum = const Value.absent(),
     this.n = const Value.absent(),
+    this.speedSum = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : level = Value(level),
        cellRow = Value(cellRow),
@@ -1575,6 +1625,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
     Expression<double>? latSum,
     Expression<double>? lngSum,
     Expression<int>? n,
+    Expression<double>? speedSum,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1584,6 +1635,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
       if (latSum != null) 'lat_sum': latSum,
       if (lngSum != null) 'lng_sum': lngSum,
       if (n != null) 'n': n,
+      if (speedSum != null) 'speed_sum': speedSum,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1595,6 +1647,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
     Value<double>? latSum,
     Value<double>? lngSum,
     Value<int>? n,
+    Value<double>? speedSum,
     Value<int>? rowid,
   }) {
     return HeatCellsCompanion(
@@ -1604,6 +1657,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
       latSum: latSum ?? this.latSum,
       lngSum: lngSum ?? this.lngSum,
       n: n ?? this.n,
+      speedSum: speedSum ?? this.speedSum,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1629,6 +1683,9 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
     if (n.present) {
       map['n'] = Variable<int>(n.value);
     }
+    if (speedSum.present) {
+      map['speed_sum'] = Variable<double>(speedSum.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1644,6 +1701,7 @@ class HeatCellsCompanion extends UpdateCompanion<HeatCellRow> {
           ..write('latSum: $latSum, ')
           ..write('lngSum: $lngSum, ')
           ..write('n: $n, ')
+          ..write('speedSum: $speedSum, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3214,6 +3272,7 @@ typedef $$HeatCellsTableCreateCompanionBuilder =
       Value<double> latSum,
       Value<double> lngSum,
       Value<int> n,
+      Value<double> speedSum,
       Value<int> rowid,
     });
 typedef $$HeatCellsTableUpdateCompanionBuilder =
@@ -3224,6 +3283,7 @@ typedef $$HeatCellsTableUpdateCompanionBuilder =
       Value<double> latSum,
       Value<double> lngSum,
       Value<int> n,
+      Value<double> speedSum,
       Value<int> rowid,
     });
 
@@ -3263,6 +3323,11 @@ class $$HeatCellsTableFilterComposer
 
   ColumnFilters<int> get n => $composableBuilder(
     column: $table.n,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get speedSum => $composableBuilder(
+    column: $table.speedSum,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3305,6 +3370,11 @@ class $$HeatCellsTableOrderingComposer
     column: $table.n,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get speedSum => $composableBuilder(
+    column: $table.speedSum,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$HeatCellsTableAnnotationComposer
@@ -3333,6 +3403,9 @@ class $$HeatCellsTableAnnotationComposer
 
   GeneratedColumn<int> get n =>
       $composableBuilder(column: $table.n, builder: (column) => column);
+
+  GeneratedColumn<double> get speedSum =>
+      $composableBuilder(column: $table.speedSum, builder: (column) => column);
 }
 
 class $$HeatCellsTableTableManager
@@ -3372,6 +3445,7 @@ class $$HeatCellsTableTableManager
                 Value<double> latSum = const Value.absent(),
                 Value<double> lngSum = const Value.absent(),
                 Value<int> n = const Value.absent(),
+                Value<double> speedSum = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HeatCellsCompanion(
                 level: level,
@@ -3380,6 +3454,7 @@ class $$HeatCellsTableTableManager
                 latSum: latSum,
                 lngSum: lngSum,
                 n: n,
+                speedSum: speedSum,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3390,6 +3465,7 @@ class $$HeatCellsTableTableManager
                 Value<double> latSum = const Value.absent(),
                 Value<double> lngSum = const Value.absent(),
                 Value<int> n = const Value.absent(),
+                Value<double> speedSum = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HeatCellsCompanion.insert(
                 level: level,
@@ -3398,6 +3474,7 @@ class $$HeatCellsTableTableManager
                 latSum: latSum,
                 lngSum: lngSum,
                 n: n,
+                speedSum: speedSum,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -72,12 +72,18 @@ class HeatFolder {
     ];
 
     final fold = await runner(HeatGrid.foldTrip, points);
+    final speeds = _speedSums(points);
 
     await db.transaction(() async {
       for (var level = 0; level < HeatGrid.levelCount; level++) {
         final lf = fold.levels[level];
         for (final entry in lf.cells.entries) {
-          await _upsertCell(level, entry.key, entry.value);
+          await _upsertCell(
+            level,
+            entry.key,
+            entry.value,
+            speeds[level][entry.key] ?? 0,
+          );
         }
         for (final entry in lf.edges.entries) {
           await _upsertEdge(level, entry.key, entry.value);
@@ -88,15 +94,51 @@ class HeatFolder {
     });
   }
 
-  Future<void> _upsertCell(int level, HeatCell cell, CellAccum accum) async {
+  /// Summe der Geschwindigkeiten je Zelle und Ebene.
+  ///
+  /// Bewusst hier statt in `HeatGrid.foldTrip`: jenes ist der
+  /// zeilengetreue Spiegel von `HeatGrid.php`, und die Rasterparitaet
+  /// zwischen Dart und PHP darf an einer rein lokalen Auswertung nicht
+  /// haengen. Gerechnet wird ueber `HeatGrid.cellFor` und dieselbe
+  /// Genauigkeitsschwelle, damit beide Seiten dieselben Zellen treffen.
+  ///
+  /// Ohne Isolate: drei Fliesskomma-Additionen je Punkt sind auch bei
+  /// einer grossen Historie schneller erledigt, als das Verschieben der
+  /// Punkte in einen zweiten Isolate kosten wuerde.
+  static List<Map<HeatCell, double>> _speedSums(
+    List<domain.TrackPoint> points,
+  ) {
+    final levels = [
+      for (var i = 0; i < HeatGrid.levelCount; i++) <HeatCell, double>{},
+    ];
+
+    for (final p in points) {
+      if (p.accuracy > HeatGrid.maxAccuracyMeters) continue;
+      for (var level = 0; level < HeatGrid.levelCount; level++) {
+        final cell = HeatGrid.cellFor(p.lat, p.lng, level);
+        levels[level][cell] = (levels[level][cell] ?? 0) + p.speed;
+      }
+    }
+
+    return levels;
+  }
+
+  Future<void> _upsertCell(
+    int level,
+    HeatCell cell,
+    CellAccum accum,
+    double speedSum,
+  ) async {
     await db.customStatement(
-      'INSERT INTO heat_cells (level, cell_row, cell_col, lat_sum, lng_sum, n) '
-      'VALUES (?, ?, ?, ?, ?, ?) '
+      'INSERT INTO heat_cells '
+      '(level, cell_row, cell_col, lat_sum, lng_sum, n, speed_sum) '
+      'VALUES (?, ?, ?, ?, ?, ?, ?) '
       'ON CONFLICT(level, cell_row, cell_col) DO UPDATE SET '
       'lat_sum = lat_sum + excluded.lat_sum, '
       'lng_sum = lng_sum + excluded.lng_sum, '
-      'n = n + excluded.n',
-      [level, cell.row, cell.col, accum.latSum, accum.lngSum, accum.n],
+      'n = n + excluded.n, '
+      'speed_sum = speed_sum + excluded.speed_sum',
+      [level, cell.row, cell.col, accum.latSum, accum.lngSum, accum.n, speedSum],
     );
   }
 

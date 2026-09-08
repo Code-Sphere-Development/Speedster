@@ -13,7 +13,7 @@ class PlatformCarConnection implements CarConnection {
   const PlatformCarConnection();
 
   static const _channel =
-      EventChannel('de.mediacologne.speedster/car_connection');
+      EventChannel('de.codesphere.speedster/car_connection');
 
   @override
   Stream<bool> get connected => _channel

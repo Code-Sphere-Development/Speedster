@@ -12,7 +12,7 @@ class OsmTileLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TileLayer(
         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        userAgentPackageName: 'de.mediacologne.speedster',
+        userAgentPackageName: 'de.codesphere.speedster',
       );
 }
 
@@ -59,7 +59,7 @@ class EsriDarkTileLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TileLayer(
         urlTemplate: _base,
-        userAgentPackageName: 'de.mediacologne.speedster',
+        userAgentPackageName: 'de.codesphere.speedster',
       );
 }
 
@@ -77,7 +77,7 @@ class EsriDarkLabelsTileLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TileLayer(
         urlTemplate: _labels,
-        userAgentPackageName: 'de.mediacologne.speedster',
+        userAgentPackageName: 'de.codesphere.speedster',
       );
 }
 
