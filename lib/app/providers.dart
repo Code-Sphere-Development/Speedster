@@ -24,6 +24,8 @@ import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/sensors/last_known_location.dart';
+import 'package:speedster/widgets/widget_publisher.dart';
+import 'package:speedster/widgets/widget_store.dart';
 import 'package:speedster/sensors/location_service.dart';
 
 /// Opened in main() and injected via override.
@@ -85,6 +87,19 @@ final recorderStateProvider = StreamProvider<RecorderState>(
 
 final liveActivityProvider = Provider<LiveActivity>(
   (ref) => const PlatformLiveActivity(),
+);
+
+final widgetStoreProvider = Provider<WidgetStore>(
+  (ref) => const PlatformWidgetStore(),
+);
+
+final widgetPublisherProvider = Provider<WidgetPublisher>(
+  (ref) => WidgetPublisher(
+    store: ref.watch(widgetStoreProvider),
+    trips: ref.watch(tripRepositoryProvider),
+    heat: ref.watch(heatSourceProvider),
+    ranking: ref.watch(rankingRepositoryProvider),
+  ),
 );
 
 final heatFolderProvider = Provider<HeatFolder>(

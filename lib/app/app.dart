@@ -70,6 +70,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeStartTracking();
       _refreshTripCache();
+      _publishWidgets();
     });
   }
 
@@ -95,6 +96,19 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     unawaited(ref.read(recorderProvider).start());
   }
 
+  /// Legt die Werte fuer die Widgets ab.
+  ///
+  /// Beim Start und nach jeder Fahrt -- oefter waere Arbeit, die niemand
+  /// sieht: das System zeichnet Widgets nur wenige Male pro Stunde neu.
+  /// Fehler bleiben folgenlos, die Widgets zeigen dann den letzten Stand.
+  Future<void> _publishWidgets() async {
+    try {
+      await ref.read(widgetPublisherProvider).publish();
+    } catch (_) {
+      // Widgets sind Beiwerk.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(recorderStateProvider, (prev, next) {
@@ -114,6 +128,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       final id = state?.awaitingConfirmationTripId;
       if (id != null) {
         ref.invalidate(keptTripsProvider);
+        _publishWidgets();
         showDialog<void>(
           context: context,
           builder: (_) => DriverPrompt(tripId: id),
