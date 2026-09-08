@@ -4,42 +4,63 @@
 # das Xcode-Projekt anfasst. Es muss neben dem Xcode-Projekt liegen, also
 # unter ios/ci_scripts/ -- an anderer Stelle findet Xcode Cloud es nicht.
 #
-# Warum es ueberhaupt noetig ist: ios/Flutter/Generated.xcconfig ist
-# bewusst nicht eingecheckt (ios/.gitignore), weil sie den lokalen Pfad zur
+# Warum es noetig ist: ios/Flutter/Generated.xcconfig ist bewusst nicht
+# eingecheckt (ios/.gitignore), weil sie den lokalen Pfad zur
 # Flutter-Installation enthaelt. Genau diese Datei definiert aber
 # FLUTTER_BUILD_NAME und FLUTTER_BUILD_NUMBER, und Runner/Info.plist setzt
 # sie als $(FLUTTER_BUILD_NAME) bzw. $(FLUTTER_BUILD_NUMBER) ein. Auf einem
-# frisch geklonten Rechner fehlt die Datei -- die Version loest damit zu
-# einer leeren Zeichenkette auf, und Xcode Cloud scheitert bereits daran,
-# das Projekt zu lesen. Zusaetzlich koennte Release.xcconfig ihr #include
-# nicht aufloesen.
-#
-# Das Skript holt deshalb Flutter und erzeugt die Datei, bevor Xcode baut.
+# frisch geklonten Rechner fehlt die Datei -- die Version loest zu einer
+# leeren Zeichenkette auf, und Release.xcconfig kann ihr #include nicht
+# aufloesen.
 
 set -e
 
-# Angeheftet auf die Version, mit der lokal entwickelt wird. Ein
-# gleitendes "stable" hiesse, dass ein Flutter-Release die Pipeline
-# umwirft, ohne dass sich am Projekt etwas geaendert hat.
 FLUTTER_VERSION=3.47.2
 
-echo "Flutter $FLUTTER_VERSION holen..."
+# Die Projektwurzel aus dem eigenen Ort ableiten, nicht aus einer
+# Umgebungsvariablen: das Skript liegt unter <wurzel>/ios/ci_scripts/, also
+# sind zwei Ebenen darueber die Wurzel. CI_WORKSPACE ist je nach
+# Xcode-Cloud-Version gesetzt, leer oder durch
+# CI_PRIMARY_REPOSITORY_PATH ersetzt -- ein leeres `cd ""` faellt nicht auf
+# und laesst den Rest im falschen Verzeichnis weiterlaufen.
+REPO_ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+cd "$REPO_ROOT"
+
+echo "--- Umgebung ---"
+echo "Skript:                     $0"
+echo "Projektwurzel:              $REPO_ROOT"
+echo "CI_WORKSPACE:               ${CI_WORKSPACE:-<nicht gesetzt>}"
+echo "CI_PRIMARY_REPOSITORY_PATH: ${CI_PRIMARY_REPOSITORY_PATH:-<nicht gesetzt>}"
+ls -la pubspec.yaml ios/Flutter/
+
+echo "--- Flutter $FLUTTER_VERSION holen ---"
 git clone https://github.com/flutter/flutter.git \
     --depth 1 --branch "$FLUTTER_VERSION" "$HOME/flutter"
 export PATH="$HOME/flutter/bin:$PATH"
-
-# CI_WORKSPACE zeigt auf die Wurzel des geklonten Repositoriums; das
-# Flutter-Projekt liegt dort, nicht im ios-Ordner.
-cd "$CI_WORKSPACE"
-
 flutter --version
 flutter precache --ios
 flutter pub get
 
-# --config-only erzeugt Generated.xcconfig und die uebrigen abgeleiteten
-# Dateien, ohne selbst zu bauen -- bauen und signieren ist danach Aufgabe
-# von Xcode Cloud.
+CONFIG=ios/Flutter/Generated.xcconfig
+
+echo "--- Konfiguration erzeugen ---"
 flutter build ios --release --no-codesign --config-only
 
-echo "Generated.xcconfig:"
-cat ios/Flutter/Generated.xcconfig
+# --config-only hat die Datei in einem Lauf nicht erzeugt, ohne dabei zu
+# scheitern. Ein vollstaendiger Build erzeugt sie zuverlaessig; er kostet
+# einige Minuten, ist aber allemal billiger als ein Lauf, der erst in Xcode
+# an einer leeren Versionsnummer scheitert.
+if [ ! -f "$CONFIG" ]; then
+    echo "$CONFIG fehlt nach --config-only, vollstaendiger Build folgt."
+    flutter build ios --release --no-codesign
+fi
+
+if [ ! -f "$CONFIG" ]; then
+    echo "FEHLER: $CONFIG wurde nicht erzeugt."
+    echo "Inhalt von ios/Flutter/:"
+    ls -la ios/Flutter/
+    exit 1
+fi
+
+echo "--- $CONFIG ---"
+cat "$CONFIG"
