@@ -147,5 +147,16 @@
   "heatmapLoading": "Heatmap wird geladen …",
   "consentBody": "Speedster zeichnet Geschwindigkeit und Route deiner Fahrten auf.\n\nBitte fahre stets verantwortungsvoll. Es gilt immer die Straßenverkehrsordnung (StVO). Auf Streckenabschnitten ohne Tempolimit (z. B. Teile deutscher Autobahnen) gilt die Richtgeschwindigkeit — passe deine Geschwindigkeit stets an Verkehr, Wetter und Sicht an.\n\nDie Nutzung erfolgt auf eigene Gefahr. Speedster fordert nicht zu überhöhter Geschwindigkeit auf.\n\nDatenschutz: Deine Fahrten werden auf dem Gerät gespeichert. Erst wenn du die Cloud-Synchronisierung in den Einstellungen aktivierst, werden sie samt Streckenverlauf auf unseren Server übertragen. Du kannst deine Daten jederzeit in den Einstellungen löschen.",
   "consentAcceptShort": "Akzeptieren",
-  "settingsDeleteAccountTitle": "Account löschen?"
+  "settingsDeleteAccountTitle": "Account löschen?",
+  "friendsPendingTitle": "Freundschaftsanfragen",
+  "friendsPendingLead": "{count, plural, =1{Eine Person möchte sich mit dir verbinden.} other{{count} Personen möchten sich mit dir verbinden.}}",
+  "friendsPendingLater": "Später",
+  "friendsPendingManage": "Alle ansehen",
+  "@friendsPendingLead": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

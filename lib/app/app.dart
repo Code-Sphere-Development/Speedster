@@ -9,6 +9,7 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/driver_prompt.dart';
+import 'package:speedster/ui/friend_requests_prompt.dart';
 import 'package:speedster/ui/live_screen.dart';
 import 'package:speedster/ui/ranking_screen.dart';
 import 'package:speedster/ui/settings_screen.dart';
@@ -81,6 +82,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   /// Ansicht wieder wegzieht, nachdem der Nutzer weggewechselt hat.
   bool _switchedForCurrentDrive = false;
 
+  /// Offene Anfragen werden einmal je App-Start gezeigt. Ohne diese Sperre
+  /// poppte der Dialog nach jedem Neuladen der Liste erneut auf -- auch
+  /// waehrend der Fahrt.
+  bool _askedAboutFriends = false;
+
   /// Alle Ansichten, immer und in fester Reihenfolge.
   ///
   /// Der IndexedStack behaelt sie deshalb ueber das Ein- und Ausblenden
@@ -102,6 +108,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       _maybeStartTracking();
       _refreshTripCache();
       _publishWidgets();
+      _askAboutFriendRequests();
     });
   }
 
@@ -137,6 +144,27 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       await ref.read(widgetPublisherProvider).publish();
     } catch (_) {
       // Widgets sind Beiwerk.
+    }
+  }
+
+  /// Zeigt offene Freundschaftsanfragen beim Oeffnen der App.
+  ///
+  /// Beim Start und nicht laufend: ein Dialog, der mitten in der Fahrt
+  /// aufspringt, ist im Auto das Letzte, was jemand gebrauchen kann.
+  Future<void> _askAboutFriendRequests() async {
+    if (_askedAboutFriends) return;
+    // Erst die Anmeldung pruefen, dann fragen: ohne Konto gibt es keine
+    // Anfragen, und die Abfrage waere eine Netzrunde bei jedem Start, die
+    // zwangslaeufig in einem 401 endet.
+    if (await ref.read(cloudActiveProvider.future) != true) return;
+    try {
+      final overview = await ref.read(friendOverviewProvider.future);
+      if (!mounted || overview.incoming.isEmpty) return;
+      _askedAboutFriends = true;
+      await FriendRequestsPrompt.maybeShow(context, overview.incoming);
+    } catch (_) {
+      // Ohne Cloud, ohne Anmeldung oder ohne Netz gibt es nichts zu
+      // fragen. Die Anfragen bleiben offen und erscheinen spaeter.
     }
   }
 

@@ -119,5 +119,9 @@
   "heatmapLoading": "Loading the heatmap …",
   "consentBody": "Speedster records the speed and route of your drives.\n\nPlease always drive responsibly. Road traffic regulations always apply. On sections without a speed limit (for example parts of German motorways) the advisory speed applies — always adapt your speed to traffic, weather and visibility.\n\nUse is at your own risk. Speedster does not encourage excessive speed.\n\nPrivacy: your drives are stored on the device. Only when you enable cloud sync in the settings are they transferred, including their routes, to our server. You can delete your data at any time in the settings.",
   "consentAcceptShort": "Accept",
-  "settingsDeleteAccountTitle": "Delete account?"
+  "settingsDeleteAccountTitle": "Delete account?",
+  "friendsPendingTitle": "Friend requests",
+  "friendsPendingLead": "{count, plural, =1{Someone would like to connect with you.} other{{count} people would like to connect with you.}}",
+  "friendsPendingLater": "Later",
+  "friendsPendingManage": "See all"
 }
