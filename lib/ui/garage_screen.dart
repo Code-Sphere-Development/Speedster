@@ -201,6 +201,14 @@ class _VehicleTile extends ConsumerWidget {
   }
 }
 
+/// Kilometerzahlen mit Tausendertrennung der jeweiligen Sprache.
+///
+/// Ohne sie steht dort "128430 km", und das liest niemand auf einen
+/// Blick. Die Cloud macht es genauso.
+String _km(BuildContext context, num value) => NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(value);
+
 /// Der geschaetzte Tachostand samt der Ablesung, auf der er beruht.
 ///
 /// Immer mit "ca." und immer mit der Grundlage daneben: aufgezeichnet
@@ -285,7 +293,8 @@ class _OdometerBlock extends ConsumerWidget {
               child: Text(
                 odometer.estimateKm == null
                     ? l.garageOdometerNone
-                    : l.garageOdometerEstimate('${odometer.estimateKm}'),
+                    : l.garageOdometerEstimate(
+                        _km(context, odometer.estimateKm!)),
                 style: odometer.estimateKm == null
                     ? small
                     : Theme.of(context).textTheme.titleSmall,
@@ -300,10 +309,10 @@ class _OdometerBlock extends ConsumerWidget {
         if (odometer.readingKm != null && odometer.readAt != null)
           Text(
             l.garageOdometerBasis(
-              '${odometer.readingKm}',
+              _km(context, odometer.readingKm!),
               DateFormat.yMd(Localizations.localeOf(context).toLanguageTag())
                   .format(odometer.readAt!),
-              odometer.trackedKm.round().toString(),
+              _km(context, odometer.trackedKm.round()),
             ),
             style: small,
           ),
@@ -322,7 +331,7 @@ class _MaintenanceBlock extends ConsumerWidget {
   ///
   /// Ohne geschaetzten Tachostand bleibt die Kilometerangabe aus: eine
   /// Restangabe ohne Bezugsgroesse waere keine Auskunft.
-  String _due(AppLocalizations l, MaintenanceItem item) {
+  String _due(BuildContext context, AppLocalizations l, MaintenanceItem item) {
     final parts = <String>[];
 
     final days = item.daysLeft;
@@ -337,10 +346,10 @@ class _MaintenanceBlock extends ConsumerWidget {
     final km = item.kilometersLeft;
     if (km != null) {
       parts.add(km >= 0
-          ? l.garageMaintenanceInKm('$km')
-          : l.garageMaintenanceOverdueKm('${-km}'));
+          ? l.garageMaintenanceInKm(_km(context, km))
+          : l.garageMaintenanceOverdueKm(_km(context, -km)));
     } else if (item.dueKm != null) {
-      parts.add(l.garageMaintenanceKmUnknown('${item.dueKm}'));
+      parts.add(l.garageMaintenanceKmUnknown(_km(context, item.dueKm!)));
     }
 
     return parts.join(' · ');
@@ -395,7 +404,7 @@ class _MaintenanceBlock extends ConsumerWidget {
                             color: item.overdue ? scheme.primary : null,
                           ),
                         ),
-                        Text(_due(l, item), style: small),
+                        Text(_due(context, l, item), style: small),
                       ],
                     ),
                   ),
