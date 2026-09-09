@@ -174,6 +174,8 @@ class _VehicleTile extends ConsumerWidget {
             Text(details, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 12),
             _OdometerBlock(vehicle: vehicle),
+            const SizedBox(height: 8),
+            _MaintenanceBlock(vehicle: vehicle),
             const SizedBox(height: 4),
             Row(
               children: [
@@ -305,6 +307,234 @@ class _OdometerBlock extends ConsumerWidget {
             ),
             style: small,
           ),
+      ],
+    );
+  }
+}
+
+/// Faellige Wartungen, nach Termin oder Laufleistung.
+class _MaintenanceBlock extends ConsumerWidget {
+  const _MaintenanceBlock({required this.vehicle});
+
+  final Vehicle vehicle;
+
+  /// Wie weit es noch ist -- in Tagen, in Kilometern oder in beidem.
+  ///
+  /// Ohne geschaetzten Tachostand bleibt die Kilometerangabe aus: eine
+  /// Restangabe ohne Bezugsgroesse waere keine Auskunft.
+  String _due(AppLocalizations l, MaintenanceItem item) {
+    final parts = <String>[];
+
+    final days = item.daysLeft;
+    if (days != null) {
+      parts.add(days == 0
+          ? l.garageMaintenanceToday
+          : days > 0
+              ? l.garageMaintenanceInDays(days)
+              : l.garageMaintenanceOverdueDays(-days));
+    }
+
+    final km = item.kilometersLeft;
+    if (km != null) {
+      parts.add(km >= 0
+          ? l.garageMaintenanceInKm('$km')
+          : l.garageMaintenanceOverdueKm('${-km}'));
+    } else if (item.dueKm != null) {
+      parts.add(l.garageMaintenanceKmUnknown('${item.dueKm}'));
+    }
+
+    return parts.join(' · ');
+  }
+
+  Future<void> _add(BuildContext context, WidgetRef ref) async {
+    final added = await showDialog<bool>(
+      context: context,
+      builder: (_) => MaintenanceDialog(vehicle: vehicle),
+    );
+
+    if (added ?? false) ref.invalidate(vehiclesProvider);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final small = Theme.of(context).textTheme.bodySmall;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(l.garageMaintenance, style: small)),
+            TextButton(
+              onPressed: () => _add(context, ref),
+              child: Text(l.garageMaintenanceAdd),
+            ),
+          ],
+        ),
+        if (vehicle.maintenance.isEmpty)
+          Text(l.garageMaintenanceNone, style: small)
+        else
+          for (final item in vehicle.maintenance)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            // Ueberfaelliges in der Akzentfarbe: es ist
+                            // die einzige Zeile, die eine Handlung
+                            // verlangt.
+                            color: item.overdue ? scheme.primary : null,
+                          ),
+                        ),
+                        Text(_due(l, item), style: small),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await ref
+                          .read(vehicleRepositoryProvider)
+                          .completeMaintenance(vehicle.id, item.id);
+                      ref.invalidate(vehiclesProvider);
+                    },
+                    child: Text(l.garageMaintenanceDone),
+                  ),
+                ],
+              ),
+            ),
+      ],
+    );
+  }
+}
+
+/// Anlegen einer Wartung: Termin, Laufleistung oder beides.
+class MaintenanceDialog extends ConsumerStatefulWidget {
+  const MaintenanceDialog({required this.vehicle, super.key});
+
+  final Vehicle vehicle;
+
+  @override
+  ConsumerState<MaintenanceDialog> createState() => _MaintenanceDialogState();
+}
+
+class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
+  final _title = TextEditingController();
+  final _km = TextEditingController();
+  DateTime? _dueOn;
+  String? _error;
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _km.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: now,
+      lastDate: DateTime(now.year + 10),
+      initialDate: now,
+    );
+    if (picked != null) setState(() => _dueOn = picked);
+  }
+
+  Future<void> _save() async {
+    final l = AppLocalizations.of(context);
+    final km = int.tryParse(_km.text.trim());
+
+    // Ohne Termin und ohne Laufleistung waere es kein Termin, sondern eine
+    // Notiz -- dieselbe Regel wie am Server.
+    if (_title.text.trim().isEmpty || (_dueOn == null && km == null)) {
+      setState(() => _error = l.garageMaintenanceNeedsDue);
+      return;
+    }
+
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+
+    final navigator = Navigator.of(context);
+    try {
+      await ref.read(vehicleRepositoryProvider).addMaintenance(
+            widget.vehicle.id,
+            title: _title.text.trim(),
+            dueOn: _dueOn,
+            dueKm: km,
+          );
+      navigator.pop(true);
+    } on VehicleException catch (e) {
+      setState(() {
+        _error = e.message ?? l.commonNoConnection;
+        _busy = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
+    return AlertDialog(
+      title: Text(l.garageMaintenanceAdd),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _title,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: l.garageMaintenanceTitle,
+              helperText: l.garageMaintenanceTitleHint,
+              errorText: _error,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _km,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: l.garageMaintenanceDueKm,
+              suffixText: 'km',
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.event_outlined),
+            label: Text(
+              _dueOn == null
+                  ? l.garageMaintenanceDueOn
+                  : DateFormat.yMd(
+                      Localizations.localeOf(context).toLanguageTag(),
+                    ).format(_dueOn!),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.of(context).pop(false),
+          child: Text(l.commonCancel),
+        ),
+        FilledButton(
+          onPressed: _busy ? null : _save,
+          child: Text(l.commonSave),
+        ),
       ],
     );
   }

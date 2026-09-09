@@ -428,6 +428,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get garageMaintenance => 'Maintenance';
+
+  @override
+  String get garageMaintenanceAdd => 'Add maintenance';
+
+  @override
+  String get garageMaintenanceTitle => 'What';
+
+  @override
+  String get garageMaintenanceTitleHint => 'Inspection, service, oil change …';
+
+  @override
+  String get garageMaintenanceDueKm => 'Due at km';
+
+  @override
+  String get garageMaintenanceDueOn => 'Due on';
+
+  @override
+  String get garageMaintenanceNone => 'No maintenance entered.';
+
+  @override
+  String get garageMaintenanceDone => 'Done';
+
+  @override
+  String garageMaintenanceInDays(int count) {
+    return 'in $count days';
+  }
+
+  @override
+  String garageMaintenanceOverdueDays(int count) {
+    return '$count days overdue';
+  }
+
+  @override
+  String get garageMaintenanceToday => 'due today';
+
+  @override
+  String garageMaintenanceInKm(String km) {
+    return 'in approx. $km km';
+  }
+
+  @override
+  String garageMaintenanceOverdueKm(String km) {
+    return 'approx. $km km overdue';
+  }
+
+  @override
+  String garageMaintenanceKmUnknown(String km) {
+    return 'at $km km — odometer unknown';
+  }
+
+  @override
+  String get garageMaintenanceNeedsDue => 'Please give a date or a mileage.';
+
+  @override
   String get garageDefault => 'Default';
 
   @override

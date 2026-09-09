@@ -433,6 +433,62 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get garageMaintenance => 'Wartung';
+
+  @override
+  String get garageMaintenanceAdd => 'Wartung eintragen';
+
+  @override
+  String get garageMaintenanceTitle => 'Was';
+
+  @override
+  String get garageMaintenanceTitleHint => 'HU, Inspektion, Ölwechsel …';
+
+  @override
+  String get garageMaintenanceDueKm => 'Fällig bei km';
+
+  @override
+  String get garageMaintenanceDueOn => 'Fällig am';
+
+  @override
+  String get garageMaintenanceNone => 'Keine Wartung eingetragen.';
+
+  @override
+  String get garageMaintenanceDone => 'Erledigt';
+
+  @override
+  String garageMaintenanceInDays(int count) {
+    return 'in $count Tagen';
+  }
+
+  @override
+  String garageMaintenanceOverdueDays(int count) {
+    return 'seit $count Tagen überfällig';
+  }
+
+  @override
+  String get garageMaintenanceToday => 'heute fällig';
+
+  @override
+  String garageMaintenanceInKm(String km) {
+    return 'in ca. $km km';
+  }
+
+  @override
+  String garageMaintenanceOverdueKm(String km) {
+    return 'ca. $km km überfällig';
+  }
+
+  @override
+  String garageMaintenanceKmUnknown(String km) {
+    return 'bei $km km — Tachostand unbekannt';
+  }
+
+  @override
+  String get garageMaintenanceNeedsDue =>
+      'Bitte ein Datum oder einen Kilometerstand angeben.';
+
+  @override
   String get garageDefault => 'Standard';
 
   @override

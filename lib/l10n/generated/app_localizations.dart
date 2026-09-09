@@ -878,6 +878,96 @@ abstract class AppLocalizations {
   /// **'Die Schätzung lag {km} km daneben — so viel hat die App nicht mitbekommen.'**
   String garageOdometerDeviation(String km);
 
+  /// No description provided for @garageMaintenance.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartung'**
+  String get garageMaintenance;
+
+  /// No description provided for @garageMaintenanceAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartung eintragen'**
+  String get garageMaintenanceAdd;
+
+  /// No description provided for @garageMaintenanceTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Was'**
+  String get garageMaintenanceTitle;
+
+  /// No description provided for @garageMaintenanceTitleHint.
+  ///
+  /// In de, this message translates to:
+  /// **'HU, Inspektion, Ölwechsel …'**
+  String get garageMaintenanceTitleHint;
+
+  /// No description provided for @garageMaintenanceDueKm.
+  ///
+  /// In de, this message translates to:
+  /// **'Fällig bei km'**
+  String get garageMaintenanceDueKm;
+
+  /// No description provided for @garageMaintenanceDueOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Fällig am'**
+  String get garageMaintenanceDueOn;
+
+  /// No description provided for @garageMaintenanceNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Wartung eingetragen.'**
+  String get garageMaintenanceNone;
+
+  /// No description provided for @garageMaintenanceDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Erledigt'**
+  String get garageMaintenanceDone;
+
+  /// No description provided for @garageMaintenanceInDays.
+  ///
+  /// In de, this message translates to:
+  /// **'in {count} Tagen'**
+  String garageMaintenanceInDays(int count);
+
+  /// No description provided for @garageMaintenanceOverdueDays.
+  ///
+  /// In de, this message translates to:
+  /// **'seit {count} Tagen überfällig'**
+  String garageMaintenanceOverdueDays(int count);
+
+  /// No description provided for @garageMaintenanceToday.
+  ///
+  /// In de, this message translates to:
+  /// **'heute fällig'**
+  String get garageMaintenanceToday;
+
+  /// No description provided for @garageMaintenanceInKm.
+  ///
+  /// In de, this message translates to:
+  /// **'in ca. {km} km'**
+  String garageMaintenanceInKm(String km);
+
+  /// No description provided for @garageMaintenanceOverdueKm.
+  ///
+  /// In de, this message translates to:
+  /// **'ca. {km} km überfällig'**
+  String garageMaintenanceOverdueKm(String km);
+
+  /// No description provided for @garageMaintenanceKmUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'bei {km} km — Tachostand unbekannt'**
+  String garageMaintenanceKmUnknown(String km);
+
+  /// No description provided for @garageMaintenanceNeedsDue.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte ein Datum oder einen Kilometerstand angeben.'**
+  String get garageMaintenanceNeedsDue;
+
   /// No description provided for @garageDefault.
   ///
   /// In de, this message translates to:

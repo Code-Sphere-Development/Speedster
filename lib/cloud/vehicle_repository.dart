@@ -56,6 +56,47 @@ class Odometer {
   final DateTime? readAt;
 }
 
+/// Eine faellige Wartung -- HU, Inspektion, Oelwechsel, Reifen.
+class MaintenanceItem {
+  const MaintenanceItem({
+    required this.id,
+    required this.title,
+    this.dueOn,
+    this.dueKm,
+    this.note,
+    this.daysLeft,
+    this.kilometersLeft,
+  });
+
+  factory MaintenanceItem.fromJson(Map<String, dynamic> json) => MaintenanceItem(
+        id: json['id'] as int,
+        title: json['title'] as String? ?? '',
+        dueOn: DateTime.tryParse(json['due_on'] as String? ?? ''),
+        dueKm: (json['due_km'] as num?)?.toInt(),
+        note: json['note'] as String?,
+        daysLeft: (json['days_left'] as num?)?.toInt(),
+        kilometersLeft: (json['kilometers_left'] as num?)?.toInt(),
+      );
+
+  final int id;
+  final String title;
+  final DateTime? dueOn;
+  final int? dueKm;
+  final String? note;
+
+  /// Negativ heisst ueberfaellig, `null` heisst "kein Termin gesetzt".
+  final int? daysLeft;
+
+  /// Gegen den geschaetzten Tachostand gerechnet. `null`, wenn keine
+  /// Laufleistung gesetzt ist oder kein Stand vorliegt -- eine Zahl ohne
+  /// Bezugsgroesse waere keine Auskunft.
+  final int? kilometersLeft;
+
+  bool get overdue =>
+      (daysLeft != null && daysLeft! < 0) ||
+      (kilometersLeft != null && kilometersLeft! < 0);
+}
+
 /// Ein Fahrzeug aus der Garage.
 class Vehicle {
   const Vehicle({
@@ -66,6 +107,7 @@ class Vehicle {
     this.powerPs,
     this.model,
     this.odometer = const Odometer(),
+    this.maintenance = const [],
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
@@ -81,6 +123,10 @@ class Vehicle {
             ? const Odometer()
             : Odometer.fromJson(
                 Map<String, dynamic>.from(json['odometer'] as Map)),
+        maintenance: [
+          for (final row in json['maintenance'] as List? ?? const [])
+            MaintenanceItem.fromJson(Map<String, dynamic>.from(row as Map)),
+        ],
       );
 
   final int id;
@@ -90,6 +136,7 @@ class Vehicle {
   final int? powerPs;
   final VehicleModel? model;
   final Odometer odometer;
+  final List<MaintenanceItem> maintenance;
 }
 
 /// Fehler mit der Meldung des Servers, sofern er eine geschickt hat.
@@ -193,6 +240,28 @@ class VehicleRepository {
       throw VehicleException(serverMessage(e));
     }
   }
+
+  Future<void> addMaintenance(
+    int vehicleId, {
+    required String title,
+    DateTime? dueOn,
+    int? dueKm,
+  }) async {
+    try {
+      await dio.post('/vehicles/$vehicleId/maintenance', data: {
+        'title': title,
+        'due_on': dueOn?.toIso8601String().split('T').first,
+        'due_km': dueKm,
+      });
+    } on DioException catch (e) {
+      throw VehicleException(serverMessage(e));
+    }
+  }
+
+  /// Hakt eine Wartung ab. Erledigt statt geloescht -- der naechste Termin
+  /// ergibt sich meist aus dem letzten.
+  Future<void> completeMaintenance(int vehicleId, int itemId) =>
+      dio.post('/vehicles/$vehicleId/maintenance/$itemId/done');
 
   Future<void> makeDefault(int id) => dio.post('/vehicles/$id/default');
 

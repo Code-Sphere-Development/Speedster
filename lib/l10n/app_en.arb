@@ -157,6 +157,56 @@
   "garageOdometerKm": "Kilometres",
   "garageOdometerSaved": "Odometer reading saved.",
   "garageOdometerDeviation": "The estimate was off by {km} km — that much the app did not see.",
+  "garageMaintenance": "Maintenance",
+  "garageMaintenanceAdd": "Add maintenance",
+  "garageMaintenanceTitle": "What",
+  "garageMaintenanceTitleHint": "Inspection, service, oil change …",
+  "garageMaintenanceDueKm": "Due at km",
+  "garageMaintenanceDueOn": "Due on",
+  "garageMaintenanceNone": "No maintenance entered.",
+  "garageMaintenanceDone": "Done",
+  "garageMaintenanceInDays": "in {count} days",
+  "@garageMaintenanceInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "garageMaintenanceOverdueDays": "{count} days overdue",
+  "@garageMaintenanceOverdueDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "garageMaintenanceToday": "due today",
+  "garageMaintenanceInKm": "in approx. {km} km",
+  "@garageMaintenanceInKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceOverdueKm": "approx. {km} km overdue",
+  "@garageMaintenanceOverdueKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceKmUnknown": "at {km} km — odometer unknown",
+  "@garageMaintenanceKmUnknown": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceNeedsDue": "Please give a date or a mileage.",
   "@garageOdometerDeviation": {
     "placeholders": {
       "km": {

@@ -178,6 +178,56 @@
   "garageOdometerKm": "Kilometerstand",
   "garageOdometerSaved": "Tachostand gespeichert.",
   "garageOdometerDeviation": "Die Schätzung lag {km} km daneben — so viel hat die App nicht mitbekommen.",
+  "garageMaintenance": "Wartung",
+  "garageMaintenanceAdd": "Wartung eintragen",
+  "garageMaintenanceTitle": "Was",
+  "garageMaintenanceTitleHint": "HU, Inspektion, Ölwechsel …",
+  "garageMaintenanceDueKm": "Fällig bei km",
+  "garageMaintenanceDueOn": "Fällig am",
+  "garageMaintenanceNone": "Keine Wartung eingetragen.",
+  "garageMaintenanceDone": "Erledigt",
+  "garageMaintenanceInDays": "in {count} Tagen",
+  "@garageMaintenanceInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "garageMaintenanceOverdueDays": "seit {count} Tagen überfällig",
+  "@garageMaintenanceOverdueDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "garageMaintenanceToday": "heute fällig",
+  "garageMaintenanceInKm": "in ca. {km} km",
+  "@garageMaintenanceInKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceOverdueKm": "ca. {km} km überfällig",
+  "@garageMaintenanceOverdueKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceKmUnknown": "bei {km} km — Tachostand unbekannt",
+  "@garageMaintenanceKmUnknown": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceNeedsDue": "Bitte ein Datum oder einen Kilometerstand angeben.",
   "@garageOdometerDeviation": {
     "placeholders": {
       "km": {
