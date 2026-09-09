@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/vehicle_repository.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
@@ -171,7 +172,9 @@ class _VehicleTile extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(details, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            _OdometerBlock(vehicle: vehicle),
+            const SizedBox(height: 4),
             Row(
               children: [
                 if (!vehicle.isDefault)
@@ -192,6 +195,117 @@ class _VehicleTile extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Der geschaetzte Tachostand samt der Ablesung, auf der er beruht.
+///
+/// Immer mit "ca." und immer mit der Grundlage daneben: aufgezeichnet
+/// wird nur, was die App mitbekommen hat, und die nackte Zahl waere eine
+/// Behauptung.
+class _OdometerBlock extends ConsumerWidget {
+  const _OdometerBlock({required this.vehicle});
+
+  final Vehicle vehicle;
+
+  Future<void> _add(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
+    final controller = TextEditingController(
+      text: vehicle.odometer.estimateKm?.toString(),
+    );
+
+    final kilometers = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.garageOdometerAdd),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: l.garageOdometerKm,
+            suffixText: 'km',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(ctx).pop(int.tryParse(controller.text.trim())),
+            child: Text(l.commonSave),
+          ),
+        ],
+      ),
+    );
+
+    if (kilometers == null) return;
+    if (!context.mounted) return;
+
+    // Vor dem Warten holen: danach ist der Kontext moeglicherweise nicht
+    // mehr eingehaengt.
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      // Der Zeitpunkt ist jetzt: abgelesen wird in dem Moment, in dem man
+      // es eintraegt. Ab hier zaehlt jede weitere Fahrt darauf.
+      final deviation = await ref
+          .read(vehicleRepositoryProvider)
+          .addReading(vehicle.id, kilometers, DateTime.now());
+      ref.invalidate(vehiclesProvider);
+      messenger.showSnackBar(SnackBar(
+        content: Text(deviation == null
+            ? l.garageOdometerSaved
+            : l.garageOdometerDeviation(
+                '${deviation > 0 ? '+' : ''}$deviation')),
+      ));
+    } on VehicleException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(e.message ?? l.commonNoConnection)),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final odometer = vehicle.odometer;
+    final small = Theme.of(context).textTheme.bodySmall;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                odometer.estimateKm == null
+                    ? l.garageOdometerNone
+                    : l.garageOdometerEstimate('${odometer.estimateKm}'),
+                style: odometer.estimateKm == null
+                    ? small
+                    : Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _add(context, ref),
+              child: Text(l.garageOdometerAdd),
+            ),
+          ],
+        ),
+        if (odometer.readingKm != null && odometer.readAt != null)
+          Text(
+            l.garageOdometerBasis(
+              '${odometer.readingKm}',
+              DateFormat.yMd(Localizations.localeOf(context).toLanguageTag())
+                  .format(odometer.readAt!),
+              odometer.trackedKm.round().toString(),
+            ),
+            style: small,
+          ),
+      ],
     );
   }
 }

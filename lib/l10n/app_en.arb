@@ -129,6 +129,41 @@
   "garageNoModels": "No model found.",
   "garageYear": "Year",
   "garagePower": "Power (hp)",
+  "garageOdometer": "Odometer",
+  "garageOdometerEstimate": "approx. {km} km",
+  "@garageOdometerEstimate": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageOdometerBasis": "Estimated from {km} km on {date}, plus {tracked} km recorded since.",
+  "@garageOdometerBasis": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "tracked": {
+        "type": "String"
+      }
+    }
+  },
+  "garageOdometerNone": "No odometer reading yet.",
+  "garageOdometerAdd": "Add odometer reading",
+  "garageOdometerKm": "Kilometres",
+  "garageOdometerSaved": "Odometer reading saved.",
+  "garageOdometerDeviation": "The estimate was off by {km} km — that much the app did not see.",
+  "@garageOdometerDeviation": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
   "garageDefault": "Default",
   "garageMakeDefault": "Make default",
   "garageDelete": "Delete",

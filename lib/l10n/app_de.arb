@@ -150,6 +150,41 @@
   "garageNoModels": "Kein Modell gefunden.",
   "garageYear": "Baujahr",
   "garagePower": "Leistung (PS)",
+  "garageOdometer": "Tachostand",
+  "garageOdometerEstimate": "ca. {km} km",
+  "@garageOdometerEstimate": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageOdometerBasis": "Geschätzt aus {km} km vom {date}, plus {tracked} km seither aufgezeichnet.",
+  "@garageOdometerBasis": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "tracked": {
+        "type": "String"
+      }
+    }
+  },
+  "garageOdometerNone": "Noch kein Tachostand eingetragen.",
+  "garageOdometerAdd": "Tachostand eintragen",
+  "garageOdometerKm": "Kilometerstand",
+  "garageOdometerSaved": "Tachostand gespeichert.",
+  "garageOdometerDeviation": "Die Schätzung lag {km} km daneben — so viel hat die App nicht mitbekommen.",
+  "@garageOdometerDeviation": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
   "garageDefault": "Standard",
   "garageMakeDefault": "Zum Standard machen",
   "garageDelete": "Löschen",

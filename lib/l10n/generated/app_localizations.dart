@@ -830,6 +830,54 @@ abstract class AppLocalizations {
   /// **'Leistung (PS)'**
   String get garagePower;
 
+  /// No description provided for @garageOdometer.
+  ///
+  /// In de, this message translates to:
+  /// **'Tachostand'**
+  String get garageOdometer;
+
+  /// No description provided for @garageOdometerEstimate.
+  ///
+  /// In de, this message translates to:
+  /// **'ca. {km} km'**
+  String garageOdometerEstimate(String km);
+
+  /// No description provided for @garageOdometerBasis.
+  ///
+  /// In de, this message translates to:
+  /// **'Geschätzt aus {km} km vom {date}, plus {tracked} km seither aufgezeichnet.'**
+  String garageOdometerBasis(String km, String date, String tracked);
+
+  /// No description provided for @garageOdometerNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch kein Tachostand eingetragen.'**
+  String get garageOdometerNone;
+
+  /// No description provided for @garageOdometerAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Tachostand eintragen'**
+  String get garageOdometerAdd;
+
+  /// No description provided for @garageOdometerKm.
+  ///
+  /// In de, this message translates to:
+  /// **'Kilometerstand'**
+  String get garageOdometerKm;
+
+  /// No description provided for @garageOdometerSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Tachostand gespeichert.'**
+  String get garageOdometerSaved;
+
+  /// No description provided for @garageOdometerDeviation.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Schätzung lag {km} km daneben — so viel hat die App nicht mitbekommen.'**
+  String garageOdometerDeviation(String km);
+
   /// No description provided for @garageDefault.
   ///
   /// In de, this message translates to:

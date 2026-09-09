@@ -27,6 +27,35 @@ class VehicleModel {
   final String? fuel;
 }
 
+/// Der geschaetzte Tachostand eines Fahrzeugs.
+///
+/// Geschaetzt, nicht gemessen: aufgezeichnet wird nur, was die App
+/// mitbekommen hat. Ohne Telefon, ohne Empfang oder ohne Zuordnung
+/// gefahrene Kilometer fehlen. Deshalb steht die Ablesung, auf der die
+/// Zahl beruht, ueberall daneben.
+class Odometer {
+  const Odometer({
+    this.estimateKm,
+    this.trackedKm = 0,
+    this.readingKm,
+    this.readAt,
+  });
+
+  factory Odometer.fromJson(Map<String, dynamic> json) => Odometer(
+        estimateKm: (json['estimate_km'] as num?)?.toInt(),
+        trackedKm: (json['tracked_km'] as num?)?.toDouble() ?? 0,
+        readingKm: (json['reading_km'] as num?)?.toInt(),
+        readAt: DateTime.tryParse(json['read_at'] as String? ?? ''),
+      );
+
+  /// `null` heisst: noch keine Ablesung. Aufgezeichnete Kilometer allein
+  /// sind kein Tachostand.
+  final int? estimateKm;
+  final double trackedKm;
+  final int? readingKm;
+  final DateTime? readAt;
+}
+
 /// Ein Fahrzeug aus der Garage.
 class Vehicle {
   const Vehicle({
@@ -36,6 +65,7 @@ class Vehicle {
     this.year,
     this.powerPs,
     this.model,
+    this.odometer = const Odometer(),
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
@@ -47,6 +77,10 @@ class Vehicle {
         model: json['model'] == null
             ? null
             : VehicleModel.fromJson(json['model'] as Map<String, dynamic>),
+        odometer: json['odometer'] == null
+            ? const Odometer()
+            : Odometer.fromJson(
+                Map<String, dynamic>.from(json['odometer'] as Map)),
       );
 
   final int id;
@@ -55,6 +89,7 @@ class Vehicle {
   final int? year;
   final int? powerPs;
   final VehicleModel? model;
+  final Odometer odometer;
 }
 
 /// Fehler mit der Meldung des Servers, sofern er eine geschickt hat.
@@ -133,6 +168,27 @@ class VehicleRepository {
       });
 
       return Vehicle.fromJson(res.data ?? const {});
+    } on DioException catch (e) {
+      throw VehicleException(serverMessage(e));
+    }
+  }
+
+  /// Traegt einen abgelesenen Tachostand nach.
+  ///
+  /// Gibt zurueck, wie weit die Schaetzung danebenlag, oder `null`, wenn
+  /// es die erste Ablesung war. Diese Zahl ist die eigentliche Auskunft:
+  /// so viel hat die Aufzeichnung nicht mitbekommen.
+  Future<int?> addReading(int id, int kilometers, DateTime readAt) async {
+    try {
+      final res = await dio.post<Map<String, dynamic>>(
+        '/vehicles/$id/odometer',
+        data: {
+          'kilometers': kilometers,
+          'read_at': readAt.toUtc().toIso8601String(),
+        },
+      );
+
+      return (res.data?['deviation_km'] as num?)?.toInt();
     } on DioException catch (e) {
       throw VehicleException(serverMessage(e));
     }

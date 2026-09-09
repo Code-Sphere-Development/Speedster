@@ -398,6 +398,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get garagePower => 'Power (hp)';
 
   @override
+  String get garageOdometer => 'Odometer';
+
+  @override
+  String garageOdometerEstimate(String km) {
+    return 'approx. $km km';
+  }
+
+  @override
+  String garageOdometerBasis(String km, String date, String tracked) {
+    return 'Estimated from $km km on $date, plus $tracked km recorded since.';
+  }
+
+  @override
+  String get garageOdometerNone => 'No odometer reading yet.';
+
+  @override
+  String get garageOdometerAdd => 'Add odometer reading';
+
+  @override
+  String get garageOdometerKm => 'Kilometres';
+
+  @override
+  String get garageOdometerSaved => 'Odometer reading saved.';
+
+  @override
+  String garageOdometerDeviation(String km) {
+    return 'The estimate was off by $km km — that much the app did not see.';
+  }
+
+  @override
   String get garageDefault => 'Default';
 
   @override

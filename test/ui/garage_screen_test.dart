@@ -211,4 +211,51 @@ void main() {
           powerPs: any(named: 'powerPs'),
         ));
   });
+
+  testWidgets('zeigt den Tachostand als Schaetzung mit Grundlage',
+      (tester) async {
+    // Nie die nackte Zahl: aufgezeichnet wird nur, was die App
+    // mitbekommen hat.
+    await pumpGarage(tester, cloud: true, vehicles: [
+      Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        odometer: Odometer(
+          estimateKm: 120042,
+          trackedKm: 42.3,
+          readingKm: 120000,
+          readAt: DateTime(2026, 9, 1),
+        ),
+      ),
+    ]);
+
+    expect(find.textContaining('ca. 120042'), findsOneWidget);
+    expect(find.textContaining('120000'), findsWidgets);
+  });
+
+  testWidgets('sagt ohne Ablesung, dass keine vorliegt', (tester) async {
+    await pumpGarage(tester, cloud: true, vehicles: [vehicle()]);
+
+    expect(find.textContaining('Noch kein Tachostand'), findsOneWidget);
+  });
+
+  testWidgets('meldet nach dem Eintragen die Abweichung', (tester) async {
+    // Das ist die eigentliche Auskunft: so viel hat die App nicht
+    // mitbekommen.
+    final repo = MockVehicles();
+    when(() => repo.addReading(any(), any(), any()))
+        .thenAnswer((_) async => 80);
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
+
+    await tester.tap(find.text('Tachostand eintragen'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '120180');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.addReading(1, 120180, any())).called(1);
+    expect(find.textContaining('+80'), findsOneWidget);
+  });
 }

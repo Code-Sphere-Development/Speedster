@@ -403,6 +403,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get garagePower => 'Leistung (PS)';
 
   @override
+  String get garageOdometer => 'Tachostand';
+
+  @override
+  String garageOdometerEstimate(String km) {
+    return 'ca. $km km';
+  }
+
+  @override
+  String garageOdometerBasis(String km, String date, String tracked) {
+    return 'Geschätzt aus $km km vom $date, plus $tracked km seither aufgezeichnet.';
+  }
+
+  @override
+  String get garageOdometerNone => 'Noch kein Tachostand eingetragen.';
+
+  @override
+  String get garageOdometerAdd => 'Tachostand eintragen';
+
+  @override
+  String get garageOdometerKm => 'Kilometerstand';
+
+  @override
+  String get garageOdometerSaved => 'Tachostand gespeichert.';
+
+  @override
+  String garageOdometerDeviation(String km) {
+    return 'Die Schätzung lag $km km daneben — so viel hat die App nicht mitbekommen.';
+  }
+
+  @override
   String get garageDefault => 'Standard';
 
   @override
