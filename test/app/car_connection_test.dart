@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
@@ -93,5 +96,77 @@ void main() {
     await tester.pumpWidget(wrap(await prefs(), carConnected: true));
     await tester.pumpAndSettle();
     expect(selectedTab(tester), 'Live');
+  });
+
+  test('laesst ein Verbinden sofort durch', () {
+    fakeAsync((async) {
+      final source = StreamController<bool>();
+      final seen = <bool>[];
+      debounceDisconnect(source.stream, const Duration(minutes: 2))
+          .listen(seen.add);
+
+      source.add(true);
+      async.flushMicrotasks();
+
+      expect(seen, [true]);
+    });
+  });
+
+  test('haelt einen kurzen Aussetzer zurueck', () {
+    // Die native Seite liest die Verbindung am Audio-Ausgang ab. Endet ein
+    // Telefonat, zeigt der kurz auf den Geraetelautsprecher, obwohl
+    // CarPlay verbunden bleibt -- und die Fahrt zerfiel in zwei.
+    fakeAsync((async) {
+      final source = StreamController<bool>();
+      final seen = <bool>[];
+      debounceDisconnect(source.stream, const Duration(minutes: 2))
+          .listen(seen.add);
+
+      source.add(true);
+      async.flushMicrotasks();
+      source.add(false);
+      async.elapse(const Duration(seconds: 30));
+      source.add(true);
+      async.elapse(const Duration(minutes: 5));
+
+      expect(seen, [true]);
+    });
+  });
+
+  test('meldet eine anhaltende Trennung', () {
+    fakeAsync((async) {
+      final source = StreamController<bool>();
+      final seen = <bool>[];
+      debounceDisconnect(source.stream, const Duration(minutes: 2))
+          .listen(seen.add);
+
+      source.add(true);
+      async.flushMicrotasks();
+      source.add(false);
+      async.elapse(const Duration(minutes: 3));
+
+      expect(seen, [true, false]);
+    });
+  });
+
+  test('setzt die Frist bei wiederholtem false nicht zurueck', () {
+    // Der Audio-Ausgang meldet sich bei jeder Routenaenderung; ohne diese
+    // Sperre begaenne die Frist immer wieder von vorn und eine echte
+    // Trennung faende nie statt.
+    fakeAsync((async) {
+      final source = StreamController<bool>();
+      final seen = <bool>[];
+      debounceDisconnect(source.stream, const Duration(minutes: 2))
+          .listen(seen.add);
+
+      source.add(true);
+      async.flushMicrotasks();
+      for (var i = 0; i < 10; i++) {
+        source.add(false);
+        async.elapse(const Duration(seconds: 20));
+      }
+
+      expect(seen, [true, false]);
+    });
   });
 }
