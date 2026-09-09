@@ -1,24 +1,138 @@
 # Speedster
 
-Flutter-App zur Aufzeichnung von Fahrten: Geschwindigkeit, Route, Statistiken
-und eine Heatmap der häufig gefahrenen Strecken.
+Flutter-App, die aufzeichnet, wie du fährst: Geschwindigkeit, Route und jeden
+Kilometer. Die Aufzeichnung startet von selbst, sobald es losgeht — auch über
+CarPlay.
 
 Das Laravel-Backend liegt in einem eigenen Repository:
 [Code-Sphere-Development/Speedster_Cloud](https://github.com/Code-Sphere-Development/Speedster_Cloud).
-Ändert sich die Rasterung der Heatmap in `lib/heat/heat_grid.dart`, muss der
-Spiegel dort nachgezogen werden — `test/fixtures/heat_parity*.json` ist der
-gemeinsame Vertrag beider Seiten.
 
-## Getting Started
+## Was die App kann
 
-This project is a starting point for a Flutter application.
+- **Aufzeichnung ohne Knopfdruck.** Die Fahrterkennung startet bei Bewegung und
+  beendet erst, wenn wirklich Schluss ist. Eine bestehende CarPlay-Verbindung
+  unterdrückt das Fahrtende — Ampel und Stau sind kein Fahrtende, und eine
+  kurz abreißende Verbindung erst recht nicht.
+- **Sperrbildschirm und Dynamic Island** zeigen das Tempo während der Fahrt,
+  dazu ein Urteil gegen die eigene Gewohnheit auf dieser Strecke: schneller als
+  sonst, wie üblich, langsamer. Die App kennt keine Tempolimits und behauptet
+  das auch nirgends.
+- **Heatmap** aller gefahrenen Strecken, lokal aus den Punkten gefaltet.
+- **Bestenliste** weltweit, im eigenen Land, unter Freunden oder nach Fahrzeug,
+  jeweils für Woche, Monat oder gesamt.
+- **Garage** mit Fahrzeugen aus einem Katalog, geschätztem Tachostand und
+  fälligen Wartungen.
+- **Widgets** für Homescreen: letzte Fahrt, Gesamtzahlen, eigener Rang,
+  Mini-Heatmap.
+- **Sicherung** der Fahrten in eine Datei — ohne Cloud liegen sie nur auf dem
+  Gerät.
 
-A few resources to get you started if this is your first Flutter project:
+Ohne Cloud-Synchronisierung verlässt keine Fahrt das Gerät. Mit ihr werden die
+Fahrten beim Fahrtende hochgeladen; lokal bleiben die letzten zehn als Vorrat
+für den Fall ohne Netz.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Entwicklung
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs   # Drift-Code
+flutter run
+```
+
+Nach Änderungen an `lib/data/database.dart` muss `build_runner` laufen. Wer die
+Schemaversion hebt, schreibt die zugehörige Migration in
+`AppDatabase.migration` — ein Test hält die Zahl fest, damit das eine ohne das
+andere auffällt.
+
+### Tests
+
+```bash
+flutter test
+flutter analyze
+```
+
+Der Testlauf erzwingt Deutsch (`test/flutter_test_config.dart`), sonst liefe er
+gegen die englische Fassung und deutsche Erwartungen schlügen fehl.
+
+### Sprachen
+
+Texte stehen in `lib/l10n/app_de.arb` und `app_en.arb`; die Klassen darunter
+erzeugt `flutter gen-l10n`. `test/l10n/localization_test.dart` prüft, dass beide
+Dateien dieselben Schlüssel führen, keinen leeren Text enthalten und dieselben
+Platzhalter tragen.
+
+Fehlermeldungen, die auch der Server kennt, sind wörtlich von dort übernommen —
+derselbe Fehler soll nicht in zwei Formulierungen auftauchen.
+
+### Screenshots
+
+```bash
+flutter test test/screenshots/generate.dart
+```
+
+Erzeugt echte Bildschirme der App als PNG, in beiden Sprachen und zwei Größen:
+`build/screenshots` für die Landingpage der Cloud, `build/appstore` im
+6,9-Zoll-Format (1320 × 2868) für App Store Connect.
+
+Der Generator liegt bewusst in `test/`, aber ohne `_test.dart`-Endung: so
+sammelt `flutter test` ihn nicht von selbst ein, während der Analyzer ihn
+weiterhin als Testcode behandelt.
+
+Vor dem Hochladen muss der Alphakanal weg — Flutter schreibt RGBA, und App
+Store Connect weist Bilder damit zurück, auch wenn sie deckend sind:
+
+```bash
+magick bild.png -background black -alpha remove -alpha off bild.png
+```
+
+## Aufbau
+
+| Verzeichnis | Inhalt |
+|---|---|
+| `lib/recording/` | Fahrtaufzeichnung, Puffer, Fahrtende |
+| `lib/detection/` | Wann eine Fahrt beginnt und endet |
+| `lib/data/` | Drift-Datenbank, Fahrten, Sicherung |
+| `lib/heat/` | Rasterung, Faltung und Farbskala der Heatmap |
+| `lib/cloud/` | API-Zugriff: Konto, Fahrten, Freunde, Fahrzeuge, Bestenliste |
+| `lib/live/` | Live Activity auf dem Sperrbildschirm |
+| `lib/widgets/` | Daten für die Homescreen-Widgets |
+| `lib/ui/` | Bildschirme |
+| `ios/SpeedsterWidgets/` | Widget-Erweiterung und Live Activity (Swift) |
+
+## iOS
+
+- **App Group** `group.de.codesphere.speedster` — darüber lesen Widgets und
+  Live Activity die Werte, die die App hineinschreibt.
+- **CarPlay** meldet sich über den Kanal `de.codesphere.speedster/car_connection`
+  an die Fahrterkennung.
+- **`UIFileSharingEnabled`** und **`LSSupportsOpeningDocumentsInPlace`** machen
+  den Dokumentenordner in der Dateien-App sichtbar. Ohne beides läge die
+  Sicherung an einer Stelle, an die niemand herankommt.
+- Die Widget-Erweiterung zieht Version und Build über `$(FLUTTER_BUILD_NAME)`
+  und `$(FLUTTER_BUILD_NUMBER)` aus derselben Quelle wie die App — Apple weist
+  Uploads sonst wegen abweichender Versionsnummern zurück.
+
+`flutter build ios` endet mit Exit-Code 0, auch wenn der Xcode-Build darunter
+fehlschlägt. Die Ausgabe zählt, nicht der Exit-Code.
+
+## Parität mit der Cloud
+
+`lib/heat/heat_grid.dart` und `app/Services/HeatGrid.php` in der Cloud sind
+zeilengetreue Spiegel. Weichen sie voneinander ab, springt das Kartenbild,
+sobald sich jemand an- oder abmeldet.
+
+`test/fixtures/heat_parity.json` und `heat_parity_expected.json` sind der
+gemeinsame Vertrag beider Seiten. Ändert sich die Rasterung, reicht es nicht,
+eine Seite anzupassen:
+
+1. Referenz neu erzeugen:
+   `flutter test test/heat/heat_grid_parity_test.dart --dart-define=REGENERATE_HEAT_FIXTURES=true`
+2. Beide Dateien nach `tests/fixtures/` der Cloud kopieren.
+3. Dort muss `php artisan test --filter=HeatGridParity` grün sein.
+
+Dasselbe gilt für `lib/heat/heat_palette.dart` und `resources/js/maps.js` in der
+Cloud: dieselben Farbstützstellen, dieselbe logarithmische Interpolation. Sonst
+sieht dieselbe Fahrt im Web anders heiß aus als in der App.
+
+Auch die Farbwelt ist gespiegelt: `lib/app/theme.dart` ist die Quelle,
+`resources/css/app.css` in der Cloud zieht nach.
