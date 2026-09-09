@@ -788,6 +788,108 @@ abstract class AppLocalizations {
   /// **'Fahrten in eine Datei schreiben oder zurücklesen'**
   String get settingsBackupSubtitle;
 
+  /// No description provided for @tourSkip.
+  ///
+  /// In de, this message translates to:
+  /// **'Überspringen'**
+  String get tourSkip;
+
+  /// No description provided for @tourNext.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiter'**
+  String get tourNext;
+
+  /// No description provided for @tourDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Los geht\'s'**
+  String get tourDone;
+
+  /// No description provided for @tourWelcomeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Willkommen bei Speedster'**
+  String get tourWelcomeTitle;
+
+  /// No description provided for @tourWelcomeBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Ein kurzer Rundgang: vier Bildschirme, und wo du was findest. Du kannst ihn jederzeit überspringen und in den Einstellungen erneut aufrufen.'**
+  String get tourWelcomeBody;
+
+  /// No description provided for @tourHeatmapTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Heatmap'**
+  String get tourHeatmapTitle;
+
+  /// No description provided for @tourHeatmapBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede Straße, die du gefahren bist. Je öfter du sie fährst, desto heller brennt sie. Das ist auch der Bildschirm, mit dem die App startet.'**
+  String get tourHeatmapBody;
+
+  /// No description provided for @tourTripsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrten'**
+  String get tourTripsTitle;
+
+  /// No description provided for @tourTripsBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede aufgezeichnete Fahrt mit Strecke, Tempo und Dauer. Oben rechts liegt die Garage: deine Fahrzeuge, der Tachostand und fällige Wartungen.'**
+  String get tourTripsBody;
+
+  /// No description provided for @tourRankingTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestenliste'**
+  String get tourRankingTitle;
+
+  /// No description provided for @tourRankingBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Weltweit, im eigenen Land, unter Freunden oder nach Fahrzeug — für die Woche, den Monat oder gesamt. Dafür brauchst du ein Cloud-Konto.'**
+  String get tourRankingBody;
+
+  /// No description provided for @tourSettingsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen'**
+  String get tourSettingsTitle;
+
+  /// No description provided for @tourSettingsBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Cloud-Synchronisierung, Freunde, Sicherung deiner Fahrten, Einheiten und alles Rechtliche.'**
+  String get tourSettingsBody;
+
+  /// No description provided for @tourLiveTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Live'**
+  String get tourLiveTitle;
+
+  /// No description provided for @tourLiveBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Während einer Fahrt kommt ein fünfter Bildschirm dazu: dein Tempo in Echtzeit. Er erscheint von selbst, sobald du losfährst — die Aufzeichnung startet ohne Knopfdruck.'**
+  String get tourLiveBody;
+
+  /// No description provided for @settingsTour.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundgang'**
+  String get settingsTour;
+
+  /// No description provided for @settingsTourSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zeigt dir noch einmal, wo was liegt'**
+  String get settingsTourSubtitle;
+
   /// No description provided for @backupTitle.
   ///
   /// In de, this message translates to:
@@ -1015,6 +1117,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Fällig bei km'**
   String get garageMaintenanceDueKm;
+
+  /// No description provided for @garageMaintenanceModeAt.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei Kilometerstand'**
+  String get garageMaintenanceModeAt;
+
+  /// No description provided for @garageMaintenanceModeIn.
+  ///
+  /// In de, this message translates to:
+  /// **'In x Kilometern'**
+  String get garageMaintenanceModeIn;
+
+  /// No description provided for @garageMaintenanceDueInKm.
+  ///
+  /// In de, this message translates to:
+  /// **'In km'**
+  String get garageMaintenanceDueInKm;
+
+  /// No description provided for @garageMaintenanceNeedsOdometer.
+  ///
+  /// In de, this message translates to:
+  /// **'Für „in x km“ fehlt der Tachostand — trage ihn ein oder gib den Zielstand an.'**
+  String get garageMaintenanceNeedsOdometer;
 
   /// No description provided for @garageMaintenanceDueOn.
   ///

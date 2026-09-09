@@ -9,6 +9,7 @@ import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
+import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/username_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -199,6 +200,17 @@ class _CloudAccountSection extends ConsumerWidget {
                     context: context,
                     builder: (_) => UsernameDialog(account: account),
                   ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.explore_outlined),
+          title: Text(l.settingsTour),
+          subtitle: Text(l.settingsTourSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          // Erneut aufrufbar: ein Rundgang, den man genau einmal sieht und
+          // nie wieder, ist beim zweiten Fragezeichen wertlos.
+          onTap: () => Navigator.of(context).push<void>(
+            MaterialPageRoute(builder: (_) => const TourScreen()),
+          ),
         ),
         ListTile(
           leading: const Icon(Icons.save_outlined),

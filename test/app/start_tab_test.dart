@@ -36,8 +36,13 @@ Widget wrap(SharedPreferences prefs, Stream<RecorderState> states) =>
         supportedLocales: AppLocalizations.supportedLocales,home: HomeShell()),
     );
 
+/// Vorrat fuer Tests, die nicht den Rundgang meinen: er ist gesehen,
+/// sonst legte er sich beim ersten Frame ueber die Reiter.
 Future<SharedPreferences> prefs() async {
-  SharedPreferences.setMockInitialValues({'consentAccepted': true});
+  SharedPreferences.setMockInitialValues({
+    'consentAccepted': true,
+    'tourSeen': true,
+  });
   return SharedPreferences.getInstance();
 }
 
@@ -151,5 +156,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.garage_outlined), findsNothing);
+  });
+
+  testWidgets('zeigt den Rundgang beim ersten Start, danach nicht mehr',
+      (tester) async {
+    // Er kommt nach der Einwilligung und vor dem Anfragen-Dialog -- sonst
+    // beantwortet man etwas, das man noch nicht einordnen kann.
+    SharedPreferences.setMockInitialValues({'consentAccepted': true});
+    final first = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(wrap(first, const Stream.empty()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Willkommen bei Speedster'), findsOneWidget);
+
+    await tester.tap(find.text('Überspringen'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Willkommen bei Speedster'), findsNothing);
+
+    // Zweiter Start mit demselben Vorrat: kein Rundgang mehr.
+    await tester.pumpWidget(wrap(first, const Stream.empty()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Willkommen bei Speedster'), findsNothing);
   });
 }
