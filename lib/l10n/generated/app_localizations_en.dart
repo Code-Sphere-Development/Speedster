@@ -56,6 +56,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get tripPurpose => 'Purpose';
+
+  @override
+  String get tripPurposeNone => 'No purpose';
+
+  @override
+  String get tripPurposePrivate => 'Private';
+
+  @override
+  String get tripPurposeCommute => 'Commute';
+
+  @override
+  String get tripPurposeBusiness => 'Business';
+
+  @override
+  String get tripNote => 'Note';
+
+  @override
+  String get tripPurposeSaved => 'Purpose saved.';
+
+  @override
   String get metricMax => 'Max';
 
   @override
@@ -124,6 +145,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rankingScopeFriends => 'Friends';
+
+  @override
+  String get rankingScopeVehicle => 'Vehicle';
+
+  @override
+  String get rankingPeriodWeek => 'Week';
+
+  @override
+  String get rankingPeriodMonth => 'Month';
+
+  @override
+  String get rankingPeriodAll => 'All time';
+
+  @override
+  String get rankingNoVehicle =>
+      'This ranking needs your default vehicle. Add it in the garage and pick a model — you are compared with everyone driving the same model.';
 
   @override
   String get rankingMetricMaxSpeed => 'Top speed';
@@ -332,6 +369,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsUsernameSaved => 'Username changed.';
 
   @override
+  String get settingsBackup => 'Backup';
+
+  @override
+  String get settingsBackupSubtitle =>
+      'Write your drives to a file or read them back';
+
+  @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get backupLead =>
+      'Without the cloud your drives live only on this device. A backup is what you take with you when you switch phones.';
+
+  @override
+  String get backupExport => 'Write backup';
+
+  @override
+  String backupExportDone(int count) {
+    return '$count drives backed up. The file is in the Files app under “On My iPhone → Speedster”.';
+  }
+
+  @override
+  String get backupImport => 'Read in';
+
+  @override
+  String backupImportDone(int imported, int skipped) {
+    return '$imported drives read in, $skipped skipped (already there).';
+  }
+
+  @override
+  String get backupImportFailed =>
+      'The file could not be read — is it a Speedster backup?';
+
+  @override
+  String get backupNone =>
+      'No backup found. Put a file into the “Speedster” folder using the Files app and it will show up here.';
+
+  @override
+  String get backupFiles => 'Available backups';
+
+  @override
   String get settingsFriends => 'Friends';
 
   @override
@@ -339,10 +417,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsGarage => 'Garage';
-
-  @override
-  String get settingsGarageSubtitle =>
-      'Your vehicles — decides the vehicle ranking';
 
   @override
   String get garageTitle => 'Garage';
@@ -386,6 +460,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String get garagePower => 'Power (hp)';
 
   @override
+  String get garageOdometer => 'Odometer';
+
+  @override
+  String garageOdometerEstimate(String km) {
+    return 'approx. $km km';
+  }
+
+  @override
+  String garageOdometerBasis(String km, String date, String tracked) {
+    return 'Estimated from $km km on $date, plus $tracked km recorded since.';
+  }
+
+  @override
+  String get garageOdometerNone => 'No odometer reading yet.';
+
+  @override
+  String get garageOdometerAdd => 'Add odometer reading';
+
+  @override
+  String get garageOdometerKm => 'Kilometres';
+
+  @override
+  String get garageOdometerSaved => 'Odometer reading saved.';
+
+  @override
+  String garageOdometerDeviation(String km) {
+    return 'The estimate was off by $km km — that much the app did not see.';
+  }
+
+  @override
+  String get garageMaintenance => 'Maintenance';
+
+  @override
+  String get garageMaintenanceAdd => 'Add maintenance';
+
+  @override
+  String get garageMaintenanceTitle => 'What';
+
+  @override
+  String get garageMaintenanceTitleHint => 'Inspection, service, oil change …';
+
+  @override
+  String get garageMaintenanceDueKm => 'Due at km';
+
+  @override
+  String get garageMaintenanceDueOn => 'Due on';
+
+  @override
+  String get garageMaintenanceNone => 'No maintenance entered.';
+
+  @override
+  String get garageMaintenanceDone => 'Done';
+
+  @override
+  String garageMaintenanceInDays(int count) {
+    return 'in $count days';
+  }
+
+  @override
+  String garageMaintenanceOverdueDays(int count) {
+    return '$count days overdue';
+  }
+
+  @override
+  String get garageMaintenanceToday => 'due today';
+
+  @override
+  String garageMaintenanceInKm(String km) {
+    return 'in approx. $km km';
+  }
+
+  @override
+  String garageMaintenanceOverdueKm(String km) {
+    return 'approx. $km km overdue';
+  }
+
+  @override
+  String garageMaintenanceKmUnknown(String km) {
+    return 'at $km km — odometer unknown';
+  }
+
+  @override
+  String get garageMaintenanceNeedsDue => 'Please give a date or a mileage.';
+
+  @override
   String get garageDefault => 'Default';
 
   @override
@@ -393,6 +552,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get garageDelete => 'Delete';
+
+  @override
+  String get garageEdit => 'Edit';
+
+  @override
+  String get garageSavedEdit => 'Vehicle updated.';
 
   @override
   String get garageDeleteConfirm =>

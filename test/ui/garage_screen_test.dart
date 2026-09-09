@@ -91,6 +91,10 @@ void main() {
       vehicle(id: 2, name: 'Winterauto', isDefault: false),
     ]);
 
+    // Die Kachel traegt inzwischen Tachostand und Wartung; der Knopf des
+    // zweiten Fahrzeugs liegt damit unterhalb des Sichtbereichs.
+    await tester.ensureVisible(find.text('Zum Standard machen'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Zum Standard machen'));
     await tester.pump();
 
@@ -154,5 +158,193 @@ void main() {
           year: null,
           powerPs: null,
         )).called(1);
+  });
+
+  testWidgets('fuellt beim Bearbeiten die vorhandenen Werte', (tester) async {
+    // Ohne das verloere ein Konto sein Modell, sobald es nur den Namen
+    // aendert.
+    final repo = MockVehicles();
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        year: 2019,
+        powerPs: 150,
+        model: VehicleModel(id: 7, label: 'VW Golf VII'),
+      ),
+    ]);
+
+    await tester.tap(find.text('Bearbeiten'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextField, 'Der Golf'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '2019'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '150'), findsOneWidget);
+    // Das zugeordnete Modell steht in der Auswahl, ohne erneute Suche.
+    expect(find.text('VW Golf VII'), findsOneWidget);
+  });
+
+  testWidgets('schickt beim Bearbeiten update statt create', (tester) async {
+    final repo = MockVehicles();
+    when(() => repo.update(
+          any(),
+          name: any(named: 'name'),
+          vehicleModelId: any(named: 'vehicleModelId'),
+          year: any(named: 'year'),
+          powerPs: any(named: 'powerPs'),
+        )).thenAnswer((_) async => vehicle());
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
+
+    await tester.tap(find.text('Bearbeiten'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Golf VII');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.update(1,
+        name: 'Golf VII',
+        vehicleModelId: null,
+        year: null,
+        powerPs: null)).called(1);
+    verifyNever(() => repo.create(
+          name: any(named: 'name'),
+          vehicleModelId: any(named: 'vehicleModelId'),
+          year: any(named: 'year'),
+          powerPs: any(named: 'powerPs'),
+        ));
+  });
+
+  testWidgets('zeigt den Tachostand als Schaetzung mit Grundlage',
+      (tester) async {
+    // Nie die nackte Zahl: aufgezeichnet wird nur, was die App
+    // mitbekommen hat.
+    await pumpGarage(tester, cloud: true, vehicles: [
+      Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        odometer: Odometer(
+          estimateKm: 120042,
+          trackedKm: 42.3,
+          readingKm: 120000,
+          readAt: DateTime(2026, 9, 1),
+        ),
+      ),
+    ]);
+
+    expect(find.textContaining('ca. 120042'), findsOneWidget);
+    expect(find.textContaining('120000'), findsWidgets);
+  });
+
+  testWidgets('sagt ohne Ablesung, dass keine vorliegt', (tester) async {
+    await pumpGarage(tester, cloud: true, vehicles: [vehicle()]);
+
+    expect(find.textContaining('Noch kein Tachostand'), findsOneWidget);
+  });
+
+  testWidgets('meldet nach dem Eintragen die Abweichung', (tester) async {
+    // Das ist die eigentliche Auskunft: so viel hat die App nicht
+    // mitbekommen.
+    final repo = MockVehicles();
+    when(() => repo.addReading(any(), any(), any()))
+        .thenAnswer((_) async => 80);
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
+
+    await tester.tap(find.text('Tachostand eintragen'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '120180');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.addReading(1, 120180, any())).called(1);
+    expect(find.textContaining('+80'), findsOneWidget);
+  });
+
+  testWidgets('zeigt faellige Wartung in Tagen und Kilometern',
+      (tester) async {
+    await pumpGarage(tester, cloud: true, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        maintenance: [
+          MaintenanceItem(
+            id: 1,
+            title: 'HU',
+            daysLeft: 30,
+          ),
+          MaintenanceItem(
+            id: 2,
+            title: 'Ölwechsel',
+            dueKm: 121000,
+            kilometersLeft: 500,
+          ),
+        ],
+      ),
+    ]);
+
+    expect(find.text('HU'), findsOneWidget);
+    expect(find.textContaining('in 30 Tagen'), findsOneWidget);
+    expect(find.textContaining('in ca. 500 km'), findsOneWidget);
+  });
+
+  testWidgets('nennt ohne Tachostand keine Restkilometer', (tester) async {
+    // Eine Restangabe ohne Bezugsgroesse waere keine Auskunft.
+    await pumpGarage(tester, cloud: true, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        maintenance: [
+          MaintenanceItem(id: 1, title: 'Ölwechsel', dueKm: 135000),
+        ],
+      ),
+    ]);
+
+    expect(find.textContaining('Tachostand unbekannt'), findsOneWidget);
+    expect(find.textContaining('in ca.'), findsNothing);
+  });
+
+  testWidgets('verlangt Termin oder Laufleistung', (tester) async {
+    // Ohne beides waere es kein Termin, sondern eine Notiz -- dieselbe
+    // Regel wie am Server.
+    final repo = MockVehicles();
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
+
+    await tester.tap(find.text('Wartung eintragen'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'HU');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Datum oder einen Kilometerstand'),
+        findsOneWidget);
+    verifyNever(() => repo.addMaintenance(any(),
+        title: any(named: 'title'),
+        dueOn: any(named: 'dueOn'),
+        dueKm: any(named: 'dueKm')));
+  });
+
+  testWidgets('hakt eine Wartung ab', (tester) async {
+    final repo = MockVehicles();
+    when(() => repo.completeMaintenance(any(), any()))
+        .thenAnswer((_) async {});
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        maintenance: [MaintenanceItem(id: 5, title: 'HU', daysLeft: 3)],
+      ),
+    ]);
+
+    await tester.tap(find.text('Erledigt'));
+    await tester.pump();
+
+    verify(() => repo.completeMaintenance(1, 5)).called(1);
   });
 }

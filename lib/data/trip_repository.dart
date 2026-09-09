@@ -17,6 +17,9 @@ abstract class TripRepository {
     int? cloudVehicleId,
   });
   Future<void> setKept(int tripId, bool kept);
+
+  /// Setzt Zweck und Notiz einer Fahrt. `null` loescht das Feld.
+  Future<void> setPurpose(int tripId, String? purpose, String? note);
   Future<List<domain.Trip>> keptTrips();
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
   Future<void> deleteAll();
@@ -109,6 +112,13 @@ class DriftTripRepository implements TripRepository {
         durationSeconds: Value(stats.durationSeconds),
         zeroToHundredSeconds: Value(stats.zeroToHundredSeconds),
       ),
+    );
+  }
+
+  @override
+  Future<void> setPurpose(int tripId, String? purpose, String? note) async {
+    await (db.update(db.trips)..where((t) => t.id.equals(tripId))).write(
+      TripsCompanion(purpose: Value(purpose), note: Value(note)),
     );
   }
 
@@ -245,5 +255,7 @@ class DriftTripRepository implements TripRepository {
         clientUuid: r.clientUuid,
         syncedAt: r.syncedAt,
         cloudVehicleId: r.cloudVehicleId,
+        purpose: r.purpose,
+        note: r.note,
       );
 }

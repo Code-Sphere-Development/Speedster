@@ -182,6 +182,48 @@ abstract class AppLocalizations {
   /// **'Karte nicht verfügbar: {message}'**
   String tripMapUnavailable(String message);
 
+  /// No description provided for @tripPurpose.
+  ///
+  /// In de, this message translates to:
+  /// **'Zweck'**
+  String get tripPurpose;
+
+  /// No description provided for @tripPurposeNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Zweck'**
+  String get tripPurposeNone;
+
+  /// No description provided for @tripPurposePrivate.
+  ///
+  /// In de, this message translates to:
+  /// **'Privat'**
+  String get tripPurposePrivate;
+
+  /// No description provided for @tripPurposeCommute.
+  ///
+  /// In de, this message translates to:
+  /// **'Arbeitsweg'**
+  String get tripPurposeCommute;
+
+  /// No description provided for @tripPurposeBusiness.
+  ///
+  /// In de, this message translates to:
+  /// **'Geschäftlich'**
+  String get tripPurposeBusiness;
+
+  /// No description provided for @tripNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Notiz'**
+  String get tripNote;
+
+  /// No description provided for @tripPurposeSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Zweck gespeichert.'**
+  String get tripPurposeSaved;
+
   /// No description provided for @metricMax.
   ///
   /// In de, this message translates to:
@@ -319,6 +361,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Freunde'**
   String get rankingScopeFriends;
+
+  /// No description provided for @rankingScopeVehicle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug'**
+  String get rankingScopeVehicle;
+
+  /// No description provided for @rankingPeriodWeek.
+  ///
+  /// In de, this message translates to:
+  /// **'Woche'**
+  String get rankingPeriodWeek;
+
+  /// No description provided for @rankingPeriodMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Monat'**
+  String get rankingPeriodMonth;
+
+  /// No description provided for @rankingPeriodAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt'**
+  String get rankingPeriodAll;
+
+  /// No description provided for @rankingNoVehicle.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diese Wertung fehlt dein Standardfahrzeug. Lege es in der Garage an und wähle ein Modell — verglichen wird mit allen, die dasselbe Modell fahren.'**
+  String get rankingNoVehicle;
 
   /// No description provided for @rankingMetricMaxSpeed.
   ///
@@ -704,6 +776,72 @@ abstract class AppLocalizations {
   /// **'Benutzername geändert.'**
   String get settingsUsernameSaved;
 
+  /// No description provided for @settingsBackup.
+  ///
+  /// In de, this message translates to:
+  /// **'Sicherung'**
+  String get settingsBackup;
+
+  /// No description provided for @settingsBackupSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrten in eine Datei schreiben oder zurücklesen'**
+  String get settingsBackupSubtitle;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sicherung'**
+  String get backupTitle;
+
+  /// No description provided for @backupLead.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Cloud liegen deine Fahrten nur auf diesem Gerät. Eine Sicherung nimmst du beim Wechsel des Telefons mit.'**
+  String get backupLead;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In de, this message translates to:
+  /// **'Sicherung schreiben'**
+  String get backupExport;
+
+  /// No description provided for @backupExportDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Fahrten gesichert. Die Datei liegt in der Dateien-App unter „Auf meinem iPhone → Speedster“.'**
+  String backupExportDone(int count);
+
+  /// No description provided for @backupImport.
+  ///
+  /// In de, this message translates to:
+  /// **'Einlesen'**
+  String get backupImport;
+
+  /// No description provided for @backupImportDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{imported} Fahrten eingelesen, {skipped} übersprungen (gab es schon).'**
+  String backupImportDone(int imported, int skipped);
+
+  /// No description provided for @backupImportFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Datei ließ sich nicht lesen — ist es eine Speedster-Sicherung?'**
+  String get backupImportFailed;
+
+  /// No description provided for @backupNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Sicherung gefunden. Lege eine Datei über die Dateien-App im Ordner „Speedster“ ab, dann erscheint sie hier.'**
+  String get backupNone;
+
+  /// No description provided for @backupFiles.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorhandene Sicherungen'**
+  String get backupFiles;
+
   /// No description provided for @settingsFriends.
   ///
   /// In de, this message translates to:
@@ -721,12 +859,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Garage'**
   String get settingsGarage;
-
-  /// No description provided for @settingsGarageSubtitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Deine Fahrzeuge — bestimmt die Fahrzeugwertung'**
-  String get settingsGarageSubtitle;
 
   /// No description provided for @garageTitle.
   ///
@@ -806,6 +938,144 @@ abstract class AppLocalizations {
   /// **'Leistung (PS)'**
   String get garagePower;
 
+  /// No description provided for @garageOdometer.
+  ///
+  /// In de, this message translates to:
+  /// **'Tachostand'**
+  String get garageOdometer;
+
+  /// No description provided for @garageOdometerEstimate.
+  ///
+  /// In de, this message translates to:
+  /// **'ca. {km} km'**
+  String garageOdometerEstimate(String km);
+
+  /// No description provided for @garageOdometerBasis.
+  ///
+  /// In de, this message translates to:
+  /// **'Geschätzt aus {km} km vom {date}, plus {tracked} km seither aufgezeichnet.'**
+  String garageOdometerBasis(String km, String date, String tracked);
+
+  /// No description provided for @garageOdometerNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch kein Tachostand eingetragen.'**
+  String get garageOdometerNone;
+
+  /// No description provided for @garageOdometerAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Tachostand eintragen'**
+  String get garageOdometerAdd;
+
+  /// No description provided for @garageOdometerKm.
+  ///
+  /// In de, this message translates to:
+  /// **'Kilometerstand'**
+  String get garageOdometerKm;
+
+  /// No description provided for @garageOdometerSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Tachostand gespeichert.'**
+  String get garageOdometerSaved;
+
+  /// No description provided for @garageOdometerDeviation.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Schätzung lag {km} km daneben — so viel hat die App nicht mitbekommen.'**
+  String garageOdometerDeviation(String km);
+
+  /// No description provided for @garageMaintenance.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartung'**
+  String get garageMaintenance;
+
+  /// No description provided for @garageMaintenanceAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartung eintragen'**
+  String get garageMaintenanceAdd;
+
+  /// No description provided for @garageMaintenanceTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Was'**
+  String get garageMaintenanceTitle;
+
+  /// No description provided for @garageMaintenanceTitleHint.
+  ///
+  /// In de, this message translates to:
+  /// **'HU, Inspektion, Ölwechsel …'**
+  String get garageMaintenanceTitleHint;
+
+  /// No description provided for @garageMaintenanceDueKm.
+  ///
+  /// In de, this message translates to:
+  /// **'Fällig bei km'**
+  String get garageMaintenanceDueKm;
+
+  /// No description provided for @garageMaintenanceDueOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Fällig am'**
+  String get garageMaintenanceDueOn;
+
+  /// No description provided for @garageMaintenanceNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Wartung eingetragen.'**
+  String get garageMaintenanceNone;
+
+  /// No description provided for @garageMaintenanceDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Erledigt'**
+  String get garageMaintenanceDone;
+
+  /// No description provided for @garageMaintenanceInDays.
+  ///
+  /// In de, this message translates to:
+  /// **'in {count} Tagen'**
+  String garageMaintenanceInDays(int count);
+
+  /// No description provided for @garageMaintenanceOverdueDays.
+  ///
+  /// In de, this message translates to:
+  /// **'seit {count} Tagen überfällig'**
+  String garageMaintenanceOverdueDays(int count);
+
+  /// No description provided for @garageMaintenanceToday.
+  ///
+  /// In de, this message translates to:
+  /// **'heute fällig'**
+  String get garageMaintenanceToday;
+
+  /// No description provided for @garageMaintenanceInKm.
+  ///
+  /// In de, this message translates to:
+  /// **'in ca. {km} km'**
+  String garageMaintenanceInKm(String km);
+
+  /// No description provided for @garageMaintenanceOverdueKm.
+  ///
+  /// In de, this message translates to:
+  /// **'ca. {km} km überfällig'**
+  String garageMaintenanceOverdueKm(String km);
+
+  /// No description provided for @garageMaintenanceKmUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'bei {km} km — Tachostand unbekannt'**
+  String garageMaintenanceKmUnknown(String km);
+
+  /// No description provided for @garageMaintenanceNeedsDue.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte ein Datum oder einen Kilometerstand angeben.'**
+  String get garageMaintenanceNeedsDue;
+
   /// No description provided for @garageDefault.
   ///
   /// In de, this message translates to:
@@ -823,6 +1093,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Löschen'**
   String get garageDelete;
+
+  /// No description provided for @garageEdit.
+  ///
+  /// In de, this message translates to:
+  /// **'Bearbeiten'**
+  String get garageEdit;
+
+  /// No description provided for @garageSavedEdit.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug geändert.'**
+  String get garageSavedEdit;
 
   /// No description provided for @garageDeleteConfirm.
   ///

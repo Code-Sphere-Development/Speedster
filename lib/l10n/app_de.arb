@@ -21,6 +21,13 @@
   "tripsEmpty": "Noch keine Fahrten aufgezeichnet.",
   "tripNoRoute": "Keine Streckendaten. Ältere Fahrten liegen nur in der Cloud — ihre Karte braucht eine Verbindung.",
   "tripMapUnavailable": "Karte nicht verfügbar: {message}",
+  "tripPurpose": "Zweck",
+  "tripPurposeNone": "Kein Zweck",
+  "tripPurposePrivate": "Privat",
+  "tripPurposeCommute": "Arbeitsweg",
+  "tripPurposeBusiness": "Geschäftlich",
+  "tripNote": "Notiz",
+  "tripPurposeSaved": "Zweck gespeichert.",
   "@tripMapUnavailable": {
     "placeholders": {
       "message": {
@@ -51,6 +58,11 @@
   "rankingScopeWorld": "Welt",
   "rankingScopeCountry": "Land",
   "rankingScopeFriends": "Freunde",
+  "rankingScopeVehicle": "Fahrzeug",
+  "rankingPeriodWeek": "Woche",
+  "rankingPeriodMonth": "Monat",
+  "rankingPeriodAll": "Gesamt",
+  "rankingNoVehicle": "Für diese Wertung fehlt dein Standardfahrzeug. Lege es in der Garage an und wähle ein Modell — verglichen wird mit allen, die dasselbe Modell fahren.",
   "rankingMetricMaxSpeed": "Max Speed",
   "rankingMetricDistance": "Distanz",
   "rankingMetricTrips": "Fahrten",
@@ -129,10 +141,37 @@
     }
   },
   "settingsUsernameSaved": "Benutzername geändert.",
+  "settingsBackup": "Sicherung",
+  "settingsBackupSubtitle": "Fahrten in eine Datei schreiben oder zurücklesen",
+  "backupTitle": "Sicherung",
+  "backupLead": "Ohne Cloud liegen deine Fahrten nur auf diesem Gerät. Eine Sicherung nimmst du beim Wechsel des Telefons mit.",
+  "backupExport": "Sicherung schreiben",
+  "backupExportDone": "{count} Fahrten gesichert. Die Datei liegt in der Dateien-App unter „Auf meinem iPhone → Speedster“.",
+  "@backupExportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImport": "Einlesen",
+  "backupImportDone": "{imported} Fahrten eingelesen, {skipped} übersprungen (gab es schon).",
+  "@backupImportDone": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImportFailed": "Die Datei ließ sich nicht lesen — ist es eine Speedster-Sicherung?",
+  "backupNone": "Keine Sicherung gefunden. Lege eine Datei über die Dateien-App im Ordner „Speedster“ ab, dann erscheint sie hier.",
+  "backupFiles": "Vorhandene Sicherungen",
   "settingsFriends": "Freunde",
   "settingsFriendsSubtitle": "Kennzahlen mit Bekannten vergleichen",
   "settingsGarage": "Garage",
-  "settingsGarageSubtitle": "Deine Fahrzeuge — bestimmt die Fahrzeugwertung",
   "garageTitle": "Garage",
   "garageLead": "Neue Fahrten werden dem Standardfahrzeug zugeordnet. Das Modell bestimmt, mit wem du in der Fahrzeugwertung verglichen wirst.",
   "garageEmpty": "Noch kein Fahrzeug angelegt.",
@@ -146,9 +185,96 @@
   "garageNoModels": "Kein Modell gefunden.",
   "garageYear": "Baujahr",
   "garagePower": "Leistung (PS)",
+  "garageOdometer": "Tachostand",
+  "garageOdometerEstimate": "ca. {km} km",
+  "@garageOdometerEstimate": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageOdometerBasis": "Geschätzt aus {km} km vom {date}, plus {tracked} km seither aufgezeichnet.",
+  "@garageOdometerBasis": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "tracked": {
+        "type": "String"
+      }
+    }
+  },
+  "garageOdometerNone": "Noch kein Tachostand eingetragen.",
+  "garageOdometerAdd": "Tachostand eintragen",
+  "garageOdometerKm": "Kilometerstand",
+  "garageOdometerSaved": "Tachostand gespeichert.",
+  "garageOdometerDeviation": "Die Schätzung lag {km} km daneben — so viel hat die App nicht mitbekommen.",
+  "garageMaintenance": "Wartung",
+  "garageMaintenanceAdd": "Wartung eintragen",
+  "garageMaintenanceTitle": "Was",
+  "garageMaintenanceTitleHint": "HU, Inspektion, Ölwechsel …",
+  "garageMaintenanceDueKm": "Fällig bei km",
+  "garageMaintenanceDueOn": "Fällig am",
+  "garageMaintenanceNone": "Keine Wartung eingetragen.",
+  "garageMaintenanceDone": "Erledigt",
+  "garageMaintenanceInDays": "in {count} Tagen",
+  "@garageMaintenanceInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "garageMaintenanceOverdueDays": "seit {count} Tagen überfällig",
+  "@garageMaintenanceOverdueDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "garageMaintenanceToday": "heute fällig",
+  "garageMaintenanceInKm": "in ca. {km} km",
+  "@garageMaintenanceInKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceOverdueKm": "ca. {km} km überfällig",
+  "@garageMaintenanceOverdueKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceKmUnknown": "bei {km} km — Tachostand unbekannt",
+  "@garageMaintenanceKmUnknown": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "garageMaintenanceNeedsDue": "Bitte ein Datum oder einen Kilometerstand angeben.",
+  "@garageOdometerDeviation": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
   "garageDefault": "Standard",
   "garageMakeDefault": "Zum Standard machen",
   "garageDelete": "Löschen",
+  "garageEdit": "Bearbeiten",
+  "garageSavedEdit": "Fahrzeug geändert.",
   "garageDeleteConfirm": "Fahrzeug löschen? Die Fahrten bleiben erhalten, verlieren aber ihre Zuordnung.",
   "garageSaved": "Fahrzeug gespeichert.",
   "garageNeedsCloud": "Die Garage gehört zum Cloud-Konto. Aktiviere die Cloud-Synchronisierung in den Einstellungen.",

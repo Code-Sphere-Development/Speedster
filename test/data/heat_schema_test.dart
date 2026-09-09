@@ -9,11 +9,11 @@ void main() {
   setUp(() => db = AppDatabase.forTesting(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  test('Schemaversion ist 6', () async {
+  test('Schemaversion ist 7', () async {
     // Die Zahl steht hier fest, damit eine Aenderung am Schema auffaellt,
     // solange die zugehoerige Migration noch fehlt. Wer sie hebt, hat
     // sie geschrieben.
-    expect(db.schemaVersion, 6);
+    expect(db.schemaVersion, 7);
   });
 
   test('Fahrten fuehren ein Fahrzeug, das leer bleiben darf', () async {
@@ -27,6 +27,10 @@ void main() {
         .getSingle();
 
     expect(row.cloudVehicleId, isNull);
+    // Ebenso Zweck und Notiz: ein geratener Zweck waere eine Behauptung
+    // ueber die Vergangenheit.
+    expect(row.purpose, isNull);
+    expect(row.note, isNull);
   });
 
   test('Heat-Tabellen existieren und nehmen Zeilen auf', () async {

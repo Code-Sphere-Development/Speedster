@@ -57,6 +57,27 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get tripPurpose => 'Zweck';
+
+  @override
+  String get tripPurposeNone => 'Kein Zweck';
+
+  @override
+  String get tripPurposePrivate => 'Privat';
+
+  @override
+  String get tripPurposeCommute => 'Arbeitsweg';
+
+  @override
+  String get tripPurposeBusiness => 'Geschäftlich';
+
+  @override
+  String get tripNote => 'Notiz';
+
+  @override
+  String get tripPurposeSaved => 'Zweck gespeichert.';
+
+  @override
   String get metricMax => 'Max';
 
   @override
@@ -125,6 +146,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get rankingScopeFriends => 'Freunde';
+
+  @override
+  String get rankingScopeVehicle => 'Fahrzeug';
+
+  @override
+  String get rankingPeriodWeek => 'Woche';
+
+  @override
+  String get rankingPeriodMonth => 'Monat';
+
+  @override
+  String get rankingPeriodAll => 'Gesamt';
+
+  @override
+  String get rankingNoVehicle =>
+      'Für diese Wertung fehlt dein Standardfahrzeug. Lege es in der Garage an und wähle ein Modell — verglichen wird mit allen, die dasselbe Modell fahren.';
 
   @override
   String get rankingMetricMaxSpeed => 'Max Speed';
@@ -337,6 +374,47 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsUsernameSaved => 'Benutzername geändert.';
 
   @override
+  String get settingsBackup => 'Sicherung';
+
+  @override
+  String get settingsBackupSubtitle =>
+      'Fahrten in eine Datei schreiben oder zurücklesen';
+
+  @override
+  String get backupTitle => 'Sicherung';
+
+  @override
+  String get backupLead =>
+      'Ohne Cloud liegen deine Fahrten nur auf diesem Gerät. Eine Sicherung nimmst du beim Wechsel des Telefons mit.';
+
+  @override
+  String get backupExport => 'Sicherung schreiben';
+
+  @override
+  String backupExportDone(int count) {
+    return '$count Fahrten gesichert. Die Datei liegt in der Dateien-App unter „Auf meinem iPhone → Speedster“.';
+  }
+
+  @override
+  String get backupImport => 'Einlesen';
+
+  @override
+  String backupImportDone(int imported, int skipped) {
+    return '$imported Fahrten eingelesen, $skipped übersprungen (gab es schon).';
+  }
+
+  @override
+  String get backupImportFailed =>
+      'Die Datei ließ sich nicht lesen — ist es eine Speedster-Sicherung?';
+
+  @override
+  String get backupNone =>
+      'Keine Sicherung gefunden. Lege eine Datei über die Dateien-App im Ordner „Speedster“ ab, dann erscheint sie hier.';
+
+  @override
+  String get backupFiles => 'Vorhandene Sicherungen';
+
+  @override
   String get settingsFriends => 'Freunde';
 
   @override
@@ -344,10 +422,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsGarage => 'Garage';
-
-  @override
-  String get settingsGarageSubtitle =>
-      'Deine Fahrzeuge — bestimmt die Fahrzeugwertung';
 
   @override
   String get garageTitle => 'Garage';
@@ -391,6 +465,92 @@ class AppLocalizationsDe extends AppLocalizations {
   String get garagePower => 'Leistung (PS)';
 
   @override
+  String get garageOdometer => 'Tachostand';
+
+  @override
+  String garageOdometerEstimate(String km) {
+    return 'ca. $km km';
+  }
+
+  @override
+  String garageOdometerBasis(String km, String date, String tracked) {
+    return 'Geschätzt aus $km km vom $date, plus $tracked km seither aufgezeichnet.';
+  }
+
+  @override
+  String get garageOdometerNone => 'Noch kein Tachostand eingetragen.';
+
+  @override
+  String get garageOdometerAdd => 'Tachostand eintragen';
+
+  @override
+  String get garageOdometerKm => 'Kilometerstand';
+
+  @override
+  String get garageOdometerSaved => 'Tachostand gespeichert.';
+
+  @override
+  String garageOdometerDeviation(String km) {
+    return 'Die Schätzung lag $km km daneben — so viel hat die App nicht mitbekommen.';
+  }
+
+  @override
+  String get garageMaintenance => 'Wartung';
+
+  @override
+  String get garageMaintenanceAdd => 'Wartung eintragen';
+
+  @override
+  String get garageMaintenanceTitle => 'Was';
+
+  @override
+  String get garageMaintenanceTitleHint => 'HU, Inspektion, Ölwechsel …';
+
+  @override
+  String get garageMaintenanceDueKm => 'Fällig bei km';
+
+  @override
+  String get garageMaintenanceDueOn => 'Fällig am';
+
+  @override
+  String get garageMaintenanceNone => 'Keine Wartung eingetragen.';
+
+  @override
+  String get garageMaintenanceDone => 'Erledigt';
+
+  @override
+  String garageMaintenanceInDays(int count) {
+    return 'in $count Tagen';
+  }
+
+  @override
+  String garageMaintenanceOverdueDays(int count) {
+    return 'seit $count Tagen überfällig';
+  }
+
+  @override
+  String get garageMaintenanceToday => 'heute fällig';
+
+  @override
+  String garageMaintenanceInKm(String km) {
+    return 'in ca. $km km';
+  }
+
+  @override
+  String garageMaintenanceOverdueKm(String km) {
+    return 'ca. $km km überfällig';
+  }
+
+  @override
+  String garageMaintenanceKmUnknown(String km) {
+    return 'bei $km km — Tachostand unbekannt';
+  }
+
+  @override
+  String get garageMaintenanceNeedsDue =>
+      'Bitte ein Datum oder einen Kilometerstand angeben.';
+
+  @override
   String get garageDefault => 'Standard';
 
   @override
@@ -398,6 +558,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get garageDelete => 'Löschen';
+
+  @override
+  String get garageEdit => 'Bearbeiten';
+
+  @override
+  String get garageSavedEdit => 'Fahrzeug geändert.';
 
   @override
   String get garageDeleteConfirm =>

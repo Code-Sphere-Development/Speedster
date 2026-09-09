@@ -53,6 +53,7 @@ class TripDetailScreen extends ConsumerWidget {
               data: (points) => _TripMap(points: points),
             ),
           ),
+          _PurposeBlock(trip: trip),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Wrap(
@@ -141,6 +142,105 @@ class _StatTile extends StatelessWidget {
           Text(label, style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: 4),
           Text(value, style: Theme.of(context).textTheme.headlineSmall),
+        ],
+      ),
+    );
+  }
+
+}
+
+/// Zweck und Notiz einer Fahrt.
+///
+/// Getrennt vom Fahrzeug, weil beides zu verschiedenen Zeitpunkten
+/// feststeht: das Fahrzeug beim Losfahren, der Zweck oft erst danach.
+///
+/// Gespeichert wird zuerst lokal und dann, sofern die Fahrt schon in der
+/// Cloud liegt, auch dort. Scheitert das Zweite, bleibt das Erste
+/// bestehen -- ohne Netz soll die Eingabe nicht verlorengehen.
+class _PurposeBlock extends ConsumerStatefulWidget {
+  const _PurposeBlock({required this.trip});
+
+  final Trip trip;
+
+  @override
+  ConsumerState<_PurposeBlock> createState() => _PurposeBlockState();
+}
+
+class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
+  static const _purposes = ['private', 'commute', 'business'];
+
+  late String? _purpose = widget.trip.purpose;
+  late final _note = TextEditingController(text: widget.trip.note);
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  String _label(AppLocalizations l, String? purpose) => switch (purpose) {
+        'private' => l.tripPurposePrivate,
+        'commute' => l.tripPurposeCommute,
+        'business' => l.tripPurposeBusiness,
+        _ => l.tripPurposeNone,
+      };
+
+  Future<void> _save() async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final note = _note.text.trim().isEmpty ? null : _note.text.trim();
+
+    await ref
+        .read(tripRepositoryProvider)
+        .setPurpose(widget.trip.id!, _purpose, note);
+    ref.invalidate(keptTripsProvider);
+
+    try {
+      await ref
+          .read(cloudSyncServiceProvider)
+          .updatePurpose(widget.trip.clientUuid, _purpose, note);
+    } on Exception {
+      // Ohne Netz bleibt es beim lokalen Stand; der naechste Abgleich
+      // holt es nach. Ein Fehler hier waere fuer den Nutzer bloss
+      // verwirrend -- gespeichert ist gespeichert.
+    }
+
+    messenger.showSnackBar(SnackBar(content: Text(l.tripPurposeSaved)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final value in <String?>[null, ..._purposes])
+                ChoiceChip(
+                  label: Text(_label(l, value)),
+                  selected: _purpose == value,
+                  onSelected: (_) => setState(() => _purpose = value),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _note,
+                  decoration: InputDecoration(labelText: l.tripNote),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(onPressed: _save, child: Text(l.commonSave)),
+            ],
+          ),
         ],
       ),
     );

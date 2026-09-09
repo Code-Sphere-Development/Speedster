@@ -13,6 +13,8 @@ class _FakeRepo implements TripRepository {
   final List<(int, bool)> keptCalls = [];
 
   @override
+  Future<void> setPurpose(int id, String? purpose, String? note) async {}
+  @override
   Future<void> setKept(int tripId, bool kept) async {
     keptCalls.add((tripId, kept));
   }

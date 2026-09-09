@@ -133,4 +133,23 @@ void main() {
       reason: 'Live sitzt zwischen Heatmap und Fahrten, nicht am Ende',
     );
   });
+
+  testWidgets('fuehrt zur Garage nur vom Fahrten-Reiter', (tester) async {
+    // Die Garage haengt an den Fahrten, nicht an den Einstellungen. Ohne
+    // diesen Test faellt der einzige Weg dorthin unbemerkt weg.
+    await tester.pumpWidget(wrap(await prefs(), const Stream.empty()));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.garage_outlined), findsNothing);
+
+    await tester.tap(find.text('Fahrten'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.garage_outlined), findsOneWidget);
+
+    await tester.tap(find.text('Einstellungen'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.garage_outlined), findsNothing);
+  });
 }
