@@ -57,6 +57,27 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get tripPurpose => 'Zweck';
+
+  @override
+  String get tripPurposeNone => 'Kein Zweck';
+
+  @override
+  String get tripPurposePrivate => 'Privat';
+
+  @override
+  String get tripPurposeCommute => 'Arbeitsweg';
+
+  @override
+  String get tripPurposeBusiness => 'Geschäftlich';
+
+  @override
+  String get tripNote => 'Notiz';
+
+  @override
+  String get tripPurposeSaved => 'Zweck gespeichert.';
+
+  @override
   String get metricMax => 'Max';
 
   @override

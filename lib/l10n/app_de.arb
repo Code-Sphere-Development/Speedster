@@ -21,6 +21,13 @@
   "tripsEmpty": "Noch keine Fahrten aufgezeichnet.",
   "tripNoRoute": "Keine Streckendaten. Ältere Fahrten liegen nur in der Cloud — ihre Karte braucht eine Verbindung.",
   "tripMapUnavailable": "Karte nicht verfügbar: {message}",
+  "tripPurpose": "Zweck",
+  "tripPurposeNone": "Kein Zweck",
+  "tripPurposePrivate": "Privat",
+  "tripPurposeCommute": "Arbeitsweg",
+  "tripPurposeBusiness": "Geschäftlich",
+  "tripNote": "Notiz",
+  "tripPurposeSaved": "Zweck gespeichert.",
   "@tripMapUnavailable": {
     "placeholders": {
       "message": {

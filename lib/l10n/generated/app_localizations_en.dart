@@ -56,6 +56,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get tripPurpose => 'Purpose';
+
+  @override
+  String get tripPurposeNone => 'No purpose';
+
+  @override
+  String get tripPurposePrivate => 'Private';
+
+  @override
+  String get tripPurposeCommute => 'Commute';
+
+  @override
+  String get tripPurposeBusiness => 'Business';
+
+  @override
+  String get tripNote => 'Note';
+
+  @override
+  String get tripPurposeSaved => 'Purpose saved.';
+
+  @override
   String get metricMax => 'Max';
 
   @override

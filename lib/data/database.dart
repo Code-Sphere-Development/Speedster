@@ -26,6 +26,15 @@ class Trips extends Table {
   /// Standardfahrzeug wechselt, saehe seine alten Fahrten sonst am neuen
   /// Auto haengen.
   IntColumn get cloudVehicleId => integer().nullable()();
+
+  /// Zweck der Fahrt: privat, Arbeitsweg, geschaeftlich.
+  ///
+  /// Als Text und nicht als Aufzaehlung gespeichert, weil die Cloud die
+  /// Liste fuehrt -- eine zweite Aufzaehlung hier muesste bei jeder
+  /// Aenderung mitwandern.
+  TextColumn get purpose => text().nullable()();
+
+  TextColumn get note => text().nullable()();
 }
 
 class TrackPoints extends Table {
@@ -120,7 +129,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -138,6 +147,12 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 4) {
             await m.createTable(heatSnapshots);
+          }
+          if (from < 7) {
+            // Bestandsfahrten bleiben ohne beides: ein geratener Zweck
+            // waere eine Behauptung.
+            await m.addColumn(trips, trips.purpose);
+            await m.addColumn(trips, trips.note);
           }
           if (from < 6) {
             // Bestandsfahrten bleiben ohne Fahrzeug: eine geratene

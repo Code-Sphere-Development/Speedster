@@ -14,6 +14,8 @@ class Trip {
     this.clientUuid = '',
     this.syncedAt,
     this.cloudVehicleId,
+    this.purpose,
+    this.note,
   });
 
   final int? id;
@@ -42,6 +44,13 @@ class Trip {
   /// Fahrten sonst am neuen Auto haengen.
   final int? cloudVehicleId;
 
+  /// Zweck der Fahrt, wie ihn die Cloud fuehrt: `private`, `commute`
+  /// oder `business`. `null` heisst "kein Zweck" -- ein gueltiger
+  /// Zustand, kein fehlender Wert.
+  final String? purpose;
+
+  final String? note;
+
   Trip copyWith({
     int? id,
     DateTime? startTime,
@@ -56,6 +65,8 @@ class Trip {
     String? clientUuid,
     DateTime? syncedAt,
     int? cloudVehicleId,
+    String? purpose,
+    String? note,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -68,6 +79,8 @@ class Trip {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       zeroToHundredSeconds: zeroToHundredSeconds ?? this.zeroToHundredSeconds,
       cloudVehicleId: cloudVehicleId ?? this.cloudVehicleId,
+      purpose: purpose ?? this.purpose,
+      note: note ?? this.note,
       kept: kept ?? this.kept,
       clientUuid: clientUuid ?? this.clientUuid,
       syncedAt: syncedAt ?? this.syncedAt,

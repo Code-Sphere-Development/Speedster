@@ -172,6 +172,26 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _purposeMeta = const VerificationMeta(
+    'purpose',
+  );
+  @override
+  late final GeneratedColumn<String> purpose = GeneratedColumn<String>(
+    'purpose',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -188,6 +208,8 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     syncedAt,
     heatFoldedAt,
     cloudVehicleId,
+    purpose,
+    note,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -299,6 +321,18 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         ),
       );
     }
+    if (data.containsKey('purpose')) {
+      context.handle(
+        _purposeMeta,
+        purpose.isAcceptableOrUnknown(data['purpose']!, _purposeMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
     return context;
   }
 
@@ -364,6 +398,14 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.int,
         data['${effectivePrefix}cloud_vehicle_id'],
       ),
+      purpose: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}purpose'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
     );
   }
 
@@ -397,6 +439,14 @@ class Trip extends DataClass implements Insertable<Trip> {
   /// Standardfahrzeug wechselt, saehe seine alten Fahrten sonst am neuen
   /// Auto haengen.
   final int? cloudVehicleId;
+
+  /// Zweck der Fahrt: privat, Arbeitsweg, geschaeftlich.
+  ///
+  /// Als Text und nicht als Aufzaehlung gespeichert, weil die Cloud die
+  /// Liste fuehrt -- eine zweite Aufzaehlung hier muesste bei jeder
+  /// Aenderung mitwandern.
+  final String? purpose;
+  final String? note;
   const Trip({
     required this.id,
     required this.startTime,
@@ -412,6 +462,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     this.syncedAt,
     this.heatFoldedAt,
     this.cloudVehicleId,
+    this.purpose,
+    this.note,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -439,6 +491,12 @@ class Trip extends DataClass implements Insertable<Trip> {
     }
     if (!nullToAbsent || cloudVehicleId != null) {
       map['cloud_vehicle_id'] = Variable<int>(cloudVehicleId);
+    }
+    if (!nullToAbsent || purpose != null) {
+      map['purpose'] = Variable<String>(purpose);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
     }
     return map;
   }
@@ -469,6 +527,10 @@ class Trip extends DataClass implements Insertable<Trip> {
       cloudVehicleId: cloudVehicleId == null && nullToAbsent
           ? const Value.absent()
           : Value(cloudVehicleId),
+      purpose: purpose == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purpose),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
 
@@ -494,6 +556,8 @@ class Trip extends DataClass implements Insertable<Trip> {
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
       heatFoldedAt: serializer.fromJson<DateTime?>(json['heatFoldedAt']),
       cloudVehicleId: serializer.fromJson<int?>(json['cloudVehicleId']),
+      purpose: serializer.fromJson<String?>(json['purpose']),
+      note: serializer.fromJson<String?>(json['note']),
     );
   }
   @override
@@ -514,6 +578,8 @@ class Trip extends DataClass implements Insertable<Trip> {
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
       'heatFoldedAt': serializer.toJson<DateTime?>(heatFoldedAt),
       'cloudVehicleId': serializer.toJson<int?>(cloudVehicleId),
+      'purpose': serializer.toJson<String?>(purpose),
+      'note': serializer.toJson<String?>(note),
     };
   }
 
@@ -532,6 +598,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     Value<DateTime?> syncedAt = const Value.absent(),
     Value<DateTime?> heatFoldedAt = const Value.absent(),
     Value<int?> cloudVehicleId = const Value.absent(),
+    Value<String?> purpose = const Value.absent(),
+    Value<String?> note = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     startTime: startTime ?? this.startTime,
@@ -551,6 +619,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     cloudVehicleId: cloudVehicleId.present
         ? cloudVehicleId.value
         : this.cloudVehicleId,
+    purpose: purpose.present ? purpose.value : this.purpose,
+    note: note.present ? note.value : this.note,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -580,6 +650,8 @@ class Trip extends DataClass implements Insertable<Trip> {
       cloudVehicleId: data.cloudVehicleId.present
           ? data.cloudVehicleId.value
           : this.cloudVehicleId,
+      purpose: data.purpose.present ? data.purpose.value : this.purpose,
+      note: data.note.present ? data.note.value : this.note,
     );
   }
 
@@ -599,7 +671,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('clientUuid: $clientUuid, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('heatFoldedAt: $heatFoldedAt, ')
-          ..write('cloudVehicleId: $cloudVehicleId')
+          ..write('cloudVehicleId: $cloudVehicleId, ')
+          ..write('purpose: $purpose, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -620,6 +694,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     syncedAt,
     heatFoldedAt,
     cloudVehicleId,
+    purpose,
+    note,
   );
   @override
   bool operator ==(Object other) =>
@@ -638,7 +714,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.clientUuid == this.clientUuid &&
           other.syncedAt == this.syncedAt &&
           other.heatFoldedAt == this.heatFoldedAt &&
-          other.cloudVehicleId == this.cloudVehicleId);
+          other.cloudVehicleId == this.cloudVehicleId &&
+          other.purpose == this.purpose &&
+          other.note == this.note);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -656,6 +734,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<DateTime?> syncedAt;
   final Value<DateTime?> heatFoldedAt;
   final Value<int?> cloudVehicleId;
+  final Value<String?> purpose;
+  final Value<String?> note;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -671,6 +751,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.syncedAt = const Value.absent(),
     this.heatFoldedAt = const Value.absent(),
     this.cloudVehicleId = const Value.absent(),
+    this.purpose = const Value.absent(),
+    this.note = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -687,6 +769,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.syncedAt = const Value.absent(),
     this.heatFoldedAt = const Value.absent(),
     this.cloudVehicleId = const Value.absent(),
+    this.purpose = const Value.absent(),
+    this.note = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<Trip> custom({
     Expression<int>? id,
@@ -703,6 +787,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<DateTime>? syncedAt,
     Expression<DateTime>? heatFoldedAt,
     Expression<int>? cloudVehicleId,
+    Expression<String>? purpose,
+    Expression<String>? note,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -720,6 +806,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (syncedAt != null) 'synced_at': syncedAt,
       if (heatFoldedAt != null) 'heat_folded_at': heatFoldedAt,
       if (cloudVehicleId != null) 'cloud_vehicle_id': cloudVehicleId,
+      if (purpose != null) 'purpose': purpose,
+      if (note != null) 'note': note,
     });
   }
 
@@ -738,6 +826,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<DateTime?>? syncedAt,
     Value<DateTime?>? heatFoldedAt,
     Value<int?>? cloudVehicleId,
+    Value<String?>? purpose,
+    Value<String?>? note,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -754,6 +844,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       syncedAt: syncedAt ?? this.syncedAt,
       heatFoldedAt: heatFoldedAt ?? this.heatFoldedAt,
       cloudVehicleId: cloudVehicleId ?? this.cloudVehicleId,
+      purpose: purpose ?? this.purpose,
+      note: note ?? this.note,
     );
   }
 
@@ -804,6 +896,12 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (cloudVehicleId.present) {
       map['cloud_vehicle_id'] = Variable<int>(cloudVehicleId.value);
     }
+    if (purpose.present) {
+      map['purpose'] = Variable<String>(purpose.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     return map;
   }
 
@@ -823,7 +921,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('clientUuid: $clientUuid, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('heatFoldedAt: $heatFoldedAt, ')
-          ..write('cloudVehicleId: $cloudVehicleId')
+          ..write('cloudVehicleId: $cloudVehicleId, ')
+          ..write('purpose: $purpose, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -2529,6 +2629,8 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<DateTime?> syncedAt,
       Value<DateTime?> heatFoldedAt,
       Value<int?> cloudVehicleId,
+      Value<String?> purpose,
+      Value<String?> note,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -2546,6 +2648,8 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<DateTime?> syncedAt,
       Value<DateTime?> heatFoldedAt,
       Value<int?> cloudVehicleId,
+      Value<String?> purpose,
+      Value<String?> note,
     });
 
 final class $$TripsTableReferences
@@ -2646,6 +2750,16 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<int> get cloudVehicleId => $composableBuilder(
     column: $table.cloudVehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get purpose => $composableBuilder(
+    column: $table.purpose,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2753,6 +2867,16 @@ class $$TripsTableOrderingComposer
     column: $table.cloudVehicleId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get purpose => $composableBuilder(
+    column: $table.purpose,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TripsTableAnnotationComposer
@@ -2817,6 +2941,12 @@ class $$TripsTableAnnotationComposer
     column: $table.cloudVehicleId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get purpose =>
+      $composableBuilder(column: $table.purpose, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
 
   Expression<T> trackPointsRefs<T extends Object>(
     Expression<T> Function($$TrackPointsTableAnnotationComposer a) f,
@@ -2886,6 +3016,8 @@ class $$TripsTableTableManager
                 Value<DateTime?> syncedAt = const Value.absent(),
                 Value<DateTime?> heatFoldedAt = const Value.absent(),
                 Value<int?> cloudVehicleId = const Value.absent(),
+                Value<String?> purpose = const Value.absent(),
+                Value<String?> note = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 startTime: startTime,
@@ -2901,6 +3033,8 @@ class $$TripsTableTableManager
                 syncedAt: syncedAt,
                 heatFoldedAt: heatFoldedAt,
                 cloudVehicleId: cloudVehicleId,
+                purpose: purpose,
+                note: note,
               ),
           createCompanionCallback:
               ({
@@ -2918,6 +3052,8 @@ class $$TripsTableTableManager
                 Value<DateTime?> syncedAt = const Value.absent(),
                 Value<DateTime?> heatFoldedAt = const Value.absent(),
                 Value<int?> cloudVehicleId = const Value.absent(),
+                Value<String?> purpose = const Value.absent(),
+                Value<String?> note = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 startTime: startTime,
@@ -2933,6 +3069,8 @@ class $$TripsTableTableManager
                 syncedAt: syncedAt,
                 heatFoldedAt: heatFoldedAt,
                 cloudVehicleId: cloudVehicleId,
+                purpose: purpose,
+                note: note,
               ),
           withReferenceMapper: (p0) => p0
               .map(

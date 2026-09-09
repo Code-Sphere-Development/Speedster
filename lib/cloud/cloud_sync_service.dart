@@ -40,6 +40,27 @@ class CloudSyncService {
     }
   }
 
+  /// Traegt Zweck und Notiz einer bereits hochgeladenen Fahrt nach.
+  ///
+  /// Eigener Endpunkt statt eines erneuten Hochladens: der Zweck steht
+  /// oft erst nach der Fahrt fest, und die gesamte Strecke noch einmal zu
+  /// senden waere fuer zwei Felder verschwendet.
+  ///
+  /// Ohne Anmeldung geschieht nichts -- ohne Cloud gibt es dort keine
+  /// Fahrt, die sich aendern liesse.
+  Future<void> updatePurpose(
+    String clientUuid,
+    String? purpose,
+    String? note,
+  ) async {
+    if (await tokenStore.read() == null) return;
+
+    await dio.patch('/trips/$clientUuid', data: {
+      'purpose': purpose,
+      'note': note,
+    });
+  }
+
   Map<String, dynamic> _payload(Trip trip, List points) => {
         'client_uuid': trip.clientUuid,
         'start_time': trip.startTime.toUtc().toIso8601String(),
@@ -49,6 +70,8 @@ class CloudSyncService {
         'distance': trip.distance,
         'duration_seconds': trip.durationSeconds,
         'zero_to_hundred_seconds': trip.zeroToHundredSeconds,
+        'purpose': trip.purpose,
+        'note': trip.note,
         // Beim Fahrtende festgehalten, nicht hier bestimmt: wer
         // zwischendurch das Standardfahrzeug wechselt, saehe seine
         // wartenden Fahrten sonst am neuen Auto haengen.

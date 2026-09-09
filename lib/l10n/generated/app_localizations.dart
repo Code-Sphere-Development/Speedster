@@ -182,6 +182,48 @@ abstract class AppLocalizations {
   /// **'Karte nicht verfügbar: {message}'**
   String tripMapUnavailable(String message);
 
+  /// No description provided for @tripPurpose.
+  ///
+  /// In de, this message translates to:
+  /// **'Zweck'**
+  String get tripPurpose;
+
+  /// No description provided for @tripPurposeNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Zweck'**
+  String get tripPurposeNone;
+
+  /// No description provided for @tripPurposePrivate.
+  ///
+  /// In de, this message translates to:
+  /// **'Privat'**
+  String get tripPurposePrivate;
+
+  /// No description provided for @tripPurposeCommute.
+  ///
+  /// In de, this message translates to:
+  /// **'Arbeitsweg'**
+  String get tripPurposeCommute;
+
+  /// No description provided for @tripPurposeBusiness.
+  ///
+  /// In de, this message translates to:
+  /// **'Geschäftlich'**
+  String get tripPurposeBusiness;
+
+  /// No description provided for @tripNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Notiz'**
+  String get tripNote;
+
+  /// No description provided for @tripPurposeSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Zweck gespeichert.'**
+  String get tripPurposeSaved;
+
   /// No description provided for @metricMax.
   ///
   /// In de, this message translates to:
