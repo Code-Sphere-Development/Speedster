@@ -234,8 +234,9 @@ void main() {
       ),
     ]);
 
-    expect(find.textContaining('ca. 120042'), findsOneWidget);
-    expect(find.textContaining('120000'), findsWidgets);
+    // Mit Tausendertrennung: "120042" liest niemand auf einen Blick.
+    expect(find.textContaining('ca. 120.042'), findsOneWidget);
+    expect(find.textContaining('120.000'), findsWidgets);
   });
 
   testWidgets('sagt ohne Ablesung, dass keine vorliegt', (tester) async {
@@ -280,7 +281,7 @@ void main() {
             id: 2,
             title: 'Ölwechsel',
             dueKm: 121000,
-            kilometersLeft: 500,
+            kilometersLeft: 1570,
           ),
         ],
       ),
@@ -288,7 +289,7 @@ void main() {
 
     expect(find.text('HU'), findsOneWidget);
     expect(find.textContaining('in 30 Tagen'), findsOneWidget);
-    expect(find.textContaining('in ca. 500 km'), findsOneWidget);
+    expect(find.textContaining('in ca. 1.570 km'), findsOneWidget);
   });
 
   testWidgets('nennt ohne Tachostand keine Restkilometer', (tester) async {
@@ -304,7 +305,7 @@ void main() {
       ),
     ]);
 
-    expect(find.textContaining('Tachostand unbekannt'), findsOneWidget);
+    expect(find.textContaining('bei 135.000 km'), findsOneWidget);
     expect(find.textContaining('in ca.'), findsNothing);
   });
 

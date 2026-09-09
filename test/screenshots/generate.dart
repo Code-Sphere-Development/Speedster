@@ -408,21 +408,48 @@ void main() {
               sharedPreferencesProvider.overrideWithValue(prefs),
               cloudActiveProvider.overrideWith((ref) async => true),
               vehiclesProvider.overrideWith(
-                (ref) async => const [
+                // Nicht const: der Zeitpunkt der Ablesung ist ein
+                // DateTime, und das laesst sich nicht konstant bilden.
+                // Zwei Fahrzeuge, nicht drei: mit Tachostand und Wartung
+                // sind die Kacheln so hoch, dass ein drittes nur noch
+                // angeschnitten unter dem Knopf staende.
+                (ref) async => [
                   Vehicle(
                     id: 1,
                     name: 'Der Golf',
                     isDefault: true,
                     year: 2019,
                     powerPs: 150,
-                    model: VehicleModel(
+                    model: const VehicleModel(
                       id: 7,
                       label: 'VW Golf VII',
                       vehicleClass: 'C-Segment',
                       fuel: 'Dieselmotor',
                     ),
+                    // Tachostand und Wartung sind der Grund, warum die
+                    // Garage mehr ist als ein Etikett -- auf einem
+                    // Werbebild gehoeren sie dazu.
+                    odometer: Odometer(
+                      estimateKm: 128430,
+                      trackedKm: 530,
+                      readingKm: 127900,
+                      readAt: DateTime(2026, 8, 12),
+                    ),
+                    maintenance: const [
+                      MaintenanceItem(
+                        id: 1,
+                        title: 'HU',
+                        daysLeft: 47,
+                      ),
+                      MaintenanceItem(
+                        id: 2,
+                        title: 'Ölwechsel',
+                        dueKm: 130000,
+                        kilometersLeft: 1570,
+                      ),
+                    ],
                   ),
-                  Vehicle(
+                  const Vehicle(
                     id: 3,
                     name: 'Der Kombi',
                     isDefault: false,
@@ -433,19 +460,6 @@ void main() {
                       label: 'VW Passat Variant',
                       vehicleClass: 'Mittelklasse',
                       fuel: 'Dieselmotor',
-                    ),
-                  ),
-                  Vehicle(
-                    id: 2,
-                    name: 'Winterauto',
-                    isDefault: false,
-                    year: 2012,
-                    powerPs: 105,
-                    model: VehicleModel(
-                      id: 9,
-                      label: 'Škoda Octavia II',
-                      vehicleClass: 'Kompaktklasse',
-                      fuel: 'Benzinmotor',
                     ),
                   ),
                 ],
