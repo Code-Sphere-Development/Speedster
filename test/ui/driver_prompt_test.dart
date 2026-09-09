@@ -22,7 +22,8 @@ class _FakeRepo implements TripRepository {
   @override
   Future<void> addPoints(int tripId, List<TrackPoint> pts) async {}
   @override
-  Future<void> finalizeTrip(int id, TripStats s, DateTime e) async {}
+  Future<void> finalizeTrip(int id, TripStats s, DateTime e,
+      {int? cloudVehicleId}) async {}
   @override
   Future<List<Trip>> keptTrips() async => [];
   @override

@@ -716,6 +716,132 @@ abstract class AppLocalizations {
   /// **'Kennzahlen mit Bekannten vergleichen'**
   String get settingsFriendsSubtitle;
 
+  /// No description provided for @settingsGarage.
+  ///
+  /// In de, this message translates to:
+  /// **'Garage'**
+  String get settingsGarage;
+
+  /// No description provided for @settingsGarageSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Fahrzeuge — bestimmt die Fahrzeugwertung'**
+  String get settingsGarageSubtitle;
+
+  /// No description provided for @garageTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Garage'**
+  String get garageTitle;
+
+  /// No description provided for @garageLead.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue Fahrten werden dem Standardfahrzeug zugeordnet. Das Modell bestimmt, mit wem du in der Fahrzeugwertung verglichen wirst.'**
+  String get garageLead;
+
+  /// No description provided for @garageEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch kein Fahrzeug angelegt.'**
+  String get garageEmpty;
+
+  /// No description provided for @garageAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug anlegen'**
+  String get garageAdd;
+
+  /// No description provided for @garageName.
+  ///
+  /// In de, this message translates to:
+  /// **'Name'**
+  String get garageName;
+
+  /// No description provided for @garageNameHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wie du es nennst — „Der Golf“'**
+  String get garageNameHint;
+
+  /// No description provided for @garageModel.
+  ///
+  /// In de, this message translates to:
+  /// **'Modell'**
+  String get garageModel;
+
+  /// No description provided for @garageModelSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Modell suchen'**
+  String get garageModelSearch;
+
+  /// No description provided for @garageModelNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Modell zugeordnet'**
+  String get garageModelNone;
+
+  /// No description provided for @garageModelHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Modell erscheint das Fahrzeug nicht in der Fahrzeugwertung.'**
+  String get garageModelHint;
+
+  /// No description provided for @garageNoModels.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Modell gefunden.'**
+  String get garageNoModels;
+
+  /// No description provided for @garageYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Baujahr'**
+  String get garageYear;
+
+  /// No description provided for @garagePower.
+  ///
+  /// In de, this message translates to:
+  /// **'Leistung (PS)'**
+  String get garagePower;
+
+  /// No description provided for @garageDefault.
+  ///
+  /// In de, this message translates to:
+  /// **'Standard'**
+  String get garageDefault;
+
+  /// No description provided for @garageMakeDefault.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Standard machen'**
+  String get garageMakeDefault;
+
+  /// No description provided for @garageDelete.
+  ///
+  /// In de, this message translates to:
+  /// **'Löschen'**
+  String get garageDelete;
+
+  /// No description provided for @garageDeleteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug löschen? Die Fahrten bleiben erhalten, verlieren aber ihre Zuordnung.'**
+  String get garageDeleteConfirm;
+
+  /// No description provided for @garageSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug gespeichert.'**
+  String get garageSaved;
+
+  /// No description provided for @garageNeedsCloud.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Garage gehört zum Cloud-Konto. Aktiviere die Cloud-Synchronisierung in den Einstellungen.'**
+  String get garageNeedsCloud;
+
   /// No description provided for @settingsHelp.
   ///
   /// In de, this message translates to:

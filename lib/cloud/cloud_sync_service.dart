@@ -49,6 +49,10 @@ class CloudSyncService {
         'distance': trip.distance,
         'duration_seconds': trip.durationSeconds,
         'zero_to_hundred_seconds': trip.zeroToHundredSeconds,
+        // Beim Fahrtende festgehalten, nicht hier bestimmt: wer
+        // zwischendurch das Standardfahrzeug wechselt, saehe seine
+        // wartenden Fahrten sonst am neuen Auto haengen.
+        'vehicle_id': trip.cloudVehicleId,
         'elevation_gain': trip.elevationGain,
         'points': [
           for (final p in points)

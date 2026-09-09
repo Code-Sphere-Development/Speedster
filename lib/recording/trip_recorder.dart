@@ -45,6 +45,7 @@ class TripRecorder {
     this.liveActivity,
     this.usualSpeed,
     this.comparison = const SpeedComparison(),
+    this.defaultVehicleId,
     this.flushEvery = 10,
   });
 
@@ -61,6 +62,14 @@ class TripRecorder {
   /// Optional, weil ein Geraet ohne beides -- und jeder Test, den die
   /// Verbindung nicht interessiert -- ohne auskommen muss.
   final Stream<bool>? carConnected;
+
+  /// Liefert das Fahrzeug, dem eine endende Fahrt zugeordnet wird.
+  ///
+  /// Eine Funktion und kein Wert: die Garage kann sich waehrend der Fahrt
+  /// aendern, und maßgeblich ist der Stand am Fahrtende. Fehlt sie oder
+  /// gibt sie null zurueck, bleibt die Fahrt ohne Fahrzeug -- ohne Cloud
+  /// gibt es keine Garage, und das darf die Aufzeichnung nicht stoeren.
+  final Future<int?> Function()? defaultVehicleId;
 
   /// Anzeige auf dem Sperrbildschirm. Optional -- fehlt sie, wird
   /// aufgezeichnet wie zuvor. Die Anzeige ist Beiwerk und darf nie der
@@ -149,7 +158,12 @@ class TripRecorder {
       await _flush();
       final stats = StatsEngine.compute(_buffer);
       final endedTripId = _tripId!;
-      await repo.finalizeTrip(endedTripId, stats, s.timestamp);
+      await repo.finalizeTrip(
+        endedTripId,
+        stats,
+        s.timestamp,
+        cloudVehicleId: await defaultVehicleId?.call(),
+      );
       _tripId = null;
       _buffer.clear();
       _savedCount = 0;
