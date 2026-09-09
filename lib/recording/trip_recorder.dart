@@ -106,7 +106,18 @@ class TripRecorder {
 
   /// Consumes the sample stream until it ends or [stop] is called.
   /// For an infinite (real device) stream, callers should NOT await this.
+  /// Ob der Strom gerade gelesen wird.
+  ///
+  /// Ein zweiter Aufruf von [start] soll keinen zweiten Leser anlegen:
+  /// jede Position wuerde sonst doppelt verarbeitet, und die Distanz
+  /// verdoppelte sich.
+  bool _running = false;
+
+  bool get isRunning => _running;
+
   Future<void> start() async {
+    if (_running) return;
+    _running = true;
     _stopped = false;
     // Faellt der Plattformkanal aus, meldet er nichts, und der Detektor
     // bleibt bei `false` -- die Erkennung verhaelt sich dann wie vor
@@ -123,9 +134,16 @@ class TripRecorder {
       },
       onError: (Object _) {},
     );
-    await for (final s in source.samples()) {
-      if (_stopped) break;
-      await _process(s);
+    try {
+      await for (final s in source.samples()) {
+        if (_stopped) break;
+        await _process(s);
+      }
+    } finally {
+      // Auch bei einem Fehler im Strom: sonst gaelte die Aufzeichnung als
+      // laufend, waehrend niemand mehr liest -- und ein erneuter Aufruf
+      // haette keine Wirkung.
+      _running = false;
     }
   }
 

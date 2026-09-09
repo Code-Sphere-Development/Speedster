@@ -97,8 +97,12 @@ void main() {
         ));
   });
 
-  test('mit Token kommt die Liste aus der Cloud', () async {
-    await repo.createTrip(local(DateTime(2020), uuid: 'nur-lokal'));
+  test('mit Token fuehrt die Cloud die Liste', () async {
+    // Der lokale Vorrat ist nur ein Zwischenspeicher: eine bereits
+    // hochgeladene Fahrt zaehlt einmal, naemlich die der Cloud -- sonst
+    // stuende sie doppelt, sobald sie in beiden liegt.
+    await repo.createTrip(local(DateTime(2020), uuid: 'schon-oben'));
+    await repo.markSynced('schon-oben');
     stubPages([page([row('a', DateTime(2026, 1, 5))])]);
 
     final trips = await source.keptTrips();
@@ -203,5 +207,50 @@ void main() {
         .thenThrow(DioException(requestOptions: RequestOptions(path: '/trips/a')));
 
     expect(await source.pointsFor(clientUuid: 'a'), isEmpty);
+  });
+
+  test('zeigt noch nicht hochgeladene Fahrten neben denen der Cloud',
+      () async {
+    // Genau das ging verloren: die Fahrt lag auf dem Geraet, die Liste
+    // zeigte nur die Cloud, und der Nutzer sah nichts.
+    await repo.createTrip(local(DateTime(2026, 8, 17, 18), uuid: 'lokal-1'));
+
+    when(() => dio.get<Map<String, dynamic>>(any(),
+            queryParameters: any(named: 'queryParameters')))
+        .thenAnswer((_) async => page([row('cloud-1', DateTime(2026, 8, 16))]));
+
+    final trips = await source.keptTrips();
+
+    expect(trips.map((t) => t.clientUuid), ['lokal-1', 'cloud-1']);
+  });
+
+  test('zeigt eine hochgeladene Fahrt nicht doppelt', () async {
+    // Zwischen Upload und Vermerk in der Datenbank liegt ein Moment; in
+    // dem darf die Fahrt nicht zweimal in der Liste stehen.
+    await repo.createTrip(local(DateTime(2026, 8, 17, 18), uuid: 'beide'));
+
+    when(() => dio.get<Map<String, dynamic>>(any(),
+            queryParameters: any(named: 'queryParameters')))
+        .thenAnswer((_) async => page([row('beide', DateTime(2026, 8, 17, 18))]));
+
+    final trips = await source.keptTrips();
+
+    expect(trips, hasLength(1));
+  });
+
+  test('sortiert die gemischte Liste nach Datum', () async {
+    await repo.createTrip(local(DateTime(2026, 8, 10), uuid: 'alt-lokal'));
+
+    when(() => dio.get<Map<String, dynamic>>(any(),
+            queryParameters: any(named: 'queryParameters')))
+        .thenAnswer((_) async => page([
+              row('neu-cloud', DateTime(2026, 8, 20)),
+              row('mittel-cloud', DateTime(2026, 8, 15)),
+            ]));
+
+    final trips = await source.keptTrips();
+
+    expect(trips.map((t) => t.clientUuid),
+        ['neu-cloud', 'mittel-cloud', 'alt-lokal']);
   });
 }

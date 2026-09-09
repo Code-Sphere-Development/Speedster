@@ -100,12 +100,27 @@ class FallbackTripSource implements TripSource {
       // Ohne diesen Abgleich braeuchte selbst die zuletzt gefahrene
       // Strecke fuer ihre Detailansicht eine Verbindung.
       final index = await repo.clientUuidIndex();
+      final known = {for (final trip in remote) trip.clientUuid};
+
+      // Noch nicht hochgeladene Fahrten kommen dazu.
+      //
+      // Ohne sie verschwindet eine gerade gefahrene Strecke aus der
+      // Liste, bis der Upload durch ist -- ohne Netz also womoeglich
+      // tagelang. Sie liegt auf dem Geraet, und der Nutzer sieht sie
+      // nicht: schlimmer als eine fehlende Fahrt ist eine, die es gibt
+      // und die verschwiegen wird.
+      final pending = [
+        for (final trip in await repo.unsyncedTrips())
+          if (!known.contains(trip.clientUuid)) trip,
+      ];
+
       return [
+        ...pending,
         for (final trip in remote)
           index.containsKey(trip.clientUuid)
               ? trip.copyWith(id: index[trip.clientUuid])
               : trip,
-      ];
+      ]..sort((a, b) => b.startTime.compareTo(a.startTime));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         await tokenStore.clear();

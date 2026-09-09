@@ -89,7 +89,8 @@ enum AppTab {
       };
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell>
+    with WidgetsBindingObserver {
   AppTab _tab = AppTab.heatmap;
 
   /// Verhindert, dass ein erneutes isDriving-Ereignis derselben Fahrt die
@@ -119,8 +120,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _maybeStartTracking();
+      _uploadPendingTrips();
       _refreshTripCache();
       _publishWidgets();
       // Der Rundgang zuerst und abgewartet: sonst legte sich der
@@ -129,6 +132,51 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       await _maybeShowTour();
       _askAboutFriendRequests();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Nimmt die Aufzeichnung wieder auf, sobald die App nach vorn kommt.
+  ///
+  /// Sie lief bisher nur einmal an, beim Aufbau dieser Ansicht. Beendet
+  /// iOS die App -- Speicherdruck oder Wegwischen --, oder faellt der
+  /// Positionsstrom mit einem Fehler aus, blieb die Aufzeichnung
+  /// stillschweigend tot, bis jemand die App neu startete. Ein ganzer
+  /// Tag Fahrten konnte so verlorengehen, ohne dass irgendwo etwas davon
+  /// stand.
+  ///
+  /// Das schliesst die Luecke nicht ganz: solange die App beendet ist,
+  /// zeichnet nichts auf. Dafuer braeuchte es "Significant Location
+  /// Changes", damit iOS sie von sich aus wieder startet.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _maybeStartTracking();
+      _uploadPendingTrips();
+    }
+  }
+
+  /// Schickt liegengebliebene Fahrten in die Cloud.
+  ///
+  /// Bisher geschah das ausschliesslich, nachdem der Nutzer die Rueckfrage
+  /// nach dem Fahrtende beantwortet hatte. Wer sie nicht sah -- Telefon in
+  /// der Tasche, App spaeter beendet --, dessen Fahrt wurde nie
+  /// hochgeladen und tauchte in der Liste nie auf. Beim Start und bei
+  /// jedem Wechsel nach vorn nachzureichen kostet nichts: der Dienst tut
+  /// ohne Anmeldung und ohne wartende Fahrten von sich aus nichts.
+  Future<void> _uploadPendingTrips() async {
+    if (!ref.read(settingsControllerProvider).cloudEnabled) return;
+    try {
+      await ref.read(cloudSyncServiceProvider).syncOnce();
+      ref.invalidate(keptTripsProvider);
+    } on Exception {
+      // Ohne Netz bleibt es beim naechsten Versuch. Die Fahrten sind
+      // lokal sicher und stehen jetzt auch in der Liste.
+    }
   }
 
   /// Holt beim Start den lokalen Vorrat der zuletzt gefahrenen Strecken
@@ -149,8 +197,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     if (ref.read(settingsControllerProvider).trackingPaused) return;
     final granted = await ref.read(permissionGateProvider).ensure();
     if (!granted) return;
+
+    // Erst hier den Rekorder anfassen: er haengt an der Datenbank, und
+    // ohne Berechtigung soll gar nichts davon aufgebaut werden.
+    //
+    // Laeuft die Aufzeichnung schon, tut ein zweiter Aufruf nichts --
+    // sonst laege bei jedem Wechsel nach vorn ein weiterer Leser auf
+    // demselben Strom, und jede Position zaehlte doppelt.
+    final recorder = ref.read(recorderProvider);
+    if (recorder.isRunning) return;
+
     // Fire-and-forget: the sample stream is long-lived.
-    unawaited(ref.read(recorderProvider).start());
+    unawaited(recorder.start());
   }
 
   /// Legt die Werte fuer die Widgets ab.
