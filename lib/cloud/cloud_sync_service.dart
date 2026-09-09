@@ -16,8 +16,16 @@ class CloudSyncService {
   final TripRepository repo;
   final TokenStore tokenStore;
 
+  /// Fahrten, die der Server in diesem Lauf zurueckgewiesen hat.
+  ///
+  /// Nur zur Auskunft nach aussen -- gespeichert wird nichts: beim
+  /// naechsten Lauf wird es erneut versucht, denn die Ursache kann
+  /// behoben sein (ein Serverstand, der das Format inzwischen annimmt).
+  final rejected = <String>{};
+
   Future<void> syncOnce() async {
     if (await tokenStore.read() == null) return; // not logged in
+    rejected.clear();
     final pending = await repo.unsyncedTrips();
 
     for (final trip in pending) {
@@ -29,13 +37,31 @@ class CloudSyncService {
           await repo.markSynced(trip.clientUuid);
         }
       } on DioException catch (e) {
-        if (e.response?.statusCode == 401) {
-          // Token invalid/expired: stop and force re-login.
+        final status = e.response?.statusCode;
+
+        if (status == 401) {
+          // Token ungueltig oder abgelaufen: anhalten und neu anmelden
+          // lassen. Weitere Versuche waeren alle vergeblich.
           await tokenStore.clear();
           return;
         }
-        // Network/5xx: leave unsynced, retry next cycle.
-        return;
+
+        // Weist der Server die Fahrt selbst zurueck (4xx), hilft kein
+        // erneuter Versuch -- sie bleibt liegen, aber die naechste kommt
+        // dran.
+        //
+        // Vorher brach die Schleife bei jedem Fehler ab. Eine einzige
+        // Fahrt, die der Server nicht annimmt, hielt damit alle spaeteren
+        // dauerhaft und lautlos auf: in der Bestenliste stand weiterhin
+        // ein alter Wert, obwohl laengst schneller gefahren worden war.
+        if (status != null && status >= 400 && status < 500) {
+          rejected.add(trip.clientUuid);
+          continue;
+        }
+
+        // Netzfehler oder 5xx: der naechste Lauf versucht es erneut, und
+        // zwar wieder von vorn -- die Reihenfolge bleibt so erhalten.
+        break;
       }
     }
   }

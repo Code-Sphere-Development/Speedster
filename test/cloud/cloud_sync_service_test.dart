@@ -92,4 +92,57 @@ void main() {
     expect(await repo.unsyncedTrips(), hasLength(1));
     expect(await store.read(), 'token'); // token kept
   });
+
+  test('haelt bei einer zurueckgewiesenen Fahrt nicht die ganze Reihe auf',
+      () async {
+    // Genau das ist passiert: eine Fahrt, die der Server nicht annahm,
+    // stand vorn in der Warteschlange und hielt alle spaeteren dauerhaft
+    // und lautlos auf. In der Bestenliste stand weiter ein alter Wert.
+    final erste = await repo.createTrip(keptTrip());
+    await repo.createTrip(keptTrip());
+
+    var call = 0;
+    when(() => dio.post('/trips', data: any(named: 'data'))).thenAnswer((_) {
+      call++;
+      if (call == 1) {
+        throw DioException(
+          requestOptions: RequestOptions(path: '/trips'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/trips'),
+            statusCode: 422,
+          ),
+        );
+      }
+
+      return Future.value(ok(201));
+    });
+
+    await service.syncOnce();
+
+    // Die zweite ist oben, die erste liegt weiterhin -- aber sie blockiert
+    // nicht mehr.
+    final offen = await repo.unsyncedTrips();
+    expect(offen, hasLength(1));
+    expect(offen.single.id, erste);
+    expect(service.rejected, hasLength(1));
+  });
+
+  test('haelt bei einem Netzfehler an und behaelt die Reihenfolge', () async {
+    // Anders als bei einer Zurueckweisung hilft hier ein spaeterer
+    // Versuch -- und die Fahrten sollen in ihrer Reihenfolge ankommen.
+    await repo.createTrip(keptTrip());
+    await repo.createTrip(keptTrip());
+
+    when(() => dio.post('/trips', data: any(named: 'data'))).thenThrow(
+      DioException(
+        requestOptions: RequestOptions(path: '/trips'),
+        type: DioExceptionType.connectionError,
+      ),
+    );
+
+    await service.syncOnce();
+
+    expect(await repo.unsyncedTrips(), hasLength(2));
+    verify(() => dio.post('/trips', data: any(named: 'data'))).called(1);
+  });
 }

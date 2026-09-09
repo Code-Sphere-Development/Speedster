@@ -55,6 +55,9 @@ dependencies:
   package_info_plus: ^10.2.1
 
 dev_dependencies:
+  # Zeitgesteuertes ohne echtes Warten pruefen -- etwa die Frist, nach der
+  # eine getrennte CarPlay-Verbindung erst zaehlt.
+  fake_async: ^1.3.3
   flutter_test:
     sdk: flutter
 
