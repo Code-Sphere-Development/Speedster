@@ -122,11 +122,19 @@ class GeolocatorSampleSource extends SampleSource {
     SamplePlatform platform, {
     bool precise = true,
   }) {
-    // Im Stand: grobe Genauigkeit und Mindestabstand. Beides zusammen
-    // erlaubt es dem System, aus Funkzellen und WLAN zu antworten, statt
-    // den Empfaenger laufen zu lassen.
-    final accuracy = precise ? LocationAccuracy.best : LocationAccuracy.low;
-    final distanceFilter = precise ? 0 : 50;
+    // Im Stand seltener, aber nicht gröber als der Detektor vertraegt.
+    //
+    // Das ist die entscheidende Kopplung: TripDetector verwirft jede
+    // Position, deren Genauigkeit schlechter als DetectorConfig.minAccuracy
+    // (30 m) ist. Mit LocationAccuracy.low -- auf iOS ein Kilometer --
+    // saehe er nie eine Position, und es begaenne nie eine Fahrt. Ein
+    // erster Versuch hat genau das getan.
+    //
+    // LocationAccuracy.high liegt bei rund zehn Metern und liefert eine
+    // brauchbare Geschwindigkeit; gespart wird ueber den Mindestabstand,
+    // der die App nicht mehr zu jedem Fix aufweckt.
+    final accuracy = precise ? LocationAccuracy.best : LocationAccuracy.high;
+    final distanceFilter = precise ? 0 : 25;
 
     switch (platform) {
       case SamplePlatform.ios:

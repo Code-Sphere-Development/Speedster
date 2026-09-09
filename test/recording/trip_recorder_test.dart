@@ -32,6 +32,21 @@ class _RecordingSource extends SampleSource {
   void setPrecise(bool precise) => precisionChanges.add(precise);
 }
 
+/// Zaehlt, wie oft der Strom abonniert wurde.
+class _CountingSource extends SampleSource {
+  _CountingSource(this._samples);
+
+  final List<Sample> _samples;
+  int subscriptions = 0;
+
+  @override
+  Stream<Sample> samples() {
+    subscriptions++;
+
+    return Stream.fromIterable(_samples);
+  }
+}
+
 void main() {
   test('records a full trip from motion to stop', () async {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
@@ -242,5 +257,40 @@ void main() {
     await rec.start();
 
     expect(source.precisionChanges, [true, false]);
+  });
+
+  test('legt bei einem zweiten Start keinen zweiten Leser an', () async {
+    // Sonst verarbeitete jede Position doppelt, und die Distanz
+    // verdoppelte sich.
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final source = _CountingSource([s(10, 0), s(10, 6), s(0, 20), s(0, 85)]);
+    final rec = TripRecorder(
+      source: source,
+      detector: TripDetector(const DetectorConfig()),
+      repo: DriftTripRepository(db),
+    );
+
+    await Future.wait([rec.start(), rec.start()]);
+
+    expect(source.subscriptions, 1);
+  });
+
+  test('gilt nach dem Ende des Stroms wieder als gestoppt', () async {
+    // Faellt der Strom mit einem Fehler aus, muss ein erneuter Start
+    // wirken -- sonst bliebe die Aufzeichnung stillschweigend tot.
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final rec = TripRecorder(
+      source: FakeSampleSource([s(0, 0)]),
+      detector: TripDetector(const DetectorConfig()),
+      repo: DriftTripRepository(db),
+    );
+
+    expect(rec.isRunning, isFalse);
+    await rec.start();
+    expect(rec.isRunning, isFalse);
   });
 }

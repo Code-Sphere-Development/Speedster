@@ -58,17 +58,23 @@ void _platformSettings() {
       expect(android.foregroundNotificationConfig!.notificationTitle, isNotEmpty);
     });
 
-    test('laeuft im Stand grob und mit Mindestabstand', () {
-      // Sonst laeuft der GPS-Empfaenger durch, waehrend das Telefon auf
-      // dem Sofa liegt.
+    test('spart im Stand ueber den Abstand, nicht ueber die Genauigkeit', () {
+      // Die entscheidende Kopplung: der Detektor verwirft Positionen, die
+      // ungenauer als DetectorConfig.minAccuracy sind. Waere die
+      // Genauigkeit im Stand darunter, saehe er nie eine Position, und es
+      // begaenne nie eine Fahrt -- ein erster Versuch hat genau das
+      // getan.
       for (final platform in SamplePlatform.values) {
         final idle = GeolocatorSampleSource.settingsFor(
           platform,
           precise: false,
         );
 
-        expect(idle.accuracy, LocationAccuracy.low,
-            reason: 'zu fein im Stand bei $platform');
+        expect(
+          idle.accuracy,
+          anyOf(LocationAccuracy.high, LocationAccuracy.best),
+          reason: 'zu grob fuer die Fahrterkennung bei $platform',
+        );
         expect(idle.distanceFilter, greaterThan(0),
             reason: 'kein Mindestabstand bei $platform');
       }
