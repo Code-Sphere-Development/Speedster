@@ -112,7 +112,15 @@ class TripRecorder {
     // bleibt bei `false` -- die Erkennung verhaelt sich dann wie vor
     // dieser Aenderung, statt haengen zu bleiben.
     _carSubscription ??= carConnected?.listen(
-      (connected) => detector.carConnected = connected,
+      (connected) {
+        detector.carConnected = connected;
+        // Wer im Auto sitzt, faehrt gleich los: dann lohnt die feine
+        // Ortung sofort, statt erst auf die ersten Meter zu warten.
+        // Beim Abstecken uebernimmt das Fahrtende das Zuruecknehmen --
+        // hier nicht, weil eine kurz abreissende Verbindung sonst mitten
+        // in der Fahrt die Genauigkeit senkte.
+        if (connected) source.setPrecise(true);
+      },
       onError: (Object _) {},
     );
     await for (final s in source.samples()) {
@@ -131,7 +139,12 @@ class TripRecorder {
   Future<void> _process(Sample s) async {
     final event = detector.update(s);
 
+    // Feine Ortung erst ab hier: bis zum Fahrtbeginn genuegt eine grobe,
+    // um Bewegung zu bemerken (siehe SampleSource.setPrecise). Das
+    // Umschalten steht vor dem Anlegen der Fahrt, damit schon der zweite
+    // Fix in voller Genauigkeit kommt.
     if (event == TripEvent.started) {
+      source.setPrecise(true);
       _tripId = await repo.createTrip(_placeholderTrip(s.timestamp));
       _startTime = s.timestamp;
       _distance = 0;
@@ -155,6 +168,9 @@ class TripRecorder {
     _buffer.add(_toPoint(_tripId!, s));
 
     if (event == TripEvent.stopped) {
+      // Zurueck auf sparsam: ohne das liefe die feine Ortung bis zum
+      // naechsten Neustart der App weiter -- also auch die ganze Nacht.
+      source.setPrecise(false);
       await _flush();
       final stats = StatsEngine.compute(_buffer);
       final endedTripId = _tripId!;

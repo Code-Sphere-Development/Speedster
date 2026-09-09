@@ -18,6 +18,20 @@ Sample s(double speed, int sec) => Sample(
       timestamp: DateTime(2026, 1, 1, 12, 0, sec),
     );
 
+/// Haelt fest, wie oft und wohin die Ortungsstaerke geschaltet wurde.
+class _RecordingSource extends SampleSource {
+  _RecordingSource(this._samples);
+
+  final List<Sample> _samples;
+  final precisionChanges = <bool>[];
+
+  @override
+  Stream<Sample> samples() => Stream.fromIterable(_samples);
+
+  @override
+  void setPrecise(bool precise) => precisionChanges.add(precise);
+}
+
 void main() {
   test('records a full trip from motion to stop', () async {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
@@ -207,5 +221,26 @@ void main() {
       await rec.stop();
       await db.close();
     });
+  });
+
+  test('schaltet die Ortung erst zur Fahrt fein und danach zurueck', () async {
+    // Ohne das Zuruecknehmen liefe die feine Ortung bis zum naechsten
+    // Neustart der App weiter -- also auch die ganze Nacht.
+    final source = _RecordingSource([
+      s(10, 0), s(10, 6), // Fahrtbeginn
+      s(0, 20), s(0, 85), // Stopp nach dem stopWindow
+    ]);
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    final rec = TripRecorder(
+      source: source,
+      detector: TripDetector(const DetectorConfig()),
+      repo: DriftTripRepository(db),
+    );
+
+    await rec.start();
+
+    expect(source.precisionChanges, [true, false]);
   });
 }
