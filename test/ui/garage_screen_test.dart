@@ -155,4 +155,60 @@ void main() {
           powerPs: null,
         )).called(1);
   });
+
+  testWidgets('fuellt beim Bearbeiten die vorhandenen Werte', (tester) async {
+    // Ohne das verloere ein Konto sein Modell, sobald es nur den Namen
+    // aendert.
+    final repo = MockVehicles();
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        year: 2019,
+        powerPs: 150,
+        model: VehicleModel(id: 7, label: 'VW Golf VII'),
+      ),
+    ]);
+
+    await tester.tap(find.text('Bearbeiten'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextField, 'Der Golf'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '2019'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '150'), findsOneWidget);
+    // Das zugeordnete Modell steht in der Auswahl, ohne erneute Suche.
+    expect(find.text('VW Golf VII'), findsOneWidget);
+  });
+
+  testWidgets('schickt beim Bearbeiten update statt create', (tester) async {
+    final repo = MockVehicles();
+    when(() => repo.update(
+          any(),
+          name: any(named: 'name'),
+          vehicleModelId: any(named: 'vehicleModelId'),
+          year: any(named: 'year'),
+          powerPs: any(named: 'powerPs'),
+        )).thenAnswer((_) async => vehicle());
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
+
+    await tester.tap(find.text('Bearbeiten'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Golf VII');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.update(1,
+        name: 'Golf VII',
+        vehicleModelId: null,
+        year: null,
+        powerPs: null)).called(1);
+    verifyNever(() => repo.create(
+          name: any(named: 'name'),
+          vehicleModelId: any(named: 'vehicleModelId'),
+          year: any(named: 'year'),
+          powerPs: any(named: 'powerPs'),
+        ));
+  });
 }

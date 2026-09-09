@@ -117,6 +117,27 @@ class VehicleRepository {
     }
   }
 
+  Future<Vehicle> update(
+    int id, {
+    required String name,
+    int? vehicleModelId,
+    int? year,
+    int? powerPs,
+  }) async {
+    try {
+      final res = await dio.patch<Map<String, dynamic>>('/vehicles/$id', data: {
+        'name': name,
+        'vehicle_model_id': vehicleModelId,
+        'year': year,
+        'power_ps': powerPs,
+      });
+
+      return Vehicle.fromJson(res.data ?? const {});
+    } on DioException catch (e) {
+      throw VehicleException(serverMessage(e));
+    }
+  }
+
   Future<void> makeDefault(int id) => dio.post('/vehicles/$id/default');
 
   Future<void> remove(int id) => dio.delete('/vehicles/$id');

@@ -18,6 +18,8 @@ import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/live_screen.dart';
 import 'package:speedster/ui/ranking_screen.dart';
+import 'package:speedster/cloud/vehicle_repository.dart';
+import 'package:speedster/ui/garage_screen.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
 
 /// Erzeugt die Screenshots fuer die Landingpage der Cloud.
@@ -38,16 +40,37 @@ import 'package:speedster/ui/trip_list_screen.dart';
 /// Die Bilder altern mit jeder Aenderung an den gezeigten Bildschirmen.
 /// Das ist der Preis dafuer, dass sie echt sind und nicht nachgestellt:
 /// wer die Oberflaeche aendert, laesst sie neu erzeugen.
-const outputDirectory = 'build/screenshots';
+/// Wohin, wie gross und wie fein -- die Bilder entstehen fuer zwei Zwecke
+/// zugleich.
+class Target {
+  const Target(this.directory, this.size, this.scale);
 
-/// Ein Handy-Format, nicht das Standard-Testfenster (800x600): die Cloud
-/// zeigt die Bilder als Handy, und ein Querformat sae dort falsch aus.
-///
-/// 430 statt 390 Punkt: bei 390 bricht die Beschriftung "Einstellungen" in
-/// der Reiterleiste um, sobald "Live" den fuenften Platz belegt. Auf dem
-/// Geraet ist das hinnehmbar, auf einem Werbebild nicht.
-const phone = Size(430, 932);
-const scale = 2.0;
+  final String directory;
+  final Size size;
+  final double scale;
+}
+
+const targets = [
+  /// Fuer die Landingpage der Cloud. Dort werden sie rund 256 Punkt breit
+  /// gezeigt; die App-Store-Fassung waere dafuer unnoetiger Ballast.
+  ///
+  /// 430 statt 390 Punkt: bei 390 bricht die Beschriftung "Einstellungen"
+  /// in der Reiterleiste um, sobald "Live" den fuenften Platz belegt. Auf
+  /// dem Geraet ist das hinnehmbar, auf einem Werbebild nicht.
+  Target('build/screenshots', Size(430, 932), 2),
+
+  /// Fuer App Store Connect. Verlangt wird der 6,9-Zoll-Satz mit
+  /// 1320 x 2868 Punkten -- das sind 440 x 956 Punkt bei dreifacher
+  /// Aufloesung, also genau ein iPhone 16 Pro Max. Die App ist
+  /// iPhone-only (TARGETED_DEVICE_FAMILY = 1), ein iPad-Satz entfaellt.
+  ///
+  /// Vor dem Hochladen muss der Alphakanal weg -- Flutter schreibt RGBA,
+  /// und App Store Connect weist Bilder damit zurueck, auch wenn sie
+  /// vollstaendig deckend sind:
+  ///
+  ///     magick bild.png -background black -alpha remove -alpha off bild.png
+  Target('build/appstore', Size(440, 956), 3),
+];
 
 /// Die Bilder entstehen in jeder Sprache, die die Oberflaeche spricht.
 /// Sonst steht auf der englischen Seite ein deutsches Handy.
@@ -87,7 +110,7 @@ Future<void> loadFonts() async {
   }
 }
 
-Future<void> shoot(WidgetTester tester, String name) async {
+Future<void> shoot(WidgetTester tester, Target target, String name) async {
   final boundary = tester.firstRenderObject<RenderRepaintBoundary>(
     find.byType(RepaintBoundary),
   );
@@ -95,9 +118,9 @@ Future<void> shoot(WidgetTester tester, String name) async {
   // runAsync: das Kodieren braucht echte Asynchronitaet. Ohne das steht
   // die Testuhr und toImage() kehrt nie zurueck.
   await tester.runAsync(() async {
-    final image = await boundary.toImage(pixelRatio: scale);
+    final image = await boundary.toImage(pixelRatio: target.scale);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final file = File('$outputDirectory/$name.png');
+    final file = File('${target.directory}/$name.png');
     file.parent.createSync(recursive: true);
     file.writeAsBytesSync(bytes!.buffer.asUint8List());
   });
@@ -150,16 +173,18 @@ Widget frame(Widget screen, {required AppTab tab, required String locale}) =>
       ),
     );
 
-Future<void> pumpScreen(WidgetTester tester, Widget app) async {
-  tester.view.physicalSize = phone * scale;
-  tester.view.devicePixelRatio = scale;
+Future<void> pumpScreen(WidgetTester tester, Target target, Widget app) async {
+  tester.view.physicalSize = target.size * target.scale;
+  tester.view.devicePixelRatio = target.scale;
   addTearDown(tester.view.reset);
 
   await tester.pumpWidget(app);
-  // Zweimal: die Bildschirme lesen aus FutureProvidern, deren erster
-  // Rahmen noch den Ladezustand zeigt.
-  await tester.pump();
-  await tester.pump();
+  // pumpAndSettle statt einzelner Durchlaeufe: die Bildschirme lesen aus
+  // FutureProvidern, deren erster Rahmen den Ladezustand zeigt, und
+  // eingeblendete Bedienelemente -- der Knopf "Fahrzeug anlegen" -- sind
+  // waehrend ihrer Animation noch unsichtbar. Auf einem Werbebild fehlte
+  // damit ausgerechnet die Schaltflaeche, um die es geht.
+  await tester.pumpAndSettle();
 }
 
 Trip demoTrip({
@@ -168,127 +193,281 @@ Trip demoTrip({
   required double maxSpeed,
   required double distance,
   required int seconds,
-}) =>
-    Trip(
-      id: id,
-      startTime: DateTime(2026, 8, day, 17, 42),
-      endTime: DateTime(2026, 8, day, 18, 12),
-      maxSpeed: maxSpeed,
-      avgSpeed: distance / seconds,
-      distance: distance,
-      elevationGain: 120,
-      durationSeconds: seconds,
-      zeroToHundredSeconds: 7.4,
-      kept: true,
-    );
+}) => Trip(
+  id: id,
+  startTime: DateTime(2026, 8, day, 17, 42),
+  endTime: DateTime(2026, 8, day, 18, 12),
+  maxSpeed: maxSpeed,
+  avgSpeed: distance / seconds,
+  distance: distance,
+  elevationGain: 120,
+  durationSeconds: seconds,
+  zeroToHundredSeconds: 7.4,
+  kept: true,
+);
 
 void main() {
   setUpAll(loadFonts);
 
-  for (final locale in locales) {
-    testWidgets('live ($locale)', (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
+  for (final target in targets) {
+    for (final locale in locales) {
+      testWidgets('live ($locale, ${target.directory})', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
 
-      await pumpScreen(
-        tester,
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            recorderStateProvider.overrideWith(
-              (ref) => Stream.value(
-                RecorderState(
-                  isDriving: true,
-                  activeTripId: 1,
-                  distanceMeters: 24800,
-                  elapsedSeconds: 1315,
-                  last: Sample(
-                    lat: 51.09,
-                    lng: 6.89,
-                    speed: 35.6,
-                    altitude: 42,
-                    accuracy: 3,
-                    timestamp: DateTime(2026, 8, 17, 18, 4),
+        await pumpScreen(
+          tester,
+          target,
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              recorderStateProvider.overrideWith(
+                (ref) => Stream.value(
+                  RecorderState(
+                    isDriving: true,
+                    activeTripId: 1,
+                    distanceMeters: 24800,
+                    elapsedSeconds: 1315,
+                    last: Sample(
+                      lat: 51.09,
+                      lng: 6.89,
+                      speed: 35.6,
+                      altitude: 42,
+                      accuracy: 3,
+                      timestamp: DateTime(2026, 8, 17, 18, 4),
+                    ),
                   ),
                 ),
               ),
+            ],
+            child: frame(const LiveScreen(), tab: AppTab.live, locale: locale),
+          ),
+        );
+
+        await shoot(tester, target, 'live-$locale');
+      });
+
+      testWidgets('bestenliste ($locale, ${target.directory})', (tester) async {
+        SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+        final prefs = await SharedPreferences.getInstance();
+
+        // Bewusst keine Extremwerte: die Seite mahnt an derselben Stelle,
+        // keine Begrenzung zu ueberschreiten. Eine Bestenliste mit 220 km/h
+        // daneben arbeitete gegen die eigene Aussage.
+        const board = RankingBoard(
+          entries: [
+            RankingEntry(
+              rank: 1,
+              displayName: 'nordschleife',
+              country: 'DE',
+              value: 50.0,
+            ),
+            RankingEntry(
+              rank: 2,
+              displayName: 'mira_k',
+              country: 'AT',
+              value: 47.8,
+            ),
+            RankingEntry(
+              rank: 3,
+              displayName: 'coho04',
+              country: 'DE',
+              value: 45.8,
+            ),
+            RankingEntry(
+              rank: 4,
+              displayName: 'lenny',
+              country: 'CH',
+              value: 43.9,
+            ),
+            RankingEntry(
+              rank: 5,
+              displayName: 'tessa',
+              country: 'NL',
+              value: 41.4,
+            ),
+            RankingEntry(
+              rank: 6,
+              displayName: 'jonas_w',
+              country: 'DE',
+              value: 39.2,
             ),
           ],
-          child: frame(const LiveScreen(), tab: AppTab.live, locale: locale),
-        ),
-      );
+          me: RankingEntry(
+            rank: 3,
+            displayName: 'coho04',
+            country: 'DE',
+            value: 45.8,
+          ),
+        );
 
-      await shoot(tester, 'live-$locale');
-    });
-
-    testWidgets('bestenliste ($locale)', (tester) async {
-      SharedPreferences.setMockInitialValues({'cloudEnabled': true});
-      final prefs = await SharedPreferences.getInstance();
-
-      // Bewusst keine Extremwerte: die Seite mahnt an derselben Stelle,
-      // keine Begrenzung zu ueberschreiten. Eine Bestenliste mit 220 km/h
-      // daneben arbeitete gegen die eigene Aussage.
-      const board = RankingBoard(
-        entries: [
-          RankingEntry(
-              rank: 1, displayName: 'nordschleife', country: 'DE', value: 50.0),
-          RankingEntry(rank: 2, displayName: 'mira_k', country: 'AT', value: 47.8),
-          RankingEntry(rank: 3, displayName: 'coho04', country: 'DE', value: 45.8),
-          RankingEntry(rank: 4, displayName: 'lenny', country: 'CH', value: 43.9),
-          RankingEntry(rank: 5, displayName: 'tessa', country: 'NL', value: 41.4),
-          RankingEntry(rank: 6, displayName: 'jonas_w', country: 'DE', value: 39.2),
-        ],
-        me: RankingEntry(rank: 3, displayName: 'coho04', country: 'DE', value: 45.8),
-      );
-
-      await pumpScreen(
-        tester,
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            cloudActiveProvider.overrideWith((ref) async => true),
-            rankingBoardProvider.overrideWith((ref, arg) async => board),
-          ],
-          child: frame(const RankingScreen(), tab: AppTab.ranking, locale: locale),
-        ),
-      );
-
-      await shoot(tester, 'bestenliste-$locale');
-    });
-
-    testWidgets('fahrten ($locale)', (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-
-      await pumpScreen(
-        tester,
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            keptTripsProvider.overrideWith(
-              (ref) => [
-                demoTrip(
-                    id: 1, day: 17, maxSpeed: 44.4, distance: 42300, seconds: 2410),
-                demoTrip(
-                    id: 2, day: 15, maxSpeed: 25.0, distance: 12800, seconds: 1180),
-                demoTrip(
-                    id: 3, day: 12, maxSpeed: 38.9, distance: 86200, seconds: 4020),
-                demoTrip(
-                    id: 4, day: 9, maxSpeed: 16.7, distance: 5600, seconds: 720),
-                demoTrip(
-                    id: 5, day: 6, maxSpeed: 33.3, distance: 27400, seconds: 1640),
-                demoTrip(
-                    id: 6, day: 4, maxSpeed: 22.2, distance: 9100, seconds: 880),
-                demoTrip(
-                    id: 7, day: 2, maxSpeed: 41.7, distance: 61500, seconds: 3200),
-              ],
+        await pumpScreen(
+          tester,
+          target,
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              cloudActiveProvider.overrideWith((ref) async => true),
+              rankingBoardProvider.overrideWith((ref, arg) async => board),
+            ],
+            child: frame(
+              const RankingScreen(),
+              tab: AppTab.ranking,
+              locale: locale,
             ),
-          ],
-          child: frame(const TripListScreen(), tab: AppTab.trips, locale: locale),
-        ),
-      );
+          ),
+        );
 
-      await shoot(tester, 'fahrten-$locale');
-    });
+        await shoot(tester, target, 'bestenliste-$locale');
+      });
+
+      testWidgets('fahrten ($locale, ${target.directory})', (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+
+        await pumpScreen(
+          tester,
+          target,
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              keptTripsProvider.overrideWith(
+                (ref) => [
+                  demoTrip(
+                    id: 1,
+                    day: 17,
+                    maxSpeed: 44.4,
+                    distance: 42300,
+                    seconds: 2410,
+                  ),
+                  demoTrip(
+                    id: 2,
+                    day: 15,
+                    maxSpeed: 25.0,
+                    distance: 12800,
+                    seconds: 1180,
+                  ),
+                  demoTrip(
+                    id: 3,
+                    day: 12,
+                    maxSpeed: 38.9,
+                    distance: 86200,
+                    seconds: 4020,
+                  ),
+                  demoTrip(
+                    id: 4,
+                    day: 9,
+                    maxSpeed: 16.7,
+                    distance: 5600,
+                    seconds: 720,
+                  ),
+                  demoTrip(
+                    id: 5,
+                    day: 6,
+                    maxSpeed: 33.3,
+                    distance: 27400,
+                    seconds: 1640,
+                  ),
+                  demoTrip(
+                    id: 6,
+                    day: 4,
+                    maxSpeed: 22.2,
+                    distance: 9100,
+                    seconds: 880,
+                  ),
+                  demoTrip(
+                    id: 7,
+                    day: 2,
+                    maxSpeed: 41.7,
+                    distance: 61500,
+                    seconds: 3200,
+                  ),
+                ],
+              ),
+            ],
+            child: frame(
+              const TripListScreen(),
+              tab: AppTab.trips,
+              locale: locale,
+            ),
+          ),
+        );
+
+        await shoot(tester, target, 'fahrten-$locale');
+      });
+
+      testWidgets('garage ($locale, ${target.directory})', (tester) async {
+        SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+        final prefs = await SharedPreferences.getInstance();
+
+        await pumpScreen(
+          tester,
+          target,
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              cloudActiveProvider.overrideWith((ref) async => true),
+              vehiclesProvider.overrideWith(
+                (ref) async => const [
+                  Vehicle(
+                    id: 1,
+                    name: 'Der Golf',
+                    isDefault: true,
+                    year: 2019,
+                    powerPs: 150,
+                    model: VehicleModel(
+                      id: 7,
+                      label: 'VW Golf VII',
+                      vehicleClass: 'C-Segment',
+                      fuel: 'Dieselmotor',
+                    ),
+                  ),
+                  Vehicle(
+                    id: 3,
+                    name: 'Der Kombi',
+                    isDefault: false,
+                    year: 2021,
+                    powerPs: 190,
+                    model: VehicleModel(
+                      id: 11,
+                      label: 'VW Passat Variant',
+                      vehicleClass: 'Mittelklasse',
+                      fuel: 'Dieselmotor',
+                    ),
+                  ),
+                  Vehicle(
+                    id: 2,
+                    name: 'Winterauto',
+                    isDefault: false,
+                    year: 2012,
+                    powerPs: 105,
+                    model: VehicleModel(
+                      id: 9,
+                      label: 'Škoda Octavia II',
+                      vehicleClass: 'Kompaktklasse',
+                      fuel: 'Benzinmotor',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            // Die Garage haengt in den Einstellungen und hat eine eigene
+            // Titelleiste -- deshalb ohne den Reiter-Rahmen.
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              locale: Locale(locale),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: SpeedsterTheme.light,
+              darkTheme: SpeedsterTheme.dark,
+              themeMode: ThemeMode.dark,
+              home: const GarageScreen(),
+            ),
+          ),
+        );
+
+        await shoot(tester, target, 'garage-$locale');
+      });
+    }
   }
 }

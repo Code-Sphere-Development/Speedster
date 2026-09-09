@@ -194,4 +194,70 @@ void main() {
 
     expect(find.textContaining('kein Grund'), findsOneWidget);
   });
+
+  testWidgets('fragt das gewaehlte Zeitfenster ab', (tester) async {
+    // Ohne Fenster steht eine einmalige Spitze dauerhaft oben, und
+    // niemand schaut mehr hin.
+    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    final prefs = await SharedPreferences.getInstance();
+    final asked = <RankPeriod>[];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudActiveProvider.overrideWith((ref) async => true),
+          rankingBoardProvider.overrideWith((ref, arg) async {
+            asked.add(arg.$3);
+            return const RankingBoard(entries: [], me: null);
+          }),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: RankingScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Voreinstellung ist die Gesamtzeit -- Bestandsnutzer sollen dasselbe
+    // Bild sehen wie bisher.
+    expect(asked.first, RankPeriod.all);
+
+    await tester.tap(find.text('Woche'));
+    await tester.pumpAndSettle();
+
+    expect(asked.last, RankPeriod.week);
+  });
+
+  testWidgets('verweist bei leerer Fahrzeugwertung auf die Garage',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudActiveProvider.overrideWith((ref) async => true),
+          rankingBoardProvider.overrideWith(
+              (ref, arg) async => const RankingBoard(entries: [], me: null)),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: RankingScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Fahrzeug'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Garage'), findsOneWidget);
+  });
 }

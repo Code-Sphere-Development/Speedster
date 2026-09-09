@@ -7,6 +7,7 @@ import 'package:speedster/app/theme.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
+import 'package:speedster/ui/garage_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/driver_prompt.dart';
 import 'package:speedster/ui/friend_requests_prompt.dart';
@@ -212,7 +213,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(tab.title(l))),
+      appBar: AppBar(
+        title: Text(tab.title(l)),
+        // Die Garage haengt an den Fahrten, nicht an den Einstellungen:
+        // eine Fahrt hat ein Fahrzeug. Ein eigener Reiter kaeme bei fuenf
+        // bis sechs Reitern zu eng, und zwei Wege zum selben Bildschirm
+        // stiften nur Verwirrung -- deshalb genau hier und sonst nirgends.
+        actions: [
+          if (tab == AppTab.trips)
+            IconButton(
+              icon: const Icon(Icons.garage_outlined),
+              tooltip: l.settingsGarage,
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(builder: (_) => const GarageScreen()),
+              ),
+            ),
+        ],
+      ),
       body: IndexedStack(index: tab.index, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: visible.indexOf(tab),

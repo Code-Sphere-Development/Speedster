@@ -320,6 +320,36 @@ abstract class AppLocalizations {
   /// **'Freunde'**
   String get rankingScopeFriends;
 
+  /// No description provided for @rankingScopeVehicle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug'**
+  String get rankingScopeVehicle;
+
+  /// No description provided for @rankingPeriodWeek.
+  ///
+  /// In de, this message translates to:
+  /// **'Woche'**
+  String get rankingPeriodWeek;
+
+  /// No description provided for @rankingPeriodMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Monat'**
+  String get rankingPeriodMonth;
+
+  /// No description provided for @rankingPeriodAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt'**
+  String get rankingPeriodAll;
+
+  /// No description provided for @rankingNoVehicle.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diese Wertung fehlt dein Standardfahrzeug. Lege es in der Garage an und wähle ein Modell — verglichen wird mit allen, die dasselbe Modell fahren.'**
+  String get rankingNoVehicle;
+
   /// No description provided for @rankingMetricMaxSpeed.
   ///
   /// In de, this message translates to:
@@ -722,12 +752,6 @@ abstract class AppLocalizations {
   /// **'Garage'**
   String get settingsGarage;
 
-  /// No description provided for @settingsGarageSubtitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Deine Fahrzeuge — bestimmt die Fahrzeugwertung'**
-  String get settingsGarageSubtitle;
-
   /// No description provided for @garageTitle.
   ///
   /// In de, this message translates to:
@@ -823,6 +847,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Löschen'**
   String get garageDelete;
+
+  /// No description provided for @garageEdit.
+  ///
+  /// In de, this message translates to:
+  /// **'Bearbeiten'**
+  String get garageEdit;
+
+  /// No description provided for @garageSavedEdit.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrzeug geändert.'**
+  String get garageSavedEdit;
 
   /// No description provided for @garageDeleteConfirm.
   ///

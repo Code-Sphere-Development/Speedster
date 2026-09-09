@@ -11,6 +11,12 @@ import 'package:speedster/ui/auth_screen.dart';
 ///
 /// Eine Funktion statt einer Konstanten: eine Konstante liesse sich nicht
 /// uebersetzen, weil sie ohne Kontext ausgewertet wird.
+String periodLabel(AppLocalizations l, RankPeriod period) => switch (period) {
+      RankPeriod.week => l.rankingPeriodWeek,
+      RankPeriod.month => l.rankingPeriodMonth,
+      RankPeriod.all => l.rankingPeriodAll,
+    };
+
 String metricLabel(AppLocalizations l, RankMetric metric) => switch (metric) {
       RankMetric.maxSpeed => l.rankingMetricMaxSpeed,
       RankMetric.totalDistance => l.rankingMetricDistance,
@@ -40,6 +46,7 @@ class RankingScreen extends ConsumerStatefulWidget {
 
 class _RankingScreenState extends ConsumerState<RankingScreen> {
   RankScope _scope = RankScope.world;
+  RankPeriod _period = RankPeriod.all;
   RankMetric _metric = RankMetric.maxSpeed;
 
   @override
@@ -83,7 +90,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   Widget _board(BuildContext context) {
     final l = AppLocalizations.of(context);
     final unit = ref.watch(settingsControllerProvider.select((s) => s.unit));
-    final board = ref.watch(rankingBoardProvider((_scope, _metric)));
+    final board = ref.watch(rankingBoardProvider((_scope, _metric, _period)));
 
     return Column(
       children: [
@@ -97,9 +104,32 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
                   value: RankScope.country, label: Text(l.rankingScopeCountry)),
               ButtonSegment(
                   value: RankScope.friends, label: Text(l.rankingScopeFriends)),
+              ButtonSegment(
+                  value: RankScope.vehicle, label: Text(l.rankingScopeVehicle)),
             ],
             selected: {_scope},
             onSelectionChanged: (s) => setState(() => _scope = s.first),
+          ),
+        ),
+        // Das Zeitfenster steht ueber den Kennzahlen: es entscheidet, ob
+        // die Liste ueberhaupt in Bewegung ist. Ohne Fenster steht eine
+        // einmalige Spitze dort dauerhaft, und niemand schaut mehr hin.
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: [
+              for (final p in RankPeriod.values)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(periodLabel(l, p)),
+                    selected: _period == p,
+                    onSelected: (_) => setState(() => _period = p),
+                  ),
+                ),
+            ],
           ),
         ),
         SizedBox(
@@ -138,7 +168,13 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
           child: board.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
-            data: (b) => _BoardList(board: b, metric: _metric, unit: unit),
+            data: (b) => b.entries.isEmpty && _scope == RankScope.vehicle
+                // Dieselbe Lehre wie bei der Laenderwertung: ohne
+                // Standardfahrzeug mit Modell kann diese Wertung nie
+                // etwas liefern, und eine leere Liste saehe aus wie ein
+                // Fehler.
+                ? _NeedsVehicle(text: l.rankingNoVehicle)
+                : _BoardList(board: b, metric: _metric, unit: unit),
           ),
         ),
       ],
@@ -192,6 +228,20 @@ class _CloudRequired extends StatelessWidget {
       ),
     );
   }
+}
+
+class _NeedsVehicle extends StatelessWidget {
+  const _NeedsVehicle({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(text, textAlign: TextAlign.center),
+        ),
+      );
 }
 
 class _BoardList extends StatelessWidget {
@@ -258,8 +308,9 @@ class _BoardList extends StatelessWidget {
   }
 }
 
-/// Fetches a board for a (scope, metric) pair.
+/// Holt eine Wertung fuer Bereich, Kennzahl und Zeitfenster.
 final rankingBoardProvider =
-    FutureProvider.family<RankingBoard, (RankScope, RankMetric)>((ref, key) {
-  return ref.watch(rankingRepositoryProvider).fetch(key.$1, key.$2);
+    FutureProvider.family<RankingBoard, (RankScope, RankMetric, RankPeriod)>(
+        (ref, key) {
+  return ref.watch(rankingRepositoryProvider).fetch(key.$1, key.$2, key.$3);
 });

@@ -6,9 +6,26 @@ enum RankScope {
   // Nur bestaetigte Freunde und man selbst. Der Bereich ignoriert
   // ranking_opt_in: eine angenommene Anfrage ist die staerkere
   // Einwilligung (siehe docs/specs/2026-09-08-freunde-design.md).
-  friends('friends');
+  friends('friends'),
+  // Vergleicht nur, wer dasselbe Modell faehrt. Braucht ein
+  // Standardfahrzeug mit Katalogmodell -- ohne das bleibt die Wertung
+  // leer, und die Oberflaeche verweist auf die Garage.
+  vehicle('vehicle');
 
   const RankScope(this.wire);
+  final String wire;
+}
+
+/// Zeitfenster der Wertung.
+///
+/// Ohne Fenster zaehlt die Bestenliste ueber die gesamte Zeit: wer einmal
+/// schnell war, steht dort dauerhaft, und niemand kann ihn mehr einholen.
+enum RankPeriod {
+  week('week'),
+  month('month'),
+  all('all');
+
+  const RankPeriod(this.wire);
   final String wire;
 }
 
@@ -57,10 +74,15 @@ class RankingRepository {
 
   final Dio dio;
 
-  Future<RankingBoard> fetch(RankScope scope, RankMetric metric) async {
+  Future<RankingBoard> fetch(
+    RankScope scope,
+    RankMetric metric, [
+    RankPeriod period = RankPeriod.all,
+  ]) async {
     final res = await dio.get('/rankings', queryParameters: {
       'scope': scope.wire,
       'metric': metric.wire,
+      'period': period.wire,
     });
     final data = res.data as Map<String, dynamic>;
     final entries = (data['entries'] as List)

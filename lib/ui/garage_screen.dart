@@ -82,6 +82,10 @@ class GarageScreen extends ConsumerWidget {
                           _VehicleTile(
                             vehicle: vehicle,
                             onDelete: () => _confirmDelete(context, ref, vehicle),
+                            onEdit: () => showDialog<void>(
+                              context: context,
+                              builder: (_) => VehicleDialog(vehicle: vehicle),
+                            ),
                           ),
                       ],
                     ),
@@ -105,10 +109,15 @@ class _Hint extends StatelessWidget {
 }
 
 class _VehicleTile extends ConsumerWidget {
-  const _VehicleTile({required this.vehicle, required this.onDelete});
+  const _VehicleTile({
+    required this.vehicle,
+    required this.onDelete,
+    required this.onEdit,
+  });
 
   final Vehicle vehicle;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -176,6 +185,7 @@ class _VehicleTile extends ConsumerWidget {
                     child: Text(l.garageMakeDefault),
                   ),
                 const Spacer(),
+                TextButton(onPressed: onEdit, child: Text(l.garageEdit)),
                 TextButton(onPressed: onDelete, child: Text(l.garageDelete)),
               ],
             ),
@@ -186,22 +196,35 @@ class _VehicleTile extends ConsumerWidget {
   }
 }
 
-/// Anlegen eines Fahrzeugs, mit Suche im Katalog der Cloud.
+/// Anlegen und Bearbeiten eines Fahrzeugs, mit Suche im Katalog der Cloud.
+///
+/// Ein Dialog fuer beides: die Felder sind dieselben, und zwei Fassungen
+/// liefen beim naechsten Feld auseinander. [vehicle] entscheidet, ob
+/// angelegt oder geaendert wird.
 class VehicleDialog extends ConsumerStatefulWidget {
-  const VehicleDialog({super.key});
+  const VehicleDialog({this.vehicle, super.key});
+
+  final Vehicle? vehicle;
 
   @override
   ConsumerState<VehicleDialog> createState() => _VehicleDialogState();
 }
 
 class _VehicleDialogState extends ConsumerState<VehicleDialog> {
-  final _name = TextEditingController();
+  late final _name = TextEditingController(text: widget.vehicle?.name);
   final _search = TextEditingController();
-  final _year = TextEditingController();
-  final _power = TextEditingController();
+  late final _year =
+      TextEditingController(text: widget.vehicle?.year?.toString());
+  late final _power =
+      TextEditingController(text: widget.vehicle?.powerPs?.toString());
 
-  List<VehicleModel> _models = const [];
-  VehicleModel? _chosen;
+  /// Das bereits zugeordnete Modell steht in der Auswahl, ohne dass man
+  /// erst danach suchen muss -- sonst verloere ein Konto es beim
+  /// Aendern des Namens.
+  late List<VehicleModel> _models = [
+    if (widget.vehicle?.model != null) widget.vehicle!.model!,
+  ];
+  late VehicleModel? _chosen = widget.vehicle?.model;
   bool _searching = false;
   bool _busy = false;
   String? _error;
@@ -241,16 +264,30 @@ class _VehicleDialogState extends ConsumerState<VehicleDialog> {
 
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final repo = ref.read(vehicleRepositoryProvider);
+    final existing = widget.vehicle;
     try {
-      await ref.read(vehicleRepositoryProvider).create(
-            name: _name.text.trim(),
-            vehicleModelId: _chosen?.id,
-            year: int.tryParse(_year.text),
-            powerPs: int.tryParse(_power.text),
-          );
+      if (existing == null) {
+        await repo.create(
+          name: _name.text.trim(),
+          vehicleModelId: _chosen?.id,
+          year: int.tryParse(_year.text),
+          powerPs: int.tryParse(_power.text),
+        );
+      } else {
+        await repo.update(
+          existing.id,
+          name: _name.text.trim(),
+          vehicleModelId: _chosen?.id,
+          year: int.tryParse(_year.text),
+          powerPs: int.tryParse(_power.text),
+        );
+      }
       ref.invalidate(vehiclesProvider);
       navigator.pop();
-      messenger.showSnackBar(SnackBar(content: Text(l.garageSaved)));
+      messenger.showSnackBar(SnackBar(
+        content: Text(existing == null ? l.garageSaved : l.garageSavedEdit),
+      ));
     } on VehicleException catch (e) {
       setState(() {
         _error = e.message ?? l.commonNoConnection;
@@ -264,7 +301,7 @@ class _VehicleDialogState extends ConsumerState<VehicleDialog> {
     final l = AppLocalizations.of(context);
 
     return AlertDialog(
-      title: Text(l.garageAdd),
+      title: Text(widget.vehicle == null ? l.garageAdd : l.garageEdit),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

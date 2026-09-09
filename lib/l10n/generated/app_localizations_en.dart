@@ -126,6 +126,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankingScopeFriends => 'Friends';
 
   @override
+  String get rankingScopeVehicle => 'Vehicle';
+
+  @override
+  String get rankingPeriodWeek => 'Week';
+
+  @override
+  String get rankingPeriodMonth => 'Month';
+
+  @override
+  String get rankingPeriodAll => 'All time';
+
+  @override
+  String get rankingNoVehicle =>
+      'This ranking needs your default vehicle. Add it in the garage and pick a model — you are compared with everyone driving the same model.';
+
+  @override
   String get rankingMetricMaxSpeed => 'Top speed';
 
   @override
@@ -341,10 +357,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGarage => 'Garage';
 
   @override
-  String get settingsGarageSubtitle =>
-      'Your vehicles — decides the vehicle ranking';
-
-  @override
   String get garageTitle => 'Garage';
 
   @override
@@ -393,6 +405,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get garageDelete => 'Delete';
+
+  @override
+  String get garageEdit => 'Edit';
+
+  @override
+  String get garageSavedEdit => 'Vehicle updated.';
 
   @override
   String get garageDeleteConfirm =>
