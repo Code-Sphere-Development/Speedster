@@ -1040,6 +1040,12 @@ abstract class AppLocalizations {
   /// **'Leistung (PS)'**
   String get garagePower;
 
+  /// No description provided for @garagePowerUnit.
+  ///
+  /// In de, this message translates to:
+  /// **'PS'**
+  String get garagePowerUnit;
+
   /// No description provided for @garageOdometer.
   ///
   /// In de, this message translates to:

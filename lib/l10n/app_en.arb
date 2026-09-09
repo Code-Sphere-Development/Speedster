@@ -181,6 +181,7 @@
   "garageNoModels": "No model found.",
   "garageYear": "Year",
   "garagePower": "Power (hp)",
+  "garagePowerUnit": "hp",
   "garageOdometer": "Odometer",
   "garageOdometerEstimate": "approx. {km} km",
   "@garageOdometerEstimate": {

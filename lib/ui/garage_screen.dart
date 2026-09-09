@@ -131,7 +131,9 @@ class _VehicleTile extends ConsumerWidget {
     final details = [
       vehicle.model?.label ?? l.garageModelNone,
       if (vehicle.year != null) '${vehicle.year}',
-      if (vehicle.powerPs != null) '${vehicle.powerPs} PS',
+      // Die Einheit ist nicht ueberall dieselbe: PS im Deutschen, hp im
+      // Englischen.
+      if (vehicle.powerPs != null) '${vehicle.powerPs} ${l.garagePowerUnit}',
       if (vehicle.model?.vehicleClass != null) vehicle.model!.vehicleClass!,
       if (vehicle.model?.fuel != null) vehicle.model!.fuel!,
     ].join(' · ');

@@ -522,6 +522,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get garagePower => 'Leistung (PS)';
 
   @override
+  String get garagePowerUnit => 'PS';
+
+  @override
   String get garageOdometer => 'Tachostand';
 
   @override

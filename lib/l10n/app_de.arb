@@ -202,6 +202,7 @@
   "garageNoModels": "Kein Modell gefunden.",
   "garageYear": "Baujahr",
   "garagePower": "Leistung (PS)",
+  "garagePowerUnit": "PS",
   "garageOdometer": "Tachostand",
   "garageOdometerEstimate": "ca. {km} km",
   "@garageOdometerEstimate": {

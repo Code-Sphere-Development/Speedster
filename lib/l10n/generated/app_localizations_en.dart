@@ -517,6 +517,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get garagePower => 'Power (hp)';
 
   @override
+  String get garagePowerUnit => 'hp';
+
+  @override
   String get garageOdometer => 'Odometer';
 
   @override
