@@ -120,6 +120,34 @@
     }
   },
   "settingsUsernameSaved": "Username changed.",
+  "settingsBackup": "Backup",
+  "settingsBackupSubtitle": "Write your drives to a file or read them back",
+  "backupTitle": "Backup",
+  "backupLead": "Without the cloud your drives live only on this device. A backup is what you take with you when you switch phones.",
+  "backupExport": "Write backup",
+  "backupExportDone": "{count} drives backed up. The file is in the Files app under “On My iPhone → Speedster”.",
+  "@backupExportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImport": "Read in",
+  "backupImportDone": "{imported} drives read in, {skipped} skipped (already there).",
+  "@backupImportDone": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImportFailed": "The file could not be read — is it a Speedster backup?",
+  "backupNone": "No backup found. Put a file into the “Speedster” folder using the Files app and it will show up here.",
+  "backupFiles": "Available backups",
   "settingsFriends": "Friends",
   "settingsFriendsSubtitle": "Compare figures with people you know",
   "settingsGarage": "Garage",

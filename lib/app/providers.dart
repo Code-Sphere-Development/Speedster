@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
@@ -11,6 +12,7 @@ import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/cloud/trip_source.dart';
 import 'package:speedster/cloud/vehicle_repository.dart';
+import 'package:speedster/data/backup_service.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
@@ -212,6 +214,23 @@ final cloudAccountProvider = FutureProvider<CloudAccount?>((ref) async {
     // die Einstellungen muessen auch offline bedienbar sein.
     return null;
   }
+});
+
+/// Sicherung der Fahrten in eine Datei.
+///
+/// Der Dokumentenordner der App: er ist ueber die Dateien-App erreichbar,
+/// sodass sich die Sicherung von dort wegkopieren laesst.
+final backupServiceProvider = Provider<BackupService>((ref) {
+  return BackupService(
+    ref.watch(databaseProvider),
+    Directory(ref.watch(documentsPathProvider)),
+  );
+});
+
+/// Pfad des Dokumentenordners. Eigener Provider, damit ein Test ihn
+/// ersetzen kann, ohne den Plattformkanal von path_provider zu brauchen.
+final documentsPathProvider = Provider<String>((ref) {
+  throw UnimplementedError('documentsPathProvider muss gesetzt werden');
 });
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>(

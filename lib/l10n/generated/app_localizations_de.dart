@@ -374,6 +374,47 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsUsernameSaved => 'Benutzername geändert.';
 
   @override
+  String get settingsBackup => 'Sicherung';
+
+  @override
+  String get settingsBackupSubtitle =>
+      'Fahrten in eine Datei schreiben oder zurücklesen';
+
+  @override
+  String get backupTitle => 'Sicherung';
+
+  @override
+  String get backupLead =>
+      'Ohne Cloud liegen deine Fahrten nur auf diesem Gerät. Eine Sicherung nimmst du beim Wechsel des Telefons mit.';
+
+  @override
+  String get backupExport => 'Sicherung schreiben';
+
+  @override
+  String backupExportDone(int count) {
+    return '$count Fahrten gesichert. Die Datei liegt in der Dateien-App unter „Auf meinem iPhone → Speedster“.';
+  }
+
+  @override
+  String get backupImport => 'Einlesen';
+
+  @override
+  String backupImportDone(int imported, int skipped) {
+    return '$imported Fahrten eingelesen, $skipped übersprungen (gab es schon).';
+  }
+
+  @override
+  String get backupImportFailed =>
+      'Die Datei ließ sich nicht lesen — ist es eine Speedster-Sicherung?';
+
+  @override
+  String get backupNone =>
+      'Keine Sicherung gefunden. Lege eine Datei über die Dateien-App im Ordner „Speedster“ ab, dann erscheint sie hier.';
+
+  @override
+  String get backupFiles => 'Vorhandene Sicherungen';
+
+  @override
   String get settingsFriends => 'Freunde';
 
   @override

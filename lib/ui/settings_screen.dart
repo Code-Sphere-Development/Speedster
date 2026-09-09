@@ -7,6 +7,7 @@ import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
+import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
 import 'package:speedster/ui/username_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -198,6 +199,15 @@ class _CloudAccountSection extends ConsumerWidget {
                     context: context,
                     builder: (_) => UsernameDialog(account: account),
                   ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.save_outlined),
+          title: Text(l.settingsBackup),
+          subtitle: Text(l.settingsBackupSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push<void>(
+            MaterialPageRoute(builder: (_) => const BackupScreen()),
+          ),
         ),
         ListTile(
           leading: const Icon(Icons.people_outline),

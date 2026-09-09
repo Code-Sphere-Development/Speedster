@@ -78,5 +78,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Macht den Dokumentenordner der App in der Dateien-App sichtbar.
+	     Ohne beide Schluessel landet die Sicherung in einem Ordner, an den
+	     der Nutzer nicht herankommt -- und eine Sicherung, die man nicht
+	     wegkopieren kann, sichert nichts. -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>

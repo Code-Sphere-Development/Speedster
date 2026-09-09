@@ -141,6 +141,34 @@
     }
   },
   "settingsUsernameSaved": "Benutzername geändert.",
+  "settingsBackup": "Sicherung",
+  "settingsBackupSubtitle": "Fahrten in eine Datei schreiben oder zurücklesen",
+  "backupTitle": "Sicherung",
+  "backupLead": "Ohne Cloud liegen deine Fahrten nur auf diesem Gerät. Eine Sicherung nimmst du beim Wechsel des Telefons mit.",
+  "backupExport": "Sicherung schreiben",
+  "backupExportDone": "{count} Fahrten gesichert. Die Datei liegt in der Dateien-App unter „Auf meinem iPhone → Speedster“.",
+  "@backupExportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImport": "Einlesen",
+  "backupImportDone": "{imported} Fahrten eingelesen, {skipped} übersprungen (gab es schon).",
+  "@backupImportDone": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "backupImportFailed": "Die Datei ließ sich nicht lesen — ist es eine Speedster-Sicherung?",
+  "backupNone": "Keine Sicherung gefunden. Lege eine Datei über die Dateien-App im Ordner „Speedster“ ab, dann erscheint sie hier.",
+  "backupFiles": "Vorhandene Sicherungen",
   "settingsFriends": "Freunde",
   "settingsFriendsSubtitle": "Kennzahlen mit Bekannten vergleichen",
   "settingsGarage": "Garage",

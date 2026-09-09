@@ -369,6 +369,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsUsernameSaved => 'Username changed.';
 
   @override
+  String get settingsBackup => 'Backup';
+
+  @override
+  String get settingsBackupSubtitle =>
+      'Write your drives to a file or read them back';
+
+  @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get backupLead =>
+      'Without the cloud your drives live only on this device. A backup is what you take with you when you switch phones.';
+
+  @override
+  String get backupExport => 'Write backup';
+
+  @override
+  String backupExportDone(int count) {
+    return '$count drives backed up. The file is in the Files app under “On My iPhone → Speedster”.';
+  }
+
+  @override
+  String get backupImport => 'Read in';
+
+  @override
+  String backupImportDone(int imported, int skipped) {
+    return '$imported drives read in, $skipped skipped (already there).';
+  }
+
+  @override
+  String get backupImportFailed =>
+      'The file could not be read — is it a Speedster backup?';
+
+  @override
+  String get backupNone =>
+      'No backup found. Put a file into the “Speedster” folder using the Files app and it will show up here.';
+
+  @override
+  String get backupFiles => 'Available backups';
+
+  @override
   String get settingsFriends => 'Friends';
 
   @override

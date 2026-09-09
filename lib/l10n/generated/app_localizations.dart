@@ -776,6 +776,72 @@ abstract class AppLocalizations {
   /// **'Benutzername geändert.'**
   String get settingsUsernameSaved;
 
+  /// No description provided for @settingsBackup.
+  ///
+  /// In de, this message translates to:
+  /// **'Sicherung'**
+  String get settingsBackup;
+
+  /// No description provided for @settingsBackupSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrten in eine Datei schreiben oder zurücklesen'**
+  String get settingsBackupSubtitle;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sicherung'**
+  String get backupTitle;
+
+  /// No description provided for @backupLead.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Cloud liegen deine Fahrten nur auf diesem Gerät. Eine Sicherung nimmst du beim Wechsel des Telefons mit.'**
+  String get backupLead;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In de, this message translates to:
+  /// **'Sicherung schreiben'**
+  String get backupExport;
+
+  /// No description provided for @backupExportDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} Fahrten gesichert. Die Datei liegt in der Dateien-App unter „Auf meinem iPhone → Speedster“.'**
+  String backupExportDone(int count);
+
+  /// No description provided for @backupImport.
+  ///
+  /// In de, this message translates to:
+  /// **'Einlesen'**
+  String get backupImport;
+
+  /// No description provided for @backupImportDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{imported} Fahrten eingelesen, {skipped} übersprungen (gab es schon).'**
+  String backupImportDone(int imported, int skipped);
+
+  /// No description provided for @backupImportFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Datei ließ sich nicht lesen — ist es eine Speedster-Sicherung?'**
+  String get backupImportFailed;
+
+  /// No description provided for @backupNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Sicherung gefunden. Lege eine Datei über die Dateien-App im Ordner „Speedster“ ab, dann erscheint sie hier.'**
+  String get backupNone;
+
+  /// No description provided for @backupFiles.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorhandene Sicherungen'**
+  String get backupFiles;
+
   /// No description provided for @settingsFriends.
   ///
   /// In de, this message translates to:
