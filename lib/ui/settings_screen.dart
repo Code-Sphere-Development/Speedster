@@ -9,6 +9,7 @@ import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
+import 'package:speedster/ui/screen_header.dart';
 import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/username_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -112,6 +113,9 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       body: ListView(
         children: [
+          // Ohne Untertitel: die Version steht weiter unten bei den
+          // Angaben zur App, und hier waere sie bloss Zierat.
+          ScreenHeader(title: l.tabSettings),
           SwitchListTile(
             key: const Key('unitSwitch'),
             title: Text(l.settingsUnitTitle),
