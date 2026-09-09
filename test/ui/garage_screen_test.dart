@@ -348,4 +348,95 @@ void main() {
 
     verify(() => repo.completeMaintenance(1, 5)).called(1);
   });
+
+  testWidgets('bietet "in x km" nur mit Tachostand an', (tester) async {
+    // Ohne Bezugspunkt lehnte der Server den Restweg ab -- dann wird er
+    // gar nicht erst angeboten.
+    final repo = MockVehicles();
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
+    await tester.tap(find.text('Wartung eintragen'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('In x Kilometern'), findsNothing);
+  });
+
+  testWidgets('schickt den Restweg getrennt vom Zielstand', (tester) async {
+    final repo = MockVehicles();
+    when(() => repo.addMaintenance(any(),
+        title: any(named: 'title'),
+        dueOn: any(named: 'dueOn'),
+        dueKm: any(named: 'dueKm'),
+        dueInKm: any(named: 'dueInKm'))).thenAnswer((_) async {});
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        odometer: Odometer(estimateKm: 128000),
+      ),
+    ]);
+
+    await tester.tap(find.text('Wartung eintragen'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Inspektion');
+    await tester.tap(find.text('In x Kilometern'));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).at(1), '5000');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    // Umgerechnet wird am Server -- hier waere dieselbe Rechnung ein
+    // zweites Mal.
+    verify(() => repo.addMaintenance(1,
+        title: 'Inspektion',
+        dueOn: null,
+        dueKm: null,
+        dueInKm: 5000)).called(1);
+  });
+
+  testWidgets('aendert eine Wartung, statt sie neu anzulegen', (tester) async {
+    final repo = MockVehicles();
+    when(() => repo.updateMaintenance(any(), any(),
+        title: any(named: 'title'),
+        dueOn: any(named: 'dueOn'),
+        dueKm: any(named: 'dueKm'),
+        dueInKm: any(named: 'dueInKm'))).thenAnswer((_) async {});
+
+    await pumpGarage(tester, cloud: true, repo: repo, vehicles: [
+      const Vehicle(
+        id: 1,
+        name: 'Der Golf',
+        isDefault: true,
+        maintenance: [
+          MaintenanceItem(id: 5, title: 'Inspektion', dueKm: 13000),
+        ],
+      ),
+    ]);
+
+    // "Bearbeiten" gibt es an der Wartung und am Fahrzeug; die Wartung
+    // steht in der Kachel davor.
+    await tester.tap(find.text('Bearbeiten').first);
+    await tester.pumpAndSettle();
+
+    // Der vorhandene Wert steht drin -- sonst tippt man ihn erneut, und
+    // genau dabei ist der Zahlendreher entstanden.
+    expect(find.widgetWithText(TextField, '13000'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).at(1), '130000');
+    await tester.tap(find.text('Speichern'));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.updateMaintenance(1, 5,
+        title: 'Inspektion',
+        dueOn: null,
+        dueKm: 130000,
+        dueInKm: null)).called(1);
+    verifyNever(() => repo.addMaintenance(any(),
+        title: any(named: 'title'),
+        dueOn: any(named: 'dueOn'),
+        dueKm: any(named: 'dueKm'),
+        dueInKm: any(named: 'dueInKm')));
+  });
 }

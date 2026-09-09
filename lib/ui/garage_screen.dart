@@ -410,6 +410,19 @@ class _MaintenanceBlock extends ConsumerWidget {
                   ),
                   TextButton(
                     onPressed: () async {
+                      final changed = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => MaintenanceDialog(
+                          vehicle: vehicle,
+                          item: item,
+                        ),
+                      );
+                      if (changed ?? false) ref.invalidate(vehiclesProvider);
+                    },
+                    child: Text(l.garageEdit),
+                  ),
+                  TextButton(
+                    onPressed: () async {
                       await ref
                           .read(vehicleRepositoryProvider)
                           .completeMaintenance(vehicle.id, item.id);
@@ -425,22 +438,44 @@ class _MaintenanceBlock extends ConsumerWidget {
   }
 }
 
-/// Anlegen einer Wartung: Termin, Laufleistung oder beides.
+/// Anlegen und Aendern einer Wartung: Termin, Laufleistung oder beides.
+///
+/// Die Laufleistung laesst sich auf zwei Wegen angeben -- als Zielstand
+/// ("bei 135 000 km", so steht es auf dem Werkstattaufkleber) oder als
+/// Restweg ("in 5 000 km", so steht es im Wartungsplan). Umgerechnet wird
+/// am Server: hier waere dieselbe Rechnung ein zweites Mal.
 class MaintenanceDialog extends ConsumerStatefulWidget {
-  const MaintenanceDialog({required this.vehicle, super.key});
+  const MaintenanceDialog({required this.vehicle, this.item, super.key});
 
   final Vehicle vehicle;
+
+  /// Gesetzt heisst aendern statt anlegen.
+  final MaintenanceItem? item;
 
   @override
   ConsumerState<MaintenanceDialog> createState() => _MaintenanceDialogState();
 }
 
 class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
-  final _title = TextEditingController();
-  final _km = TextEditingController();
-  DateTime? _dueOn;
+  late final _title = TextEditingController(text: widget.item?.title);
+  late final _km =
+      TextEditingController(text: widget.item?.dueKm?.toString());
+  late DateTime? _dueOn = widget.item?.dueOn;
+
+  /// true = Restweg ("in x km"), false = Zielstand ("bei x km").
+  ///
+  /// Beim Aendern immer der Zielstand: gespeichert ist einer, und ihn als
+  /// Restweg anzuzeigen hiesse, ihn gegen einen wandernden Bezugspunkt
+  /// zurueckzurechnen.
+  bool _relative = false;
+
   String? _error;
   bool _busy = false;
+
+  /// Ohne geschaetzten Tachostand gibt es keinen Bezugspunkt fuer einen
+  /// Restweg -- der Server lehnte ihn ab, also wird er hier gar nicht
+  /// erst angeboten.
+  bool get _canUseRelative => widget.vehicle.odometer.estimateKm != null;
 
   @override
   void dispose() {
@@ -477,13 +512,27 @@ class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
     });
 
     final navigator = Navigator.of(context);
+    final repo = ref.read(vehicleRepositoryProvider);
+    final existing = widget.item;
     try {
-      await ref.read(vehicleRepositoryProvider).addMaintenance(
-            widget.vehicle.id,
-            title: _title.text.trim(),
-            dueOn: _dueOn,
-            dueKm: km,
-          );
+      if (existing == null) {
+        await repo.addMaintenance(
+          widget.vehicle.id,
+          title: _title.text.trim(),
+          dueOn: _dueOn,
+          dueKm: _relative ? null : km,
+          dueInKm: _relative ? km : null,
+        );
+      } else {
+        await repo.updateMaintenance(
+          widget.vehicle.id,
+          existing.id,
+          title: _title.text.trim(),
+          dueOn: _dueOn,
+          dueKm: _relative ? null : km,
+          dueInKm: _relative ? km : null,
+        );
+      }
       navigator.pop(true);
     } on VehicleException catch (e) {
       setState(() {
@@ -498,7 +547,7 @@ class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
     final l = AppLocalizations.of(context);
 
     return AlertDialog(
-      title: Text(l.garageMaintenanceAdd),
+      title: Text(widget.item == null ? l.garageMaintenanceAdd : l.garageEdit),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -513,11 +562,24 @@ class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
             ),
           ),
           const SizedBox(height: 12),
+          if (_canUseRelative)
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                    value: false, label: Text(l.garageMaintenanceModeAt)),
+                ButtonSegment(
+                    value: true, label: Text(l.garageMaintenanceModeIn)),
+              ],
+              selected: {_relative},
+              onSelectionChanged: (s) => setState(() => _relative = s.first),
+            ),
           TextField(
             controller: _km,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: l.garageMaintenanceDueKm,
+              labelText: _relative
+                  ? l.garageMaintenanceDueInKm
+                  : l.garageMaintenanceDueKm,
               suffixText: 'km',
             ),
           ),

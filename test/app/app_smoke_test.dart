@@ -28,7 +28,12 @@ class _NoCache implements TripCache {
 void main() {
   testWidgets('renders the shell when consent accepted',
       (tester) async {
-    SharedPreferences.setMockInitialValues({'consentAccepted': true});
+    // tourSeen: dieser Test meint nicht den Rundgang, und ohne den Haken
+  // legte er sich beim ersten Frame ueber die Oberflaeche.
+  SharedPreferences.setMockInitialValues({
+    'consentAccepted': true,
+    'tourSeen': true,
+  });
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(

@@ -241,17 +241,49 @@ class VehicleRepository {
     }
   }
 
+  /// Legt eine Wartung an.
+  ///
+  /// [dueKm] ist der Zielstand ("bei 135 000 km"), [dueInKm] der Restweg
+  /// ("in 5 000 km"). Der Server rechnet den Restweg gegen den
+  /// geschaetzten Tachostand um -- hier waere dieselbe Rechnung ein
+  /// zweites Mal und koennte auseinanderlaufen.
   Future<void> addMaintenance(
     int vehicleId, {
     required String title,
     DateTime? dueOn,
     int? dueKm,
+    int? dueInKm,
   }) async {
     try {
       await dio.post('/vehicles/$vehicleId/maintenance', data: {
         'title': title,
         'due_on': dueOn?.toIso8601String().split('T').first,
         'due_km': dueKm,
+        'due_in_km': dueInKm,
+      });
+    } on DioException catch (e) {
+      throw VehicleException(serverMessage(e));
+    }
+  }
+
+  /// Aendert eine Wartung.
+  ///
+  /// Fehlende Angaben leeren das jeweilige Feld: wer von "bei km" auf ein
+  /// Datum wechselt, will die alte Kilometerangabe los sein.
+  Future<void> updateMaintenance(
+    int vehicleId,
+    int itemId, {
+    required String title,
+    DateTime? dueOn,
+    int? dueKm,
+    int? dueInKm,
+  }) async {
+    try {
+      await dio.patch('/vehicles/$vehicleId/maintenance/$itemId', data: {
+        'title': title,
+        'due_on': dueOn?.toIso8601String().split('T').first,
+        'due_km': dueKm,
+        'due_in_km': dueInKm,
       });
     } on DioException catch (e) {
       throw VehicleException(serverMessage(e));

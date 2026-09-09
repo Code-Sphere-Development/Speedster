@@ -9,6 +9,7 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/garage_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
+import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/driver_prompt.dart';
 import 'package:speedster/ui/friend_requests_prompt.dart';
 import 'package:speedster/ui/live_screen.dart';
@@ -105,10 +106,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _maybeStartTracking();
       _refreshTripCache();
       _publishWidgets();
+      // Der Rundgang zuerst und abgewartet: sonst legte sich der
+      // Anfragen-Dialog darueber, und man beantwortete etwas, das man
+      // noch gar nicht einordnen kann.
+      await _maybeShowTour();
       _askAboutFriendRequests();
     });
   }
@@ -152,6 +157,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   ///
   /// Beim Start und nicht laufend: ein Dialog, der mitten in der Fahrt
   /// aufspringt, ist im Auto das Letzte, was jemand gebrauchen kann.
+  /// Zeigt beim ersten Start einen kurzen Rundgang.
+  ///
+  /// Nach der Einwilligung, weil die Pflicht ist und der Rundgang ein
+  /// Angebot -- und vor dem Anfragen-Dialog, damit sich nicht zwei
+  /// Ansichten uebereinanderlegen.
+  Future<void> _maybeShowTour() async {
+    if (ref.read(settingsControllerProvider).tourSeen) return;
+    if (!mounted) return;
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const TourScreen(),
+      ),
+    );
+  }
+
   Future<void> _askAboutFriendRequests() async {
     if (_askedAboutFriends) return;
     // Erst die Anmeldung pruefen, dann fragen: ohne Konto gibt es keine

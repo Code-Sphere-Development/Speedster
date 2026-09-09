@@ -381,6 +381,63 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fahrten in eine Datei schreiben oder zurücklesen';
 
   @override
+  String get tourSkip => 'Überspringen';
+
+  @override
+  String get tourNext => 'Weiter';
+
+  @override
+  String get tourDone => 'Los geht\'s';
+
+  @override
+  String get tourWelcomeTitle => 'Willkommen bei Speedster';
+
+  @override
+  String get tourWelcomeBody =>
+      'Ein kurzer Rundgang: vier Bildschirme, und wo du was findest. Du kannst ihn jederzeit überspringen und in den Einstellungen erneut aufrufen.';
+
+  @override
+  String get tourHeatmapTitle => 'Heatmap';
+
+  @override
+  String get tourHeatmapBody =>
+      'Jede Straße, die du gefahren bist. Je öfter du sie fährst, desto heller brennt sie. Das ist auch der Bildschirm, mit dem die App startet.';
+
+  @override
+  String get tourTripsTitle => 'Fahrten';
+
+  @override
+  String get tourTripsBody =>
+      'Jede aufgezeichnete Fahrt mit Strecke, Tempo und Dauer. Oben rechts liegt die Garage: deine Fahrzeuge, der Tachostand und fällige Wartungen.';
+
+  @override
+  String get tourRankingTitle => 'Bestenliste';
+
+  @override
+  String get tourRankingBody =>
+      'Weltweit, im eigenen Land, unter Freunden oder nach Fahrzeug — für die Woche, den Monat oder gesamt. Dafür brauchst du ein Cloud-Konto.';
+
+  @override
+  String get tourSettingsTitle => 'Einstellungen';
+
+  @override
+  String get tourSettingsBody =>
+      'Cloud-Synchronisierung, Freunde, Sicherung deiner Fahrten, Einheiten und alles Rechtliche.';
+
+  @override
+  String get tourLiveTitle => 'Live';
+
+  @override
+  String get tourLiveBody =>
+      'Während einer Fahrt kommt ein fünfter Bildschirm dazu: dein Tempo in Echtzeit. Er erscheint von selbst, sobald du losfährst — die Aufzeichnung startet ohne Knopfdruck.';
+
+  @override
+  String get settingsTour => 'Rundgang';
+
+  @override
+  String get settingsTourSubtitle => 'Zeigt dir noch einmal, wo was liegt';
+
+  @override
   String get backupTitle => 'Sicherung';
 
   @override
@@ -508,6 +565,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get garageMaintenanceDueKm => 'Fällig bei km';
+
+  @override
+  String get garageMaintenanceModeAt => 'Bei Kilometerstand';
+
+  @override
+  String get garageMaintenanceModeIn => 'In x Kilometern';
+
+  @override
+  String get garageMaintenanceDueInKm => 'In km';
+
+  @override
+  String get garageMaintenanceNeedsOdometer =>
+      'Für „in x km“ fehlt der Tachostand — trage ihn ein oder gib den Zielstand an.';
 
   @override
   String get garageMaintenanceDueOn => 'Fällig am';

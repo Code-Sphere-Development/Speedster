@@ -376,6 +376,63 @@ class AppLocalizationsEn extends AppLocalizations {
       'Write your drives to a file or read them back';
 
   @override
+  String get tourSkip => 'Skip';
+
+  @override
+  String get tourNext => 'Next';
+
+  @override
+  String get tourDone => 'Let\'s go';
+
+  @override
+  String get tourWelcomeTitle => 'Welcome to Speedster';
+
+  @override
+  String get tourWelcomeBody =>
+      'A short tour: four screens, and where to find what. You can skip it at any time and open it again from the settings.';
+
+  @override
+  String get tourHeatmapTitle => 'Heatmap';
+
+  @override
+  String get tourHeatmapBody =>
+      'Every road you have driven. The more often you drive it, the brighter it burns. This is also the screen the app starts on.';
+
+  @override
+  String get tourTripsTitle => 'Drives';
+
+  @override
+  String get tourTripsBody =>
+      'Every recorded drive with route, speed and duration. Top right is the garage: your vehicles, the odometer and upcoming maintenance.';
+
+  @override
+  String get tourRankingTitle => 'Leaderboard';
+
+  @override
+  String get tourRankingBody =>
+      'Worldwide, in your own country, among friends or by vehicle — for the week, the month or all time. This needs a cloud account.';
+
+  @override
+  String get tourSettingsTitle => 'Settings';
+
+  @override
+  String get tourSettingsBody =>
+      'Cloud sync, friends, a backup of your drives, units and everything legal.';
+
+  @override
+  String get tourLiveTitle => 'Live';
+
+  @override
+  String get tourLiveBody =>
+      'While you drive a fifth screen appears: your speed in real time. It shows up by itself once you set off — recording starts without a button.';
+
+  @override
+  String get settingsTour => 'Tour';
+
+  @override
+  String get settingsTourSubtitle => 'Shows you again where everything is';
+
+  @override
   String get backupTitle => 'Backup';
 
   @override
@@ -503,6 +560,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get garageMaintenanceDueKm => 'Due at km';
+
+  @override
+  String get garageMaintenanceModeAt => 'At odometer reading';
+
+  @override
+  String get garageMaintenanceModeIn => 'In x kilometres';
+
+  @override
+  String get garageMaintenanceDueInKm => 'In km';
+
+  @override
+  String get garageMaintenanceNeedsOdometer =>
+      'For “in x km” the odometer is missing — enter it or give the target reading.';
 
   @override
   String get garageMaintenanceDueOn => 'Due on';

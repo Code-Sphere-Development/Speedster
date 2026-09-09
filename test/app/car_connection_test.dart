@@ -39,7 +39,12 @@ Widget wrap(SharedPreferences prefs, {required bool carConnected}) =>
     );
 
 Future<SharedPreferences> prefs() async {
-  SharedPreferences.setMockInitialValues({'consentAccepted': true});
+  // tourSeen: dieser Test meint nicht den Rundgang, und ohne den Haken
+  // legte er sich beim ersten Frame ueber die Oberflaeche.
+  SharedPreferences.setMockInitialValues({
+    'consentAccepted': true,
+    'tourSeen': true,
+  });
   return SharedPreferences.getInstance();
 }
 
