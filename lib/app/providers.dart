@@ -10,6 +10,7 @@ import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/cloud/trip_source.dart';
+import 'package:speedster/cloud/vehicle_repository.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
@@ -78,6 +79,17 @@ final recorderProvider = Provider<TripRecorder>(
     carConnected: ref.watch(carConnectionProvider).connected,
     liveActivity: ref.watch(liveActivityProvider),
     usualSpeed: UsualSpeedReader(ref.watch(databaseProvider)),
+    // Erst am Fahrtende abgefragt, nicht beim Erzeugen: die Garage kann
+    // sich waehrend der Fahrt aendern. Faellt die Abfrage aus -- kein
+    // Netz, keine Cloud --, bleibt die Fahrt ohne Fahrzeug, statt die
+    // Aufzeichnung scheitern zu lassen.
+    defaultVehicleId: () async {
+      try {
+        return (await ref.read(defaultVehicleProvider.future))?.id;
+      } on Exception {
+        return null;
+      }
+    },
   ),
 );
 
@@ -200,6 +212,32 @@ final cloudAccountProvider = FutureProvider<CloudAccount?>((ref) async {
     // die Einstellungen muessen auch offline bedienbar sein.
     return null;
   }
+});
+
+final vehicleRepositoryProvider = Provider<VehicleRepository>(
+  (ref) => VehicleRepository(ref.watch(apiClientProvider).dio),
+);
+
+/// Die Garage. Leer ohne Cloud -- die Fahrzeuge werden dort gefuehrt.
+final vehiclesProvider = FutureProvider<List<Vehicle>>((ref) async {
+  if (!await ref.watch(cloudActiveProvider.future)) return const [];
+
+  return ref.watch(vehicleRepositoryProvider).load();
+});
+
+/// Das Fahrzeug, dem neue Fahrten zufallen.
+///
+/// Faellt auf das erste zurueck, damit ein Konto mit genau einem Fahrzeug
+/// es nicht erst zum Standard erklaeren muss -- dieselbe Regel wie in der
+/// Cloud.
+final defaultVehicleProvider = FutureProvider<Vehicle?>((ref) async {
+  final vehicles = await ref.watch(vehiclesProvider.future);
+  if (vehicles.isEmpty) return null;
+
+  return vehicles.firstWhere(
+    (v) => v.isDefault,
+    orElse: () => vehicles.first,
+  );
 });
 
 final rankingRepositoryProvider = Provider<RankingRepository>(

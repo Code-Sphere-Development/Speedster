@@ -161,6 +161,17 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cloudVehicleIdMeta = const VerificationMeta(
+    'cloudVehicleId',
+  );
+  @override
+  late final GeneratedColumn<int> cloudVehicleId = GeneratedColumn<int>(
+    'cloud_vehicle_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -176,6 +187,7 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     clientUuid,
     syncedAt,
     heatFoldedAt,
+    cloudVehicleId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -278,6 +290,15 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         ),
       );
     }
+    if (data.containsKey('cloud_vehicle_id')) {
+      context.handle(
+        _cloudVehicleIdMeta,
+        cloudVehicleId.isAcceptableOrUnknown(
+          data['cloud_vehicle_id']!,
+          _cloudVehicleIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -339,6 +360,10 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}heat_folded_at'],
       ),
+      cloudVehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cloud_vehicle_id'],
+      ),
     );
   }
 
@@ -362,6 +387,16 @@ class Trip extends DataClass implements Insertable<Trip> {
   final String clientUuid;
   final DateTime? syncedAt;
   final DateTime? heatFoldedAt;
+
+  /// Das Fahrzeug in der Cloud, in dem diese Fahrt zurueckgelegt wurde.
+  ///
+  /// Die Kennung der Cloud, nicht eine eigene: die Garage wird dort
+  /// gefuehrt, und beim Hochladen muss genau diese Zahl mitgehen.
+  ///
+  /// Beim Fahrtende gesetzt, nicht beim Hochladen -- wer zwischendurch das
+  /// Standardfahrzeug wechselt, saehe seine alten Fahrten sonst am neuen
+  /// Auto haengen.
+  final int? cloudVehicleId;
   const Trip({
     required this.id,
     required this.startTime,
@@ -376,6 +411,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     required this.clientUuid,
     this.syncedAt,
     this.heatFoldedAt,
+    this.cloudVehicleId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -400,6 +436,9 @@ class Trip extends DataClass implements Insertable<Trip> {
     }
     if (!nullToAbsent || heatFoldedAt != null) {
       map['heat_folded_at'] = Variable<DateTime>(heatFoldedAt);
+    }
+    if (!nullToAbsent || cloudVehicleId != null) {
+      map['cloud_vehicle_id'] = Variable<int>(cloudVehicleId);
     }
     return map;
   }
@@ -427,6 +466,9 @@ class Trip extends DataClass implements Insertable<Trip> {
       heatFoldedAt: heatFoldedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(heatFoldedAt),
+      cloudVehicleId: cloudVehicleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudVehicleId),
     );
   }
 
@@ -451,6 +493,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       clientUuid: serializer.fromJson<String>(json['clientUuid']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
       heatFoldedAt: serializer.fromJson<DateTime?>(json['heatFoldedAt']),
+      cloudVehicleId: serializer.fromJson<int?>(json['cloudVehicleId']),
     );
   }
   @override
@@ -470,6 +513,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       'clientUuid': serializer.toJson<String>(clientUuid),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
       'heatFoldedAt': serializer.toJson<DateTime?>(heatFoldedAt),
+      'cloudVehicleId': serializer.toJson<int?>(cloudVehicleId),
     };
   }
 
@@ -487,6 +531,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     String? clientUuid,
     Value<DateTime?> syncedAt = const Value.absent(),
     Value<DateTime?> heatFoldedAt = const Value.absent(),
+    Value<int?> cloudVehicleId = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     startTime: startTime ?? this.startTime,
@@ -503,6 +548,9 @@ class Trip extends DataClass implements Insertable<Trip> {
     clientUuid: clientUuid ?? this.clientUuid,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
     heatFoldedAt: heatFoldedAt.present ? heatFoldedAt.value : this.heatFoldedAt,
+    cloudVehicleId: cloudVehicleId.present
+        ? cloudVehicleId.value
+        : this.cloudVehicleId,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -529,6 +577,9 @@ class Trip extends DataClass implements Insertable<Trip> {
       heatFoldedAt: data.heatFoldedAt.present
           ? data.heatFoldedAt.value
           : this.heatFoldedAt,
+      cloudVehicleId: data.cloudVehicleId.present
+          ? data.cloudVehicleId.value
+          : this.cloudVehicleId,
     );
   }
 
@@ -547,7 +598,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('kept: $kept, ')
           ..write('clientUuid: $clientUuid, ')
           ..write('syncedAt: $syncedAt, ')
-          ..write('heatFoldedAt: $heatFoldedAt')
+          ..write('heatFoldedAt: $heatFoldedAt, ')
+          ..write('cloudVehicleId: $cloudVehicleId')
           ..write(')'))
         .toString();
   }
@@ -567,6 +619,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     clientUuid,
     syncedAt,
     heatFoldedAt,
+    cloudVehicleId,
   );
   @override
   bool operator ==(Object other) =>
@@ -584,7 +637,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.kept == this.kept &&
           other.clientUuid == this.clientUuid &&
           other.syncedAt == this.syncedAt &&
-          other.heatFoldedAt == this.heatFoldedAt);
+          other.heatFoldedAt == this.heatFoldedAt &&
+          other.cloudVehicleId == this.cloudVehicleId);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -601,6 +655,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<String> clientUuid;
   final Value<DateTime?> syncedAt;
   final Value<DateTime?> heatFoldedAt;
+  final Value<int?> cloudVehicleId;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -615,6 +670,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.clientUuid = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.heatFoldedAt = const Value.absent(),
+    this.cloudVehicleId = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -630,6 +686,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.clientUuid = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.heatFoldedAt = const Value.absent(),
+    this.cloudVehicleId = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<Trip> custom({
     Expression<int>? id,
@@ -645,6 +702,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<String>? clientUuid,
     Expression<DateTime>? syncedAt,
     Expression<DateTime>? heatFoldedAt,
+    Expression<int>? cloudVehicleId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -661,6 +719,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (clientUuid != null) 'client_uuid': clientUuid,
       if (syncedAt != null) 'synced_at': syncedAt,
       if (heatFoldedAt != null) 'heat_folded_at': heatFoldedAt,
+      if (cloudVehicleId != null) 'cloud_vehicle_id': cloudVehicleId,
     });
   }
 
@@ -678,6 +737,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<String>? clientUuid,
     Value<DateTime?>? syncedAt,
     Value<DateTime?>? heatFoldedAt,
+    Value<int?>? cloudVehicleId,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -693,6 +753,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       clientUuid: clientUuid ?? this.clientUuid,
       syncedAt: syncedAt ?? this.syncedAt,
       heatFoldedAt: heatFoldedAt ?? this.heatFoldedAt,
+      cloudVehicleId: cloudVehicleId ?? this.cloudVehicleId,
     );
   }
 
@@ -740,6 +801,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (heatFoldedAt.present) {
       map['heat_folded_at'] = Variable<DateTime>(heatFoldedAt.value);
     }
+    if (cloudVehicleId.present) {
+      map['cloud_vehicle_id'] = Variable<int>(cloudVehicleId.value);
+    }
     return map;
   }
 
@@ -758,7 +822,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('kept: $kept, ')
           ..write('clientUuid: $clientUuid, ')
           ..write('syncedAt: $syncedAt, ')
-          ..write('heatFoldedAt: $heatFoldedAt')
+          ..write('heatFoldedAt: $heatFoldedAt, ')
+          ..write('cloudVehicleId: $cloudVehicleId')
           ..write(')'))
         .toString();
   }
@@ -2463,6 +2528,7 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<String> clientUuid,
       Value<DateTime?> syncedAt,
       Value<DateTime?> heatFoldedAt,
+      Value<int?> cloudVehicleId,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -2479,6 +2545,7 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<String> clientUuid,
       Value<DateTime?> syncedAt,
       Value<DateTime?> heatFoldedAt,
+      Value<int?> cloudVehicleId,
     });
 
 final class $$TripsTableReferences
@@ -2574,6 +2641,11 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<DateTime> get heatFoldedAt => $composableBuilder(
     column: $table.heatFoldedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cloudVehicleId => $composableBuilder(
+    column: $table.cloudVehicleId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2676,6 +2748,11 @@ class $$TripsTableOrderingComposer
     column: $table.heatFoldedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get cloudVehicleId => $composableBuilder(
+    column: $table.cloudVehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TripsTableAnnotationComposer
@@ -2733,6 +2810,11 @@ class $$TripsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get heatFoldedAt => $composableBuilder(
     column: $table.heatFoldedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get cloudVehicleId => $composableBuilder(
+    column: $table.cloudVehicleId,
     builder: (column) => column,
   );
 
@@ -2803,6 +2885,7 @@ class $$TripsTableTableManager
                 Value<String> clientUuid = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
                 Value<DateTime?> heatFoldedAt = const Value.absent(),
+                Value<int?> cloudVehicleId = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 startTime: startTime,
@@ -2817,6 +2900,7 @@ class $$TripsTableTableManager
                 clientUuid: clientUuid,
                 syncedAt: syncedAt,
                 heatFoldedAt: heatFoldedAt,
+                cloudVehicleId: cloudVehicleId,
               ),
           createCompanionCallback:
               ({
@@ -2833,6 +2917,7 @@ class $$TripsTableTableManager
                 Value<String> clientUuid = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
                 Value<DateTime?> heatFoldedAt = const Value.absent(),
+                Value<int?> cloudVehicleId = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 startTime: startTime,
@@ -2847,6 +2932,7 @@ class $$TripsTableTableManager
                 clientUuid: clientUuid,
                 syncedAt: syncedAt,
                 heatFoldedAt: heatFoldedAt,
+                cloudVehicleId: cloudVehicleId,
               ),
           withReferenceMapper: (p0) => p0
               .map(

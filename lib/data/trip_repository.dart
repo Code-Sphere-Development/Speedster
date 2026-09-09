@@ -10,7 +10,12 @@ import 'package:speedster/stats/stats_engine.dart';
 abstract class TripRepository {
   Future<int> createTrip(domain.Trip t);
   Future<void> addPoints(int tripId, List<domain.TrackPoint> pts);
-  Future<void> finalizeTrip(int tripId, TripStats stats, DateTime endTime);
+  Future<void> finalizeTrip(
+    int tripId,
+    TripStats stats,
+    DateTime endTime, {
+    int? cloudVehicleId,
+  });
   Future<void> setKept(int tripId, bool kept);
   Future<List<domain.Trip>> keptTrips();
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
@@ -87,11 +92,16 @@ class DriftTripRepository implements TripRepository {
   Future<void> finalizeTrip(
     int tripId,
     TripStats stats,
-    DateTime endTime,
-  ) async {
+    DateTime endTime, {
+    int? cloudVehicleId,
+  }) async {
     await (db.update(db.trips)..where((t) => t.id.equals(tripId))).write(
       TripsCompanion(
         endTime: Value(endTime),
+        // Hier festgehalten und nicht erst beim Hochladen bestimmt: wer
+        // zwischendurch das Standardfahrzeug wechselt, saehe seine
+        // wartenden Fahrten sonst am neuen Auto haengen.
+        cloudVehicleId: Value(cloudVehicleId),
         maxSpeed: Value(stats.maxSpeed),
         avgSpeed: Value(stats.avgSpeed),
         distance: Value(stats.distance),
@@ -234,5 +244,6 @@ class DriftTripRepository implements TripRepository {
         kept: r.kept,
         clientUuid: r.clientUuid,
         syncedAt: r.syncedAt,
+        cloudVehicleId: r.cloudVehicleId,
       );
 }

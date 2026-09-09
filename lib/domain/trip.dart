@@ -13,6 +13,7 @@ class Trip {
     required this.kept,
     this.clientUuid = '',
     this.syncedAt,
+    this.cloudVehicleId,
   });
 
   final int? id;
@@ -34,6 +35,13 @@ class Trip {
   /// When this trip was uploaded to the cloud; null = not yet synced.
   final DateTime? syncedAt;
 
+  /// Das Fahrzeug in der Cloud, in dem diese Fahrt zurueckgelegt wurde.
+  ///
+  /// Beim Fahrtende festgehalten, nicht beim Hochladen bestimmt: wer
+  /// zwischendurch das Standardfahrzeug wechselt, saehe seine wartenden
+  /// Fahrten sonst am neuen Auto haengen.
+  final int? cloudVehicleId;
+
   Trip copyWith({
     int? id,
     DateTime? startTime,
@@ -47,6 +55,7 @@ class Trip {
     bool? kept,
     String? clientUuid,
     DateTime? syncedAt,
+    int? cloudVehicleId,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -58,6 +67,7 @@ class Trip {
       elevationGain: elevationGain ?? this.elevationGain,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       zeroToHundredSeconds: zeroToHundredSeconds ?? this.zeroToHundredSeconds,
+      cloudVehicleId: cloudVehicleId ?? this.cloudVehicleId,
       kept: kept ?? this.kept,
       clientUuid: clientUuid ?? this.clientUuid,
       syncedAt: syncedAt ?? this.syncedAt,

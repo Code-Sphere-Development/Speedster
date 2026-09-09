@@ -338,6 +338,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsFriendsSubtitle => 'Compare figures with people you know';
 
   @override
+  String get settingsGarage => 'Garage';
+
+  @override
+  String get settingsGarageSubtitle =>
+      'Your vehicles — decides the vehicle ranking';
+
+  @override
+  String get garageTitle => 'Garage';
+
+  @override
+  String get garageLead =>
+      'New drives are assigned to your default vehicle. The model decides who you are compared with in the vehicle ranking.';
+
+  @override
+  String get garageEmpty => 'No vehicle added yet.';
+
+  @override
+  String get garageAdd => 'Add vehicle';
+
+  @override
+  String get garageName => 'Name';
+
+  @override
+  String get garageNameHint => 'Whatever you call it — “the Golf”';
+
+  @override
+  String get garageModel => 'Model';
+
+  @override
+  String get garageModelSearch => 'Search model';
+
+  @override
+  String get garageModelNone => 'No model assigned';
+
+  @override
+  String get garageModelHint =>
+      'Without a model the vehicle does not appear in the vehicle ranking.';
+
+  @override
+  String get garageNoModels => 'No model found.';
+
+  @override
+  String get garageYear => 'Year';
+
+  @override
+  String get garagePower => 'Power (hp)';
+
+  @override
+  String get garageDefault => 'Default';
+
+  @override
+  String get garageMakeDefault => 'Make default';
+
+  @override
+  String get garageDelete => 'Delete';
+
+  @override
+  String get garageDeleteConfirm =>
+      'Delete this vehicle? Your drives are kept but lose their assignment.';
+
+  @override
+  String get garageSaved => 'Vehicle saved.';
+
+  @override
+  String get garageNeedsCloud =>
+      'The garage belongs to your cloud account. Enable cloud sync in the settings.';
+
+  @override
   String get settingsHelp => 'Help';
 
   @override

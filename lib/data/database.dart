@@ -16,6 +16,16 @@ class Trips extends Table {
   TextColumn get clientUuid => text().withDefault(const Constant(''))();
   DateTimeColumn get syncedAt => dateTime().nullable()();
   DateTimeColumn get heatFoldedAt => dateTime().nullable()();
+
+  /// Das Fahrzeug in der Cloud, in dem diese Fahrt zurueckgelegt wurde.
+  ///
+  /// Die Kennung der Cloud, nicht eine eigene: die Garage wird dort
+  /// gefuehrt, und beim Hochladen muss genau diese Zahl mitgehen.
+  ///
+  /// Beim Fahrtende gesetzt, nicht beim Hochladen -- wer zwischendurch das
+  /// Standardfahrzeug wechselt, saehe seine alten Fahrten sonst am neuen
+  /// Auto haengen.
+  IntColumn get cloudVehicleId => integer().nullable()();
 }
 
 class TrackPoints extends Table {
@@ -110,7 +120,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -128,6 +138,12 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 4) {
             await m.createTable(heatSnapshots);
+          }
+          if (from < 6) {
+            // Bestandsfahrten bleiben ohne Fahrzeug: eine geratene
+            // Zuordnung waere eine Behauptung ueber die Vergangenheit.
+            // Nachtragen laesst sie sich im Web.
+            await m.addColumn(trips, trips.cloudVehicleId);
           }
           if (from < 5) {
             await m.addColumn(heatCells, heatCells.speedSum);

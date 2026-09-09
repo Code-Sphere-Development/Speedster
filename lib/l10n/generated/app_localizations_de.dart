@@ -343,6 +343,74 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsFriendsSubtitle => 'Kennzahlen mit Bekannten vergleichen';
 
   @override
+  String get settingsGarage => 'Garage';
+
+  @override
+  String get settingsGarageSubtitle =>
+      'Deine Fahrzeuge — bestimmt die Fahrzeugwertung';
+
+  @override
+  String get garageTitle => 'Garage';
+
+  @override
+  String get garageLead =>
+      'Neue Fahrten werden dem Standardfahrzeug zugeordnet. Das Modell bestimmt, mit wem du in der Fahrzeugwertung verglichen wirst.';
+
+  @override
+  String get garageEmpty => 'Noch kein Fahrzeug angelegt.';
+
+  @override
+  String get garageAdd => 'Fahrzeug anlegen';
+
+  @override
+  String get garageName => 'Name';
+
+  @override
+  String get garageNameHint => 'Wie du es nennst — „Der Golf“';
+
+  @override
+  String get garageModel => 'Modell';
+
+  @override
+  String get garageModelSearch => 'Modell suchen';
+
+  @override
+  String get garageModelNone => 'Kein Modell zugeordnet';
+
+  @override
+  String get garageModelHint =>
+      'Ohne Modell erscheint das Fahrzeug nicht in der Fahrzeugwertung.';
+
+  @override
+  String get garageNoModels => 'Kein Modell gefunden.';
+
+  @override
+  String get garageYear => 'Baujahr';
+
+  @override
+  String get garagePower => 'Leistung (PS)';
+
+  @override
+  String get garageDefault => 'Standard';
+
+  @override
+  String get garageMakeDefault => 'Zum Standard machen';
+
+  @override
+  String get garageDelete => 'Löschen';
+
+  @override
+  String get garageDeleteConfirm =>
+      'Fahrzeug löschen? Die Fahrten bleiben erhalten, verlieren aber ihre Zuordnung.';
+
+  @override
+  String get garageSaved => 'Fahrzeug gespeichert.';
+
+  @override
+  String get garageNeedsCloud =>
+      'Die Garage gehört zum Cloud-Konto. Aktiviere die Cloud-Synchronisierung in den Einstellungen.';
+
+  @override
   String get settingsHelp => 'Hilfe';
 
   @override

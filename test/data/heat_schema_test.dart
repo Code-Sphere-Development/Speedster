@@ -9,8 +9,24 @@ void main() {
   setUp(() => db = AppDatabase.forTesting(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  test('Schemaversion ist 5', () async {
-    expect(db.schemaVersion, 5);
+  test('Schemaversion ist 6', () async {
+    // Die Zahl steht hier fest, damit eine Aenderung am Schema auffaellt,
+    // solange die zugehoerige Migration noch fehlt. Wer sie hebt, hat
+    // sie geschrieben.
+    expect(db.schemaVersion, 6);
+  });
+
+  test('Fahrten fuehren ein Fahrzeug, das leer bleiben darf', () async {
+    // Bestandsfahrten haben keines, und eine geratene Zuordnung waere
+    // eine Behauptung ueber die Vergangenheit.
+    final id = await db.into(db.trips).insert(
+          TripsCompanion.insert(startTime: DateTime(2026, 9, 9, 12)),
+        );
+
+    final row = await (db.select(db.trips)..where((t) => t.id.equals(id)))
+        .getSingle();
+
+    expect(row.cloudVehicleId, isNull);
   });
 
   test('Heat-Tabellen existieren und nehmen Zeilen auf', () async {
