@@ -109,15 +109,20 @@ class SpeedsterTheme {
   static ThemeData _build(Brightness brightness) {
     final scheme = SpeedsterTheme.scheme(brightness);
 
-    return ThemeData(
+    final base = ThemeData(
       colorScheme: scheme,
       useMaterial3: true,
       scaffoldBackgroundColor: scheme.surface,
+      // Die Reiter tragen keine Titelleiste mehr -- ihre Ueberschrift
+      // steht im Inhalt (siehe ScreenHeader). Das Thema gilt weiterhin
+      // fuer die Bildschirme darunter, die eine haben: Fahrtdetail,
+      // Freunde, Rundgang.
       appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surfaceContainer,
+        backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,
         // Kein Farbwechsel beim Scrollen: die Leiste soll ruhig stehen.
         scrolledUnderElevation: 0,
+        elevation: 0,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surfaceContainer,
@@ -130,10 +135,51 @@ class SpeedsterTheme {
       cardTheme: CardThemeData(
         color: scheme.surfaceContainer,
         elevation: 0,
+        // Ohne Rahmen und ohne Schatten: die Karte hebt sich allein durch
+        // ihre Flaeche ab. Eine Linie darum wirkt neben einer getoenten
+        // Flaeche wie ein doppelter Rand.
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       ),
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      ),
+    );
+
+    // Tabellenziffern durchgehend: in dieser App steht in fast jedem
+    // Textstil eine Zahl -- Tempo, Distanz, Dauer, Rang, Datum. Ohne sie
+    // haben "1" und "7" verschiedene Breiten, und die Spalten einer Liste
+    // springen von Zeile zu Zeile. Eine Ausnahmeliste je Stil waere
+    // Pflegeaufwand fuer nichts.
+    //
+    // Nachtraeglich per copyWith: das Textthema entsteht erst aus dem
+    // Farbschema, und TextTheme.apply() kennt keine Schriftmerkmale.
+    return base.copyWith(textTheme: _tabularFigures(base.textTheme));
+  }
+
+  static TextTheme _tabularFigures(TextTheme base) {
+    const features = [FontFeature.tabularFigures()];
+    TextStyle? tabular(TextStyle? style) =>
+        style?.copyWith(fontFeatures: features);
+
+    return base.copyWith(
+      displayLarge: tabular(base.displayLarge),
+      displayMedium: tabular(base.displayMedium),
+      displaySmall: tabular(base.displaySmall),
+      headlineLarge: tabular(base.headlineLarge),
+      headlineMedium: tabular(base.headlineMedium),
+      headlineSmall: tabular(base.headlineSmall),
+      titleLarge: tabular(base.titleLarge),
+      titleMedium: tabular(base.titleMedium),
+      titleSmall: tabular(base.titleSmall),
+      bodyLarge: tabular(base.bodyLarge),
+      bodyMedium: tabular(base.bodyMedium),
+      bodySmall: tabular(base.bodySmall),
+      labelLarge: tabular(base.labelLarge),
+      labelMedium: tabular(base.labelMedium),
+      labelSmall: tabular(base.labelSmall),
     );
   }
 }

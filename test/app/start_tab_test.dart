@@ -127,11 +127,14 @@ void main() {
     // Eine Tachoansicht im Stand zeigt eine Null und nimmt dauerhaft
     // einen von fuenf Plaetzen ein.
     expect(tabLabels(tester), isNot(contains('Live')));
-    expect(tabLabels(tester), ['Heatmap', 'Fahrten', 'Ranking', 'Einstellungen']);
+    expect(tabLabels(tester),
+        ['Heatmap', 'Fahrten', 'Garage', 'Ranking', 'Einstellungen']);
 
     controller.add(const RecorderState(isDriving: true));
     await tester.pumpAndSettle();
 
+    // Live nimmt den Platz der Garage ein: fuenf Reiter sind das
+    // Aeusserste, was in die Leiste passt.
     expect(
       tabLabels(tester),
       ['Heatmap', 'Live', 'Fahrten', 'Ranking', 'Einstellungen'],
@@ -139,23 +142,18 @@ void main() {
     );
   });
 
-  testWidgets('fuehrt zur Garage nur vom Fahrten-Reiter', (tester) async {
-    // Die Garage haengt an den Fahrten, nicht an den Einstellungen. Ohne
-    // diesen Test faellt der einzige Weg dorthin unbemerkt weg.
+  testWidgets('fuehrt die Garage als eigenen Reiter', (tester) async {
+    // Zweimal war sie zu versteckt -- erst in den Einstellungen, dann als
+    // Symbol in der Titelleiste. Jetzt steht sie in der Leiste.
     await tester.pumpWidget(wrap(await prefs(), const Stream.empty()));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.garage_outlined), findsNothing);
+    expect(find.text('Garage'), findsOneWidget);
 
-    await tester.tap(find.text('Fahrten'));
+    await tester.tap(find.text('Garage'));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.garage_outlined), findsOneWidget);
-
-    await tester.tap(find.text('Einstellungen'));
-    await tester.pumpAndSettle();
-
-    expect(find.byIcon(Icons.garage_outlined), findsNothing);
+    expect(selectedTab(tester), 'Garage');
   });
 
   testWidgets('zeigt den Rundgang beim ersten Start, danach nicht mehr',

@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
 import 'package:speedster/app/providers.dart';
@@ -138,40 +139,46 @@ Future<void> shoot(WidgetTester tester, Target target, String name) async {
 /// `Override` ist von flutter_riverpod nicht exportiert. Deshalb setzt
 /// jeder Aufruf seinen ProviderScope selbst und gibt hier nur das fertige
 /// Stueck herein.
-Widget frame(Widget screen, {required AppTab tab, required String locale}) =>
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      locale: Locale(locale),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      theme: SpeedsterTheme.light,
-      darkTheme: SpeedsterTheme.dark,
-      themeMode: ThemeMode.dark,
-      home: Builder(
-        builder: (context) {
-          final l = AppLocalizations.of(context);
-          // "Live" erscheint in der App nur waehrend einer Fahrt -- auf
-          // den Bildern also genauso.
-          final tabs = [
-            for (final t in AppTab.values)
-              if (t != AppTab.live || tab == AppTab.live) t,
-          ];
+Widget frame(Widget screen, {required AppTab tab, required String locale}) {
+  // Wie in der App: Zahlen werden ueber intl formatiert, und ohne diese
+  // Vorgabe stuende auf dem deutschen Bild "244.9 km" statt "244,9 km".
+  Intl.defaultLocale = locale;
 
-          return Scaffold(
-            appBar: AppBar(title: Text(tab.title(l))),
-            body: screen,
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: tabs.indexOf(tab),
-              onDestinationSelected: (_) {},
-              destinations: [
-                for (final t in tabs)
-                  NavigationDestination(icon: Icon(t.icon), label: t.title(l)),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    locale: Locale(locale),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    theme: SpeedsterTheme.light,
+    darkTheme: SpeedsterTheme.dark,
+    themeMode: ThemeMode.dark,
+    home: Builder(
+      builder: (context) {
+        final l = AppLocalizations.of(context);
+        // "Live" erscheint in der App nur waehrend einer Fahrt -- auf
+        // den Bildern also genauso.
+        final tabs = [
+          for (final t in AppTab.values)
+            if (t != AppTab.live || tab == AppTab.live) t,
+        ];
+
+        return Scaffold(
+          // Keine Titelleiste, wie in der App: die Ueberschrift traegt
+          // der Inhalt.
+          body: SafeArea(bottom: false, child: screen),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: tabs.indexOf(tab),
+            onDestinationSelected: (_) {},
+            destinations: [
+              for (final t in tabs)
+                NavigationDestination(icon: Icon(t.icon), label: t.title(l)),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
 
 Future<void> pumpScreen(WidgetTester tester, Target target, Widget app) async {
   tester.view.physicalSize = target.size * target.scale;
@@ -436,11 +443,7 @@ void main() {
                       readAt: DateTime(2026, 8, 12),
                     ),
                     maintenance: const [
-                      MaintenanceItem(
-                        id: 1,
-                        title: 'HU',
-                        daysLeft: 47,
-                      ),
+                      MaintenanceItem(id: 1, title: 'HU', daysLeft: 47),
                       MaintenanceItem(
                         id: 2,
                         title: 'Ölwechsel',
@@ -465,17 +468,10 @@ void main() {
                 ],
               ),
             ],
-            // Die Garage haengt in den Einstellungen und hat eine eigene
-            // Titelleiste -- deshalb ohne den Reiter-Rahmen.
-            child: MaterialApp(
-              debugShowCheckedModeBanner: false,
-              locale: Locale(locale),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              theme: SpeedsterTheme.light,
-              darkTheme: SpeedsterTheme.dark,
-              themeMode: ThemeMode.dark,
-              home: const GarageScreen(),
+            child: frame(
+              const GarageScreen(),
+              tab: AppTab.garage,
+              locale: locale,
             ),
           ),
         );

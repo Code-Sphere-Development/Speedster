@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/vehicle_repository.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/ui/screen_header.dart';
 
 /// Die Garage: Fahrzeuge anlegen, das Standardfahrzeug waehlen, loeschen.
 ///
@@ -49,7 +50,6 @@ class GarageScreen extends ConsumerWidget {
     final cloud = ref.watch(cloudActiveProvider).asData?.value ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.garageTitle)),
       floatingActionButton: cloud
           ? FloatingActionButton.extended(
               onPressed: () => showDialog<void>(
@@ -72,8 +72,12 @@ class GarageScreen extends ConsumerWidget {
                   : ListView(
                       padding: const EdgeInsets.only(bottom: 88),
                       children: [
+                        ScreenHeader(
+                          title: l.tabGarage,
+                          subtitle: l.garageSummary(list.length),
+                        ),
                         Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                           child: Text(
                             l.garageLead,
                             style: Theme.of(context).textTheme.bodySmall,
@@ -170,6 +174,15 @@ class _VehicleTile extends ConsumerWidget {
                       ),
                     ),
                   ),
+                // Beim Namen, nicht am Fuss der Kachel: die ist durch
+                // Tachostand und Wartung so lang geworden, dass ein Knopf
+                // unten kaum noch auffaellt -- und geaendert wird meist
+                // genau das, was oben steht.
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: l.garageEdit,
+                  onPressed: onEdit,
+                ),
               ],
             ),
             const SizedBox(height: 4),
@@ -192,7 +205,6 @@ class _VehicleTile extends ConsumerWidget {
                     child: Text(l.garageMakeDefault),
                   ),
                 const Spacer(),
-                TextButton(onPressed: onEdit, child: Text(l.garageEdit)),
                 TextButton(onPressed: onDelete, child: Text(l.garageDelete)),
               ],
             ),

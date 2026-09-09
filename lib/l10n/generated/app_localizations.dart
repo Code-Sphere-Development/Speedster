@@ -122,6 +122,30 @@ abstract class AppLocalizations {
   /// **'Fahrten'**
   String get tabTrips;
 
+  /// No description provided for @tabGarage.
+  ///
+  /// In de, this message translates to:
+  /// **'Garage'**
+  String get tabGarage;
+
+  /// No description provided for @tripsSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{Eine Fahrt} other{{count} Fahrten}} · {distance}'**
+  String tripsSummary(int count, String distance);
+
+  /// No description provided for @rankingSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'{scope} · {period}'**
+  String rankingSummary(String scope, String period);
+
+  /// No description provided for @garageSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Noch kein Fahrzeug} =1{Ein Fahrzeug} other{{count} Fahrzeuge}}'**
+  String garageSummary(int count);
+
   /// No description provided for @tabRanking.
   ///
   /// In de, this message translates to:
@@ -955,18 +979,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Kennzahlen mit Bekannten vergleichen'**
   String get settingsFriendsSubtitle;
-
-  /// No description provided for @settingsGarage.
-  ///
-  /// In de, this message translates to:
-  /// **'Garage'**
-  String get settingsGarage;
-
-  /// No description provided for @garageTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Garage'**
-  String get garageTitle;
 
   /// No description provided for @garageLead.
   ///

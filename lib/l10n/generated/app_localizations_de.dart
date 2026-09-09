@@ -21,6 +21,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tabTrips => 'Fahrten';
 
   @override
+  String get tabGarage => 'Garage';
+
+  @override
+  String tripsSummary(int count, String distance) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fahrten',
+      one: 'Eine Fahrt',
+    );
+    return '$_temp0 · $distance';
+  }
+
+  @override
+  String rankingSummary(String scope, String period) {
+    return '$scope · $period';
+  }
+
+  @override
+  String garageSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fahrzeuge',
+      one: 'Ein Fahrzeug',
+      zero: 'Noch kein Fahrzeug',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tabRanking => 'Ranking';
 
   @override
@@ -476,12 +507,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsFriendsSubtitle => 'Kennzahlen mit Bekannten vergleichen';
-
-  @override
-  String get settingsGarage => 'Garage';
-
-  @override
-  String get garageTitle => 'Garage';
 
   @override
   String get garageLead =>

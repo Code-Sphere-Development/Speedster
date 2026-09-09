@@ -4,6 +4,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
+import 'package:speedster/ui/screen_header.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
 import 'package:speedster/ui/trip_detail_screen.dart';
@@ -17,20 +18,39 @@ class TripListScreen extends ConsumerWidget {
     final tripsAsync = ref.watch(keptTripsProvider);
     final l = AppLocalizations.of(context);
 
-    return Scaffold(
-      body: tripsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
-        data: (trips) {
-          if (trips.isEmpty) {
-            return Center(child: Text(l.tripsEmpty));
-          }
-          return ListView.builder(
-            itemCount: trips.length,
-            itemBuilder: (context, i) => _TripCard(trip: trips[i], unit: unit),
+    return tripsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text(l.commonError(e.toString()))),
+      data: (trips) {
+        // Die Ueberschrift steht im Inhalt und scrollt mit; deshalb ist
+        // sie das erste Element der Liste und kein Rahmen darum.
+        final total = trips.fold<double>(0, (sum, t) => sum + t.distance);
+        final header = ScreenHeader(
+          title: l.tabTrips,
+          subtitle: trips.isEmpty
+              ? null
+              : l.tripsSummary(trips.length, SpeedFormat.distance(total, unit)),
+        );
+
+        if (trips.isEmpty) {
+          return ListView(
+            children: [
+              header,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(l.tripsEmpty),
+              ),
+            ],
           );
-        },
-      ),
+        }
+
+        return ListView.builder(
+          itemCount: trips.length + 1,
+          itemBuilder: (context, i) => i == 0
+              ? header
+              : _TripCard(trip: trips[i - 1], unit: unit),
+        );
+      },
     );
   }
 }

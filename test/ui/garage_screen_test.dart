@@ -175,7 +175,8 @@ void main() {
       ),
     ]);
 
-    await tester.tap(find.text('Bearbeiten'));
+    // Der Stift steht beim Namen, nicht am Fuss der Kachel.
+    await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(TextField, 'Der Golf'), findsOneWidget);
@@ -197,7 +198,7 @@ void main() {
 
     await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
 
-    await tester.tap(find.text('Bearbeiten'));
+    await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Golf VII');
     await tester.tap(find.text('Speichern'));
@@ -415,9 +416,9 @@ void main() {
       ),
     ]);
 
-    // "Bearbeiten" gibt es an der Wartung und am Fahrzeug; die Wartung
-    // steht in der Kachel davor.
-    await tester.tap(find.text('Bearbeiten').first);
+    // Am Fahrzeug ist es ein Stift oben, an der Wartung ein Knopf mit
+    // Beschriftung -- hier ist die Wartung gemeint.
+    await tester.tap(find.text('Bearbeiten'));
     await tester.pumpAndSettle();
 
     // Der vorhandene Wert steht drin -- sonst tippt man ihn erneut, und

@@ -45,7 +45,8 @@ void main() {
     );
     await tester.pump();
     expect(find.textContaining('36 km/h'), findsOneWidget);
-    expect(find.text('1.5 km'), findsOneWidget);
+    // Deutsch: Komma, nicht Punkt.
+    expect(find.text('1,5 km'), findsOneWidget);
     expect(find.text('2m 05s'), findsOneWidget);
     // Waehrend der Fahrt, statisch: eine Warnung, die bei hohem Tempo
     // aufpoppt, zoege den Blick genau dann aufs Display, wenn er dort

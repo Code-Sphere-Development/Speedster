@@ -4,6 +4,37 @@
   "tabHeatmap": "Heatmap",
   "tabLive": "Live",
   "tabTrips": "Drives",
+  "tabGarage": "Garage",
+  "tripsSummary": "{count, plural, =1{One drive} other{{count} drives}} · {distance}",
+  "@tripsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "rankingSummary": "{scope} · {period}",
+  "@rankingSummary": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "garageSummary": "{count, plural, =0{No vehicle yet} =1{One vehicle} other{{count} vehicles}}",
+  "@garageSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tabRanking": "Ranking",
   "tabSettings": "Settings",
   "commonCancel": "Cancel",
@@ -167,8 +198,6 @@
   "backupFiles": "Available backups",
   "settingsFriends": "Friends",
   "settingsFriendsSubtitle": "Compare figures with people you know",
-  "settingsGarage": "Garage",
-  "garageTitle": "Garage",
   "garageLead": "New drives are assigned to your default vehicle. The model decides who you are compared with in the vehicle ranking.",
   "garageEmpty": "No vehicle added yet.",
   "garageAdd": "Add vehicle",

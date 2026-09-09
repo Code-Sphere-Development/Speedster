@@ -4,6 +4,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
+import 'package:speedster/ui/screen_header.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 
@@ -11,6 +12,13 @@ import 'package:speedster/ui/auth_screen.dart';
 ///
 /// Eine Funktion statt einer Konstanten: eine Konstante liesse sich nicht
 /// uebersetzen, weil sie ohne Kontext ausgewertet wird.
+String scopeLabel(AppLocalizations l, RankScope scope) => switch (scope) {
+      RankScope.world => l.rankingScopeWorld,
+      RankScope.country => l.rankingScopeCountry,
+      RankScope.friends => l.rankingScopeFriends,
+      RankScope.vehicle => l.rankingScopeVehicle,
+    };
+
 String periodLabel(AppLocalizations l, RankPeriod period) => switch (period) {
       RankPeriod.week => l.rankingPeriodWeek,
       RankPeriod.month => l.rankingPeriodMonth,
@@ -94,8 +102,15 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
     return Column(
       children: [
+        ScreenHeader(
+          title: l.tabRanking,
+          subtitle: l.rankingSummary(
+            scopeLabel(l, _scope),
+            periodLabel(l, _period),
+          ),
+        ),
         Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           child: SegmentedButton<RankScope>(
             segments: [
               ButtonSegment(

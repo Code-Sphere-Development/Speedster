@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
@@ -38,6 +39,15 @@ class SpeedsterApp extends ConsumerWidget {
       // Theme zurueck -- genau das war vorher der Fall.
       themeMode: ThemeMode.system,
       home: consented ? const HomeShell() : const ConsentScreen(),
+      // Zahlen werden ueber intl formatiert, und das liest die Sprache
+      // aus einer globalen Vorgabe. Sie hier zu setzen ist die einzige
+      // Stelle, an der die aufgeloeste Sprache bekannt ist, ohne sie
+      // durch jede Formatierungsfunktion zu reichen.
+      builder: (context, child) {
+        Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();
+
+        return child ?? const SizedBox.shrink();
+      },
     );
   }
 }
@@ -59,6 +69,7 @@ enum AppTab {
   heatmap(Icons.local_fire_department),
   live(Icons.speed),
   trips(Icons.list),
+  garage(Icons.garage_outlined),
   ranking(Icons.leaderboard),
   settings(Icons.settings);
 
@@ -72,6 +83,7 @@ enum AppTab {
         AppTab.heatmap => l.tabHeatmap,
         AppTab.live => l.tabLive,
         AppTab.trips => l.tabTrips,
+        AppTab.garage => l.tabGarage,
         AppTab.ranking => l.tabRanking,
         AppTab.settings => l.tabSettings,
       };
@@ -99,6 +111,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     HeatmapScreen(),
     LiveScreen(),
     TripListScreen(),
+    GarageScreen(),
     RankingScreen(),
     SettingsScreen(),
   ];
@@ -227,32 +240,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     });
 
     final visible = _visibleTabs();
-    // Faellt der aktive Reiter weg -- "Live" nach dem Fahrtende --, muss
-    // die Auswahl irgendwohin. Zurueck auf die Heatmap: die ist die
-    // Startansicht und zeigt die eben gefahrene Strecke.
+    // Faellt der aktive Reiter weg -- "Live" nach dem Fahrtende, die
+    // Garage bei Fahrtbeginn --, muss die Auswahl irgendwohin. Zurueck
+    // auf die Heatmap: die ist die Startansicht und zeigt die eben
+    // gefahrene Strecke.
     final tab = visible.contains(_tab) ? _tab : AppTab.heatmap;
 
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(tab.title(l)),
-        // Die Garage haengt an den Fahrten, nicht an den Einstellungen:
-        // eine Fahrt hat ein Fahrzeug. Ein eigener Reiter kaeme bei fuenf
-        // bis sechs Reitern zu eng, und zwei Wege zum selben Bildschirm
-        // stiften nur Verwirrung -- deshalb genau hier und sonst nirgends.
-        actions: [
-          if (tab == AppTab.trips)
-            IconButton(
-              icon: const Icon(Icons.garage_outlined),
-              tooltip: l.settingsGarage,
-              onPressed: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(builder: (_) => const GarageScreen()),
-              ),
-            ),
-        ],
+      // Keine Titelleiste: sie wiederholte nur das Wort, das unten in der
+      // Leiste ohnehin markiert ist, und nahm dafuer eine Zeile Hoehe.
+      // Die Ueberschrift traegt jetzt der Inhalt (siehe ScreenHeader) und
+      // scrollt mit.
+      body: SafeArea(
+        bottom: false,
+        child: IndexedStack(index: tab.index, children: _screens),
       ),
-      body: IndexedStack(index: tab.index, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: visible.indexOf(tab),
         onDestinationSelected: (i) => setState(() => _tab = visible[i]),
@@ -264,7 +268,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
   }
 
-  /// "Live" erscheint nur, solange tatsaechlich gefahren wird.
+  /// "Live" erscheint nur waehrend der Fahrt -- und verdraengt dann die
+  /// Garage.
+  ///
+  /// Fuenf Reiter sind das Aeusserste, was in die Leiste passt: bei
+  /// sechs bricht schon "Einstellungen" um. Welcher der beiden weichen
+  /// muss, entscheidet die Lage: Fahrzeuge verwaltet man im Stand, das
+  /// Tempo schaut man waehrend der Fahrt an. Beide sind situativ, also
+  /// teilen sie sich einen Platz.
   ///
   /// Eine Tachoansicht im Stand zeigt eine Null und nimmt dauerhaft einen
   /// von fuenf Plaetzen ein. Als "gefahren" gilt dabei auch eine
@@ -276,9 +287,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ref.watch(recorderStateProvider).asData?.value.isDriving ?? false;
     final inCar = ref.watch(carConnectedProvider).asData?.value ?? false;
 
+    final onTheRoad = driving || inCar;
+
     return [
       for (final t in AppTab.values)
-        if (t != AppTab.live || driving || inCar) t,
+        if (t == AppTab.live ? onTheRoad : t != AppTab.garage || !onTheRoad) t,
     ];
   }
 }

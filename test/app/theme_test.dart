@@ -203,5 +203,41 @@ void _containerTests() {
       );
     });
   }
+
+  test('Zahlen laufen mit Tabellenziffern', () {
+    // Ohne sie haben "1" und "7" verschiedene Breiten, und die Spalten
+    // einer Fahrtenliste springen von Zeile zu Zeile.
+    for (final brightness in Brightness.values) {
+      final theme = brightness == Brightness.dark
+          ? SpeedsterTheme.dark
+          : SpeedsterTheme.light;
+
+      for (final style in [
+        theme.textTheme.bodyMedium,
+        theme.textTheme.titleMedium,
+        theme.textTheme.headlineMedium,
+        theme.textTheme.labelSmall,
+      ]) {
+        expect(
+          style?.fontFeatures,
+          contains(const FontFeature.tabularFigures()),
+          reason: 'Stil ohne Tabellenziffern bei $brightness',
+        );
+      }
+    }
+  });
+
+  test('Karten heben sich ueber die Flaeche ab, nicht ueber einen Rahmen', () {
+    // Eine Linie neben einer getoenten Flaeche wirkt wie ein doppelter
+    // Rand.
+    for (final brightness in Brightness.values) {
+      final theme = brightness == Brightness.dark
+          ? SpeedsterTheme.dark
+          : SpeedsterTheme.light;
+
+      expect(theme.cardTheme.elevation, 0);
+      expect(theme.cardTheme.color, isNot(theme.colorScheme.surface));
+    }
+  });
 }
 
