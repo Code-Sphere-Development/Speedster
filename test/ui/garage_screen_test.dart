@@ -439,4 +439,37 @@ void main() {
         dueKm: any(named: 'dueKm'),
         dueInKm: any(named: 'dueInKm')));
   });
+
+  testWidgets('nennt die Leistung in der Einheit der Sprache',
+      (tester) async {
+    // PS im Deutschen, hp im Englischen -- die Einheit ist nicht ueberall
+    // dieselbe.
+    for (final (locale, unit) in [('de', 'PS'), ('en', 'hp')]) {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            cloudActiveProvider.overrideWith((ref) async => true),
+            vehiclesProvider.overrideWith((ref) async => [
+                  const Vehicle(
+                    id: 1,
+                    name: 'Der Golf',
+                    isDefault: true,
+                    powerPs: 150,
+                  ),
+                ]),
+          ],
+          child: MaterialApp(
+            locale: Locale(locale),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const GarageScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('150 $unit'), findsOneWidget,
+          reason: 'Einheit fehlt in $locale');
+    }
+  });
 }
