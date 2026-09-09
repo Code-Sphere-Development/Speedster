@@ -58,14 +58,47 @@ void _platformSettings() {
       expect(android.foregroundNotificationConfig!.notificationTitle, isNotEmpty);
     });
 
-    test('jede Plattform misst mit der besten Genauigkeit', () {
-      for (final p in SamplePlatform.values) {
-        expect(
-          GeolocatorSampleSource.settingsFor(p).accuracy,
-          LocationAccuracy.best,
-          reason: 'Plattform $p',
+    test('laeuft im Stand grob und mit Mindestabstand', () {
+      // Sonst laeuft der GPS-Empfaenger durch, waehrend das Telefon auf
+      // dem Sofa liegt.
+      for (final platform in SamplePlatform.values) {
+        final idle = GeolocatorSampleSource.settingsFor(
+          platform,
+          precise: false,
         );
+
+        expect(idle.accuracy, LocationAccuracy.low,
+            reason: 'zu fein im Stand bei $platform');
+        expect(idle.distanceFilter, greaterThan(0),
+            reason: 'kein Mindestabstand bei $platform');
       }
     });
+
+    test('laeuft waehrend der Fahrt in voller Aufloesung', () {
+      for (final platform in SamplePlatform.values) {
+        final driving = GeolocatorSampleSource.settingsFor(platform);
+
+        expect(driving.accuracy, LocationAccuracy.best,
+            reason: 'zu grob waehrend der Fahrt bei $platform');
+        // Jeder Fix zaehlt: ein Mindestabstand liesse Kurven ausfallen.
+        expect(driving.distanceFilter, 0,
+            reason: 'Mindestabstand waehrend der Fahrt bei $platform');
+      }
+    });
+
+    test('behaelt die Hintergrund-Optionen in beiden Staerken', () {
+      // Ohne sie stellt iOS die Lieferung beim Sperren des Displays ein --
+      // unabhaengig davon, wie fein geortet wird.
+      for (final precise in [true, false]) {
+        final settings = GeolocatorSampleSource.settingsFor(
+          SamplePlatform.ios,
+          precise: precise,
+        ) as AppleSettings;
+
+        expect(settings.allowBackgroundLocationUpdates, isTrue);
+        expect(settings.pauseLocationUpdatesAutomatically, isFalse);
+      }
+    });
+
   });
 }

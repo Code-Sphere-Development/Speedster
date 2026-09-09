@@ -9,10 +9,22 @@ import 'package:speedster/domain/sample.dart';
 /// Emits a stream of normalized [Sample]s from device sensors.
 abstract class SampleSource {
   Stream<Sample> samples();
+
+  /// Schaltet zwischen feiner und sparsamer Ortung um.
+  ///
+  /// Feine Ortung -- volle Genauigkeit, jeder Fix -- kostet den
+  /// Loewenanteil der Batterie und ist nur waehrend einer Fahrt noetig.
+  /// Im Stand genuegt eine grobe Ortung, um Bewegung ueberhaupt zu
+  /// bemerken; das System darf sie dann aus Funkzellen und WLAN
+  /// beantworten, statt den GPS-Empfaenger laufen zu lassen.
+  ///
+  /// Vorbelegt als leere Umsetzung: die meisten Quellen -- Testdoubles,
+  /// Wiedergaben -- haben keine Ortung, die sich drosseln liesse.
+  void setPrecise(bool precise) {}
 }
 
 /// Replays a fixed list of samples. Used in tests and widget previews.
-class FakeSampleSource implements SampleSource {
+class FakeSampleSource extends SampleSource {
   FakeSampleSource(this._samples);
 
   final List<Sample> _samples;
@@ -27,11 +39,18 @@ enum SamplePlatform { ios, android, other }
 
 /// Real source: merges GPS position (geolocator) with the latest
 /// accelerometer magnitude (sensors_plus).
-class GeolocatorSampleSource implements SampleSource {
+class GeolocatorSampleSource extends SampleSource {
   GeolocatorSampleSource();
 
   double? _lastAccelMagnitude;
   StreamSubscription<UserAccelerometerEvent>? _accelSub;
+  StreamSubscription<Position>? _positionSub;
+  bool _precise = false;
+
+  /// Nach aussen ein durchgehender Strom, obwohl die Quelle darunter beim
+  /// Umschalten neu aufgesetzt wird -- geolocator kennt keine Aenderung
+  /// laufender Einstellungen.
+  final _out = StreamController<Sample>.broadcast();
 
   @override
   Stream<Sample> samples() {
@@ -39,19 +58,43 @@ class GeolocatorSampleSource implements SampleSource {
       _lastAccelMagnitude = math.sqrt(e.x * e.x + e.y * e.y + e.z * e.z);
     });
 
-    return Geolocator.getPositionStream(
-      locationSettings: settingsFor(currentPlatform()),
-    ).map(
-      (p) => Sample(
-        lat: p.latitude,
-        lng: p.longitude,
-        speed: p.speed < 0 ? 0 : p.speed,
-        altitude: p.altitude,
-        accuracy: p.accuracy,
-        timestamp: p.timestamp,
-        accelMagnitude: _lastAccelMagnitude,
+    _subscribe();
+
+    return _out.stream;
+  }
+
+  @override
+  void setPrecise(bool precise) {
+    if (precise == _precise) return;
+
+    _precise = precise;
+    _subscribe();
+  }
+
+  void _subscribe() {
+    _positionSub?.cancel();
+    _positionSub = Geolocator.getPositionStream(
+      locationSettings: settingsFor(currentPlatform(), precise: _precise),
+    ).listen(
+      (p) => _out.add(
+        Sample(
+          lat: p.latitude,
+          lng: p.longitude,
+          speed: p.speed < 0 ? 0 : p.speed,
+          altitude: p.altitude,
+          accuracy: p.accuracy,
+          timestamp: p.timestamp,
+          accelMagnitude: _lastAccelMagnitude,
+        ),
       ),
+      onError: _out.addError,
     );
+  }
+
+  Future<void> dispose() async {
+    await _positionSub?.cancel();
+    await _accelSub?.cancel();
+    await _out.close();
   }
 
   static SamplePlatform currentPlatform() {
@@ -67,12 +110,29 @@ class GeolocatorSampleSource implements SampleSource {
   /// Halterung. Ohne die folgenden Angaben stellen beide Systeme die
   /// Lieferung ein, sobald die App in den Hintergrund geht -- die
   /// Deklarationen in Info.plist und Manifest allein genuegen nicht.
-  static LocationSettings settingsFor(SamplePlatform platform) {
+  /// Plattformspezifische Einstellungen, in zwei Staerken.
+  ///
+  /// [precise] gilt waehrend einer Fahrt: volle Genauigkeit, jeder Fix.
+  /// Ohne sie -- im Stand -- laeuft die Ortung grob und mit Mindestabstand.
+  /// Das kostet: die ersten Meter einer Fahrt kommen ungenauer und ein
+  /// paar Sekunden spaeter, weil erst die grobe Ortung Bewegung bemerken
+  /// muss. Dafuer laeuft der GPS-Empfaenger nicht mehr durch, waehrend das
+  /// Telefon auf dem Sofa liegt.
+  static LocationSettings settingsFor(
+    SamplePlatform platform, {
+    bool precise = true,
+  }) {
+    // Im Stand: grobe Genauigkeit und Mindestabstand. Beides zusammen
+    // erlaubt es dem System, aus Funkzellen und WLAN zu antworten, statt
+    // den Empfaenger laufen zu lassen.
+    final accuracy = precise ? LocationAccuracy.best : LocationAccuracy.low;
+    final distanceFilter = precise ? 0 : 50;
+
     switch (platform) {
       case SamplePlatform.ios:
         return AppleSettings(
-          accuracy: LocationAccuracy.best,
-          distanceFilter: 0,
+          accuracy: accuracy,
+          distanceFilter: distanceFilter,
           activityType: ActivityType.automotiveNavigation,
           // Ohne dieses Flag setzt geolocator allowsBackgroundLocationUpdates
           // auf NO und iOS beendet die Lieferung beim Sperren des Displays.
@@ -86,8 +146,8 @@ class GeolocatorSampleSource implements SampleSource {
         );
       case SamplePlatform.android:
         return AndroidSettings(
-          accuracy: LocationAccuracy.best,
-          distanceFilter: 0,
+          accuracy: accuracy,
+          distanceFilter: distanceFilter,
           // Android beendet die Lieferung im Hintergrund ohne sichtbaren
           // Vordergrunddienst, trotz der Rechte im Manifest.
           foregroundNotificationConfig: const ForegroundNotificationConfig(
@@ -99,15 +159,11 @@ class GeolocatorSampleSource implements SampleSource {
           ),
         );
       case SamplePlatform.other:
-        return const LocationSettings(
-          accuracy: LocationAccuracy.best,
-          distanceFilter: 0,
+        return LocationSettings(
+          accuracy: accuracy,
+          distanceFilter: distanceFilter,
         );
     }
   }
 
-  Future<void> dispose() async {
-    await _accelSub?.cancel();
-    _accelSub = null;
-  }
 }
