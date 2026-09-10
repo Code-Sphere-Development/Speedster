@@ -156,19 +156,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveDuration => 'Duration';
 
   @override
-  String get driverTitle => 'Were you driving?';
-
-  @override
-  String get driverBody =>
-      'Were you the driver? Only your own drives are kept. Drives recorded as a passenger can be discarded.';
-
-  @override
-  String get driverKeep => 'Keep';
-
-  @override
-  String get driverDiscard => 'Discard';
-
-  @override
   String get rankingScopeWorld => 'World';
 
   @override

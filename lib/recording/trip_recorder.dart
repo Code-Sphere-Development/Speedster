@@ -16,7 +16,7 @@ class RecorderState {
     this.isDriving = false,
     this.activeTripId,
     this.last,
-    this.awaitingConfirmationTripId,
+    this.endedTripId,
     this.distanceMeters = 0,
     this.elapsedSeconds = 0,
   });
@@ -25,8 +25,13 @@ class RecorderState {
   final int? activeTripId;
   final Sample? last;
 
-  /// Set once when a trip just ended and needs the driver/passenger prompt.
-  final int? awaitingConfirmationTripId;
+  /// Einen Zustand lang gesetzt, wenn eine Fahrt gerade geendet hat.
+  /// Die eben beendete Fahrt, einen Zustand lang.
+  ///
+  /// Hiess frueher awaitingConfirmationTripId, weil eine Rueckfrage daran
+  /// haengen sollte. Die gibt es nicht mehr; das Signal selbst schon --
+  /// daran haengen Upload und Widgets.
+  final int? endedTripId;
 
   /// Distance covered so far in the active trip (meters).
   final double distanceMeters;
@@ -202,7 +207,7 @@ class TripRecorder {
       _buffer.clear();
       _savedCount = 0;
       await liveActivity?.end();
-      _emit(isDriving: false, last: s, awaitingConfirmationTripId: endedTripId);
+      _emit(isDriving: false, last: s, endedTripId: endedTripId);
       _startTime = null;
       _distance = 0;
       return;
@@ -260,7 +265,7 @@ class TripRecorder {
     required bool isDriving,
     int? activeTripId,
     Sample? last,
-    int? awaitingConfirmationTripId,
+    int? endedTripId,
   }) {
     if (_stateController.isClosed) return;
     final elapsed = (_startTime != null && last != null)
@@ -271,7 +276,7 @@ class TripRecorder {
         isDriving: isDriving,
         activeTripId: activeTripId ?? _tripId,
         last: last,
-        awaitingConfirmationTripId: awaitingConfirmationTripId,
+        endedTripId: endedTripId,
         distanceMeters: _distance,
         elapsedSeconds: elapsed,
       ),

@@ -344,30 +344,6 @@ abstract class AppLocalizations {
   /// **'Dauer'**
   String get liveDuration;
 
-  /// No description provided for @driverTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Selbst gefahren?'**
-  String get driverTitle;
-
-  /// No description provided for @driverBody.
-  ///
-  /// In de, this message translates to:
-  /// **'Warst du der Fahrer? Nur eigene Fahrten werden behalten. Als Beifahrer aufgezeichnete Fahrten kannst du verwerfen.'**
-  String get driverBody;
-
-  /// No description provided for @driverKeep.
-  ///
-  /// In de, this message translates to:
-  /// **'Behalten'**
-  String get driverKeep;
-
-  /// No description provided for @driverDiscard.
-  ///
-  /// In de, this message translates to:
-  /// **'Verwerfen'**
-  String get driverDiscard;
-
   /// No description provided for @rankingScopeWorld.
   ///
   /// In de, this message translates to:

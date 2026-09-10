@@ -11,7 +11,6 @@ import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/garage_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/tour_screen.dart';
-import 'package:speedster/ui/driver_prompt.dart';
 import 'package:speedster/ui/friend_requests_prompt.dart';
 import 'package:speedster/ui/live_screen.dart';
 import 'package:speedster/ui/ranking_screen.dart';
@@ -278,20 +277,14 @@ class _HomeShellState extends ConsumerState<HomeShell>
         _switchedForCurrentDrive = false;
       }
 
-      final id = state?.awaitingConfirmationTripId;
-      if (id != null) {
-        // Sofort hochladen, nicht erst nach der Rueckfrage: die sieht nur,
-        // wer gerade aufs Telefon schaut. Wer es in der Tasche hat, dessen
-        // Fahrt lag sonst bis zum naechsten Wechsel nach vorn.
-        //
-        // Antwortet der Nutzer spaeter mit "nicht selbst gefahren", nimmt
-        // DriverPrompt sie in der Cloud wieder zurueck.
+      // Fahrt gerade beendet: hochladen und die Widgets nachziehen.
+      //
+      // Frueher stand hier zuerst die Rueckfrage "selbst gefahren?". Sie
+      // ist weg -- wer aufzeichnet, faehrt selbst, und die Frage kam
+      // ohnehin meist an, wenn niemand hinschaute.
+      if (state?.endedTripId != null) {
         _uploadPendingTrips();
         _publishWidgets();
-        showDialog<void>(
-          context: context,
-          builder: (_) => DriverPrompt(tripId: id),
-        );
       }
     });
 

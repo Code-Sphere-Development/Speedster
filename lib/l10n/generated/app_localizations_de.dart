@@ -157,19 +157,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get liveDuration => 'Dauer';
 
   @override
-  String get driverTitle => 'Selbst gefahren?';
-
-  @override
-  String get driverBody =>
-      'Warst du der Fahrer? Nur eigene Fahrten werden behalten. Als Beifahrer aufgezeichnete Fahrten kannst du verwerfen.';
-
-  @override
-  String get driverKeep => 'Behalten';
-
-  @override
-  String get driverDiscard => 'Verwerfen';
-
-  @override
   String get rankingScopeWorld => 'Welt';
 
   @override
