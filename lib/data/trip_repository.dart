@@ -18,6 +18,13 @@ abstract class TripRepository {
   });
   Future<void> setKept(int tripId, bool kept);
 
+  /// Die `client_uuid` einer Fahrt, oder null, wenn es sie nicht gibt.
+  ///
+  /// Gebraucht, um eine bereits hochgeladene Fahrt in der Cloud wieder zu
+  /// loeschen -- dort ist die UUID der Schluessel, die lokale Zeilen-Id
+  /// kennt der Server nicht.
+  Future<String?> clientUuidFor(int tripId);
+
   /// Setzt Zweck und Notiz einer Fahrt. `null` loescht das Feld.
   Future<void> setPurpose(int tripId, String? purpose, String? note);
   Future<List<domain.Trip>> keptTrips();
@@ -113,6 +120,14 @@ class DriftTripRepository implements TripRepository {
         zeroToHundredSeconds: Value(stats.zeroToHundredSeconds),
       ),
     );
+  }
+
+  @override
+  Future<String?> clientUuidFor(int tripId) async {
+    final row = await (db.select(db.trips)..where((t) => t.id.equals(tripId)))
+        .getSingleOrNull();
+
+    return row?.clientUuid;
   }
 
   @override

@@ -66,6 +66,25 @@ class CloudSyncService {
     }
   }
 
+  /// Loescht eine Fahrt in der Cloud.
+  ///
+  /// Gebraucht, wenn der Nutzer nachtraeglich sagt, dass er nicht selbst
+  /// gefahren ist: hochgeladen wird jetzt sofort am Fahrtende, also liegt
+  /// sie zu diesem Zeitpunkt womoeglich schon dort.
+  ///
+  /// Ein 404 ist kein Fehler -- dann war sie nie oben, und das Ziel ist
+  /// ohnehin erreicht.
+  Future<void> deleteRemote(String clientUuid) async {
+    if (await tokenStore.read() == null) return;
+
+    try {
+      await dio.delete('/trips/$clientUuid');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return;
+      rethrow;
+    }
+  }
+
   /// Traegt Zweck und Notiz einer bereits hochgeladenen Fahrt nach.
   ///
   /// Eigener Endpunkt statt eines erneuten Hochladens: der Zweck steht

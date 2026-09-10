@@ -280,7 +280,13 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
       final id = state?.awaitingConfirmationTripId;
       if (id != null) {
-        ref.invalidate(keptTripsProvider);
+        // Sofort hochladen, nicht erst nach der Rueckfrage: die sieht nur,
+        // wer gerade aufs Telefon schaut. Wer es in der Tasche hat, dessen
+        // Fahrt lag sonst bis zum naechsten Wechsel nach vorn.
+        //
+        // Antwortet der Nutzer spaeter mit "nicht selbst gefahren", nimmt
+        // DriverPrompt sie in der Cloud wieder zurueck.
+        _uploadPendingTrips();
         _publishWidgets();
         showDialog<void>(
           context: context,
@@ -317,7 +323,15 @@ class _HomeShellState extends ConsumerState<HomeShell>
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: visible.indexOf(tab),
-        onDestinationSelected: (i) => setState(() => _tab = visible[i]),
+        onDestinationSelected: (i) {
+          final selected = visible[i];
+          // Bei jedem Aufruf der Fahrten neu laden: bei aktiver Cloud
+          // fuehrt sie die Liste, und dort kann seit dem letzten Blick
+          // etwas dazugekommen sein -- von einem anderen Geraet oder aus
+          // dem Web.
+          if (selected == AppTab.trips) ref.invalidate(keptTripsProvider);
+          setState(() => _tab = selected);
+        },
         destinations: [
           for (final t in visible)
             NavigationDestination(icon: Icon(t.icon), label: t.title(l)),
