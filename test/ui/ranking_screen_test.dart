@@ -10,26 +10,35 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/ranking_screen.dart';
 
 void main() {
-  testWidgets('shows hint when cloud disabled', (tester) async {
+  testWidgets('verweist auf die Anmeldung, wenn niemand angemeldet ist',
+      (tester) async {
+    // "Cloud aus" und "nicht angemeldet" sind seit der Vereinheitlichung
+    // derselbe Zustand: der Token entscheidet.
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudActiveProvider.overrideWith((ref) async => false),
+        ],
         child: const MaterialApp(
         locale: Locale('de'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,home: Scaffold(body: RankingScreen())),
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.textContaining('Cloud-Sync findest du'), findsOneWidget);
+    expect(find.textContaining('angemeldet sein'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Anmelden'), findsOneWidget);
   });
 
   testWidgets('renders ranking entries and own rank', (tester) async {
-    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
+    // setzt jeder Test ueber cloudActiveProvider.
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     const board = RankingBoard(
@@ -63,9 +72,11 @@ void main() {
     expect(find.text('Dein Rang'), findsOneWidget);
   });
 
-  testWidgets('bietet die Anmeldung an, wenn die Cloud an, aber niemand '
-      'angemeldet ist', (tester) async {
-    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+  testWidgets('bietet die Anmeldung an, wenn niemand angemeldet ist',
+      (tester) async {
+    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
+    // setzt jeder Test ueber cloudActiveProvider.
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
@@ -92,7 +103,9 @@ void main() {
 
   testWidgets('die eigene Zeile nimmt Flaeche und Schrift aus demselben '
       'Farbpaar', (tester) async {
-    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
+    // setzt jeder Test ueber cloudActiveProvider.
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     const board = RankingBoard(
@@ -150,7 +163,9 @@ void main() {
     // Der Hinweis steht dort, wo die App selbst einen Anreiz setzt.
     // Ueberall gezeigt wuerde er zur Tapete -- und entwertete damit auch
     // den im Onboarding.
-    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
+    // setzt jeder Test ueber cloudActiveProvider.
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     const board = RankingBoard(
@@ -198,7 +213,9 @@ void main() {
   testWidgets('fragt das gewaehlte Zeitfenster ab', (tester) async {
     // Ohne Fenster steht eine einmalige Spitze dauerhaft oben, und
     // niemand schaut mehr hin.
-    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
+    // setzt jeder Test ueber cloudActiveProvider.
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final asked = <RankPeriod>[];
 
@@ -234,7 +251,9 @@ void main() {
 
   testWidgets('verweist bei leerer Fahrzeugwertung auf die Garage',
       (tester) async {
-    SharedPreferences.setMockInitialValues({'cloudEnabled': true});
+    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
+    // setzt jeder Test ueber cloudActiveProvider.
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(

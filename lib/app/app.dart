@@ -168,7 +168,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
   /// jedem Wechsel nach vorn nachzureichen kostet nichts: der Dienst tut
   /// ohne Anmeldung und ohne wartende Fahrten von sich aus nichts.
   Future<void> _uploadPendingTrips() async {
-    if (!ref.read(settingsControllerProvider).cloudEnabled) return;
+    if (!await ref.read(cloudActiveProvider.future)) return;
     try {
       await ref.read(cloudSyncServiceProvider).syncOnce();
       ref.invalidate(keptTripsProvider);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:speedster/app/links.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/cloud/cloud_sync_service.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
@@ -50,9 +51,18 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     bool enabled,
   ) async {
-    final controller = ref.read(settingsControllerProvider.notifier);
     if (!enabled) {
-      await controller.setCloudEnabled(false);
+      // Ausschalten heisst abmelden. Frueher blieb der Token liegen: die
+      // App zeigte weiter Cloud-Daten, lud aber nichts mehr hoch -- zwei
+      // Wahrheiten fuer dieselbe Frage, und nach einer Neuinstallation
+      // (der Schluesselbund ueberlebt sie, die Einstellungen nicht) stand
+      // die App genau in diesem Zwischenzustand.
+      await ref.read(tokenStoreProvider).clear();
+      ref
+        ..invalidate(cloudActiveProvider)
+        ..invalidate(keptTripsProvider)
+        ..invalidate(pendingUploadsProvider);
+
       return;
     }
 
@@ -64,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
       );
       if (loggedIn != true) return; // user cancelled → stay disabled
     }
-    await controller.setCloudEnabled(true);
+    ref.invalidate(cloudActiveProvider);
     // Reihenfolge zaehlt: erst hochladen, dann den Vorrat aufbauen. Der
     // Cache-Lauf raeumt nur bestaetigt hochgeladene Fahrten weg -- lief er
     // zuerst, blieben die eben erst lokal aufgezeichneten Fahrten liegen
@@ -100,8 +110,13 @@ class SettingsScreen extends ConsumerWidget {
     } catch (_) {
       // Ignore network errors; still clear locally.
     }
+    // Der geloeschte Token ist zugleich das Aus fuer die Cloud: einen
+    // zweiten Schalter dafuer gibt es nicht mehr.
     await ref.read(tokenStoreProvider).clear();
-    await ref.read(settingsControllerProvider.notifier).setCloudEnabled(false);
+    ref
+      ..invalidate(cloudActiveProvider)
+      ..invalidate(keptTripsProvider)
+      ..invalidate(pendingUploadsProvider);
   }
 
   @override
@@ -109,6 +124,7 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final l = AppLocalizations.of(context);
     final controller = ref.read(settingsControllerProvider.notifier);
+    final cloudOn = ref.watch(cloudActiveProvider).asData?.value ?? false;
 
     return Scaffold(
       body: ListView(
@@ -136,10 +152,12 @@ class SettingsScreen extends ConsumerWidget {
             key: const Key('cloudSwitch'),
             title: Text(l.settingsCloudTitle),
             subtitle: Text(l.settingsCloudSubtitle),
-            value: settings.cloudEnabled,
+            // Der Token entscheidet, nicht ein zweiter Schalterzustand:
+            // sonst laufen beide auseinander.
+            value: cloudOn,
             onChanged: (v) => _toggleCloud(context, ref, v),
           ),
-          if (settings.cloudEnabled)
+          if (cloudOn)
             ListTile(
               leading: const Icon(Icons.person_remove),
               title: Text(l.settingsDeleteAccount),
@@ -369,17 +387,21 @@ class _PendingUploadsState extends ConsumerState<_PendingUploads> {
     final sync = ref.read(cloudSyncServiceProvider);
 
     setState(() => _busy = true);
-    final before = await sync.pendingCount();
 
     String message;
     try {
-      await sync.syncOnce();
-      final after = await sync.pendingCount();
-      final rejected = sync.rejected.length;
+      final outcome = await sync.syncOnce();
 
-      message = rejected > 0
-          ? l.settingsPendingRejected(rejected)
-          : l.settingsPendingDone(before - after);
+      // Vier Faelle, die sich vorher alle gleich anfuehlten. Vor allem
+      // der erste: ohne Anmeldung tat der Abgleich nichts und meldete
+      // "nichts zu tun" -- neben vier wartenden Fahrten.
+      message = switch (outcome) {
+        SyncOutcome(loggedIn: false) => l.settingsPendingLoggedOut,
+        SyncOutcome(unreachable: true) => l.settingsPendingFailed,
+        SyncOutcome(rejected: final n) when n > 0 =>
+          l.settingsPendingRejected(n),
+        SyncOutcome(uploaded: final n) => l.settingsPendingDone(n),
+      };
     } on Exception {
       message = l.settingsPendingFailed;
     }
@@ -401,7 +423,7 @@ class _PendingUploadsState extends ConsumerState<_PendingUploads> {
 
     // Ohne Cloud gibt es nichts hochzuladen -- dann auch keine Zeile
     // darueber.
-    if (!ref.watch(settingsControllerProvider).cloudEnabled) {
+    if (!(ref.watch(cloudActiveProvider).asData?.value ?? false)) {
       return const SizedBox.shrink();
     }
 

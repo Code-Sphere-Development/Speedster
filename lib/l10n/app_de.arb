@@ -97,8 +97,6 @@
   "rankingSpeedNotice": "Es gilt immer die StVO. Diese Wertung ist kein Grund, eine Geschwindigkeitsbegrenzung zu überschreiten.",
   "rankingYourRank": "Dein Rang",
   "rankingEmpty": "Noch keine Einträge.",
-  "rankingCloudOffTitle": "Das Ranking vergleicht dich mit anderen Fahrern und lebt deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es niemanden, mit dem sich vergleichen liesse.",
-  "rankingCloudOffHint": "Cloud-Sync findest du in den Einstellungen.",
   "rankingSignInNeeded": "Für das Ranking musst du in der Speedster Cloud angemeldet sein.",
   "rankingStatusUnknown": "Der Anmeldestatus liess sich nicht prüfen.",
   "authSignIn": "Anmelden",
@@ -197,6 +195,7 @@
     }
   },
   "settingsPendingFailed": "Kein Upload möglich — besteht eine Verbindung?",
+  "settingsPendingLoggedOut": "Nicht angemeldet — schalte die Cloud-Synchronisierung oben ein.",
   "tourSkip": "Überspringen",
   "tourNext": "Weiter",
   "tourDone": "Los geht's",

@@ -60,20 +60,11 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final cloudOn = ref.watch(
-      settingsControllerProvider.select((s) => s.cloudEnabled),
-    );
-    if (!cloudOn) {
-      return _CloudRequired(
-        message: l.rankingCloudOffTitle,
-        hint: l.rankingCloudOffHint,
-      );
-    }
-
-    // Der eingeschaltete Schalter allein genuegt nicht: laeuft das Token
-    // ab, loeschen Sync und Heatmap es (siehe FallbackHeatSource), und die
-    // Abfrage liefe in einen 401. Ein Fehlertext waere dafuer die falsche
-    // Antwort -- fehlt nur die Anmeldung, soll sie angeboten werden.
+    // Ein Zustand, nicht zwei: "Cloud aus" und "nicht angemeldet" waren
+    // frueher getrennt -- ein Schalter in den Einstellungen und ein Token
+    // im Schluesselbund. Sie liefen auseinander, sobald eines von beiden
+    // verschwand, und die App zeigte dann Cloud-Daten an, ohne je etwas
+    // hochzuladen. Jetzt entscheidet der Token allein.
     //
     // Bewusst erst die Pruefung abwarten, statt waehrenddessen schon die
     // Rangliste zu laden: fuer ein abgemeldetes Konto waere das eine
@@ -199,14 +190,9 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
 /// Hinweis statt Fehler, wenn die Voraussetzung fuer das Ranking fehlt.
 class _CloudRequired extends StatelessWidget {
-  const _CloudRequired({
-    required this.message,
-    this.hint,
-    this.showLogin = false,
-  });
+  const _CloudRequired({required this.message, this.showLogin = false});
 
   final String message;
-  final String? hint;
   final bool showLogin;
 
   @override
@@ -221,21 +207,14 @@ class _CloudRequired extends StatelessWidget {
             Icon(Icons.cloud_off, size: 40, color: muted),
             const SizedBox(height: 16),
             Text(message, textAlign: TextAlign.center),
-            if (hint != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                hint!,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+
             if (showLogin) ...[
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () => Navigator.of(context).push<bool>(
                   MaterialPageRoute(builder: (_) => const AuthScreen()),
                 ),
-                child: const Text('Anmelden'),
+                child: Text(AppLocalizations.of(context).authSignIn),
               ),
             ],
           ],

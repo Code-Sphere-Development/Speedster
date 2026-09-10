@@ -204,14 +204,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rankingEmpty => 'Noch keine Einträge.';
 
   @override
-  String get rankingCloudOffTitle =>
-      'Das Ranking vergleicht dich mit anderen Fahrern und lebt deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es niemanden, mit dem sich vergleichen liesse.';
-
-  @override
-  String get rankingCloudOffHint =>
-      'Cloud-Sync findest du in den Einstellungen.';
-
-  @override
   String get rankingSignInNeeded =>
       'Für das Ranking musst du in der Speedster Cloud angemeldet sein.';
 
@@ -442,6 +434,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsPendingFailed =>
       'Kein Upload möglich — besteht eine Verbindung?';
+
+  @override
+  String get settingsPendingLoggedOut =>
+      'Nicht angemeldet — schalte die Cloud-Synchronisierung oben ein.';
 
   @override
   String get tourSkip => 'Überspringen';
