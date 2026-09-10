@@ -434,18 +434,6 @@ abstract class AppLocalizations {
   /// **'Noch keine Einträge.'**
   String get rankingEmpty;
 
-  /// No description provided for @rankingCloudOffTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Das Ranking vergleicht dich mit anderen Fahrern und lebt deshalb von der Speedster Cloud. Ohne Cloud-Sync gibt es niemanden, mit dem sich vergleichen liesse.'**
-  String get rankingCloudOffTitle;
-
-  /// No description provided for @rankingCloudOffHint.
-  ///
-  /// In de, this message translates to:
-  /// **'Cloud-Sync findest du in den Einstellungen.'**
-  String get rankingCloudOffHint;
-
   /// No description provided for @rankingSignInNeeded.
   ///
   /// In de, this message translates to:
@@ -823,6 +811,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Kein Upload möglich — besteht eine Verbindung?'**
   String get settingsPendingFailed;
+
+  /// No description provided for @settingsPendingLoggedOut.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht angemeldet — schalte die Cloud-Synchronisierung oben ein.'**
+  String get settingsPendingLoggedOut;
 
   /// No description provided for @tourSkip.
   ///

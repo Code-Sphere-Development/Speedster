@@ -203,13 +203,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankingEmpty => 'No entries yet.';
 
   @override
-  String get rankingCloudOffTitle =>
-      'The ranking compares you with other drivers and therefore depends on Speedster Cloud. Without cloud sync there is nobody to compare with.';
-
-  @override
-  String get rankingCloudOffHint => 'You will find cloud sync in the settings.';
-
-  @override
   String get rankingSignInNeeded =>
       'To use the ranking you need to be signed in to Speedster Cloud.';
 
@@ -437,6 +430,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsPendingFailed =>
       'Upload not possible — is there a connection?';
+
+  @override
+  String get settingsPendingLoggedOut =>
+      'Not signed in — switch on cloud sync above.';
 
   @override
   String get tourSkip => 'Skip';

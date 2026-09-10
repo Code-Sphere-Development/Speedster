@@ -24,6 +24,9 @@ Future<void> pumpSettings(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        // Angemeldet heisst Cloud aktiv -- daran haengt jetzt alles,
+        // nicht mehr an einem zweiten Schalter in den Einstellungen.
+        cloudActiveProvider.overrideWith((ref) async => cloud),
         if (sync != null) cloudSyncServiceProvider.overrideWithValue(sync),
         pendingUploadsProvider.overrideWith((ref) async => pending),
         cloudAccountProvider.overrideWith((ref) async => null),
@@ -84,8 +87,8 @@ void main() {
     // und niemand kann sagen warum.
     final sync = MockSync();
     when(() => sync.pendingCount()).thenAnswer((_) async => 2);
-    when(() => sync.syncOnce()).thenAnswer((_) async {});
-    when(() => sync.rejected).thenReturn({'uuid-1'});
+    when(() => sync.syncOnce())
+        .thenAnswer((_) async => const SyncOutcome(rejected: 1));
 
     await pumpSettings(tester, cloud: true, sync: sync, pending: 2);
     await scrollToPending(tester);
@@ -99,8 +102,8 @@ void main() {
       (tester) async {
     final sync = MockSync();
     when(() => sync.pendingCount()).thenAnswer((_) async => 1);
-    when(() => sync.syncOnce()).thenThrow(Exception('kein Netz'));
-    when(() => sync.rejected).thenReturn(<String>{});
+    when(() => sync.syncOnce())
+        .thenAnswer((_) async => const SyncOutcome(unreachable: true));
 
     await pumpSettings(tester, cloud: true, sync: sync, pending: 1);
     await scrollToPending(tester);
@@ -108,5 +111,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Verbindung'), findsOneWidget);
+  });
+
+  testWidgets('sagt es, wenn niemand angemeldet ist', (tester) async {
+    // Der eigentliche Fund: ohne Anmeldung tat der Abgleich nichts und
+    // meldete "nichts zu tun" -- neben vier wartenden Fahrten. Wer das
+    // sah, hatte keinen Anhaltspunkt.
+    final sync = MockSync();
+    when(() => sync.pendingCount()).thenAnswer((_) async => 4);
+    when(() => sync.syncOnce())
+        .thenAnswer((_) async => const SyncOutcome(loggedIn: false));
+
+    await pumpSettings(tester, cloud: true, sync: sync, pending: 4);
+    await scrollToPending(tester);
+    await tester.tap(find.text('Jetzt hochladen'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Nicht angemeldet'), findsOneWidget);
   });
 }

@@ -83,8 +83,6 @@
   "rankingSpeedNotice": "Road traffic law always applies. This ranking is no reason to exceed a speed limit.",
   "rankingYourRank": "Your rank",
   "rankingEmpty": "No entries yet.",
-  "rankingCloudOffTitle": "The ranking compares you with other drivers and therefore depends on Speedster Cloud. Without cloud sync there is nobody to compare with.",
-  "rankingCloudOffHint": "You will find cloud sync in the settings.",
   "rankingSignInNeeded": "To use the ranking you need to be signed in to Speedster Cloud.",
   "rankingStatusUnknown": "The sign-in status could not be checked.",
   "authSignIn": "Sign in",
@@ -176,6 +174,7 @@
     }
   },
   "settingsPendingFailed": "Upload not possible — is there a connection?",
+  "settingsPendingLoggedOut": "Not signed in — switch on cloud sync above.",
   "tourSkip": "Skip",
   "tourNext": "Next",
   "tourDone": "Let's go",

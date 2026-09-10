@@ -3,19 +3,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/settings/unit_system.dart';
 
 /// Persisted user settings.
+///
+/// Ob die Cloud benutzt wird, steht hier bewusst **nicht**: das sagt der
+/// Token im Schluesselbund (cloudActiveProvider). Beides nebeneinander
+/// zu fuehren ging schief -- der Schluesselbund ueberlebt eine
+/// Neuinstallation, die Einstellungen nicht, und ein abgelaufenes Token
+/// loescht sich selbst. Dann zeigte die App Cloud-Daten an und lud nie
+/// etwas hoch, oder umgekehrt.
 class SettingsState {
   const SettingsState({
     this.unit = UnitSystem.kmh,
     this.trackingPaused = false,
     this.consentAccepted = false,
-    this.cloudEnabled = false,
     this.tourSeen = false,
   });
 
   final UnitSystem unit;
   final bool trackingPaused;
   final bool consentAccepted;
-  final bool cloudEnabled;
 
   /// Ob der Rundgang schon einmal gezeigt wurde.
   ///
@@ -28,14 +33,12 @@ class SettingsState {
     UnitSystem? unit,
     bool? trackingPaused,
     bool? consentAccepted,
-    bool? cloudEnabled,
     bool? tourSeen,
   }) {
     return SettingsState(
       unit: unit ?? this.unit,
       trackingPaused: trackingPaused ?? this.trackingPaused,
       consentAccepted: consentAccepted ?? this.consentAccepted,
-      cloudEnabled: cloudEnabled ?? this.cloudEnabled,
       tourSeen: tourSeen ?? this.tourSeen,
     );
   }
@@ -53,7 +56,6 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kUnit = 'unit';
   static const _kPaused = 'trackingPaused';
   static const _kConsent = 'consentAccepted';
-  static const _kCloud = 'cloudEnabled';
   static const _kTour = 'tourSeen';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
@@ -65,7 +67,6 @@ class SettingsController extends Notifier<SettingsState> {
       unit: (p.getString(_kUnit) == 'mph') ? UnitSystem.mph : UnitSystem.kmh,
       trackingPaused: p.getBool(_kPaused) ?? false,
       consentAccepted: p.getBool(_kConsent) ?? false,
-      cloudEnabled: p.getBool(_kCloud) ?? false,
       tourSeen: p.getBool(_kTour) ?? false,
     );
   }
@@ -93,8 +94,4 @@ class SettingsController extends Notifier<SettingsState> {
     await _prefs.setBool(_kTour, seen);
   }
 
-  Future<void> setCloudEnabled(bool enabled) async {
-    state = state.copyWith(cloudEnabled: enabled);
-    await _prefs.setBool(_kCloud, enabled);
-  }
 }

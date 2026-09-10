@@ -3,6 +3,24 @@ import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/cloud/token_store.dart';
 
+/// Was ein Abgleich bewirkt hat.
+///
+/// Vier Faelle, die sich vorher alle gleich anfuehlten: hochgeladen,
+/// zurueckgewiesen, nicht erreichbar, nicht angemeldet.
+class SyncOutcome {
+  const SyncOutcome({
+    this.loggedIn = true,
+    this.uploaded = 0,
+    this.rejected = 0,
+    this.unreachable = false,
+  });
+
+  final bool loggedIn;
+  final int uploaded;
+  final int rejected;
+  final bool unreachable;
+}
+
 /// Pushes locally-kept, not-yet-synced trips to the cloud. Idempotent on the
 /// server via client_uuid, so a failed/retried upload never duplicates.
 class CloudSyncService {
@@ -26,10 +44,22 @@ class CloudSyncService {
   /// Wie viele Fahrten auf den Upload warten.
   Future<int> pendingCount() async => (await repo.unsyncedTrips()).length;
 
-  Future<void> syncOnce() async {
-    if (await tokenStore.read() == null) return; // not logged in
+  /// Laedt wartende Fahrten hoch und sagt, was dabei herauskam.
+  ///
+  /// Der Rueckgabewert ist kein Beiwerk: ohne ihn war ein Lauf ohne
+  /// Anmeldung von einem Lauf ohne wartende Fahrten nicht zu
+  /// unterscheiden. Beide taten nichts und sagten nichts -- und wer vier
+  /// wartende Fahrten sah und "nichts zu tun" gemeldet bekam, hatte
+  /// keinen Anhaltspunkt.
+  Future<SyncOutcome> syncOnce() async {
+    if (await tokenStore.read() == null) {
+      return const SyncOutcome(loggedIn: false);
+    }
+
     rejected.clear();
     final pending = await repo.unsyncedTrips();
+
+    var uploaded = 0;
 
     for (final trip in pending) {
       try {
@@ -38,6 +68,7 @@ class CloudSyncService {
         final code = res.statusCode ?? 0;
         if (code >= 200 && code < 300) {
           await repo.markSynced(trip.clientUuid);
+          uploaded++;
         }
       } on DioException catch (e) {
         final status = e.response?.statusCode;
@@ -46,7 +77,8 @@ class CloudSyncService {
           // Token ungueltig oder abgelaufen: anhalten und neu anmelden
           // lassen. Weitere Versuche waeren alle vergeblich.
           await tokenStore.clear();
-          return;
+
+          return SyncOutcome(loggedIn: false, uploaded: uploaded);
         }
 
         // Weist der Server die Fahrt selbst zurueck (4xx), hilft kein
@@ -64,9 +96,15 @@ class CloudSyncService {
 
         // Netzfehler oder 5xx: der naechste Lauf versucht es erneut, und
         // zwar wieder von vorn -- die Reihenfolge bleibt so erhalten.
-        break;
+        return SyncOutcome(
+          uploaded: uploaded,
+          rejected: rejected.length,
+          unreachable: true,
+        );
       }
     }
+
+    return SyncOutcome(uploaded: uploaded, rejected: rejected.length);
   }
 
   /// Loescht eine Fahrt in der Cloud.
