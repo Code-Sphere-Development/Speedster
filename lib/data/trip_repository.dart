@@ -27,6 +27,16 @@ abstract class TripRepository {
   /// Setzt Zweck und Notiz einer Fahrt. `null` loescht das Feld.
   Future<void> setPurpose(int tripId, String? purpose, String? note);
   Future<List<domain.Trip>> keptTrips();
+
+  /// Fahrten, die angelegt, aber nie abgeschlossen wurden.
+  ///
+  /// Eine Fahrt entsteht beim *Beginn* mit lauter Nullen; die Kennzahlen
+  /// schreibt erst [finalizeTrip] am Ende. Stirbt der Prozess dazwischen
+  /// -- iOS beendet die App, ein Absturz, ein Wegwischen --, bleibt die
+  /// Zeile so stehen, wie sie angelegt wurde. Ihre Punkte liegen aber
+  /// laengst auf der Platte (siehe TripRecorder.flushEvery), die
+  /// Kennzahlen sind daraus nachrechenbar (siehe TripRepair).
+  Future<List<domain.Trip>> openTrips();
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
   Future<void> deleteAll();
   Future<List<domain.Trip>> unsyncedTrips();
@@ -108,6 +118,13 @@ class DriftTripRepository implements TripRepository {
     await (db.update(db.trips)..where((t) => t.id.equals(tripId))).write(
       TripsCompanion(
         endTime: Value(endTime),
+        // Der Stempel faellt: was hier geschrieben wird, kennt die Cloud
+        // noch nicht. Im Normalfall ist er ohnehin leer -- die Fahrt wird
+        // unmittelbar nach dem Ende zum ersten Mal hochgeladen. Bei einer
+        // nachtraeglich reparierten Fahrt (siehe TripRepair) steht dort
+        // aber ein Stempel von einem Upload, der die Nullen verschickt
+        // hat; ohne dieses Zuruecksetzen blieben sie dort stehen.
+        syncedAt: const Value(null),
         // Die Strecke kommt vom Aufrufer: der Rekorder hat die Punkte der
         // gerade beendeten Fahrt ohnehin im Puffer, ein erneutes Lesen aus
         // der Tabelle waere eine Abfrage fuer nichts.
@@ -144,8 +161,21 @@ class DriftTripRepository implements TripRepository {
   @override
   Future<List<domain.Trip>> keptTrips() async {
     final rows = await (db.select(db.trips)
-          ..where((t) => t.kept.equals(true))
+          // Nur abgeschlossene: eine offene Fahrt traegt die Nullen, mit
+          // denen sie angelegt wurde, und stuende in der Liste wie eine
+          // fertige Fahrt ohne Strecke, ohne Dauer, ohne Tempo. Die
+          // laufende Aufzeichnung zeigt der Live-Reiter.
+          ..where((t) => t.kept.equals(true) & t.endTime.isNotNull())
           ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
+        .get();
+    return rows.map(_toDomainTrip).toList();
+  }
+
+  @override
+  Future<List<domain.Trip>> openTrips() async {
+    final rows = await (db.select(db.trips)
+          ..where((t) => t.kept.equals(true) & t.endTime.isNull())
+          ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
     return rows.map(_toDomainTrip).toList();
   }
@@ -185,7 +215,14 @@ class DriftTripRepository implements TripRepository {
   @override
   Future<List<domain.Trip>> unsyncedTrips() async {
     final rows = await (db.select(db.trips)
-          ..where((t) => t.kept.equals(true) & t.syncedAt.isNull())
+          // Ebenfalls nur abgeschlossene. Ein Upload waehrend der Fahrt
+          // schrieb sonst die Nullen der frisch angelegten Zeile in die
+          // Cloud -- und weil markSynced danach den Stempel setzt, kam sie
+          // nie wieder an die Reihe: die Nullen stuenden dort fuer immer.
+          ..where((t) =>
+              t.kept.equals(true) &
+              t.syncedAt.isNull() &
+              t.endTime.isNotNull())
           ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
     return rows.map(_toDomainTrip).toList();

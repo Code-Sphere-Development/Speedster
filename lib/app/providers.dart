@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speedster/recording/trip_repair.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/cloud/api_client.dart';
@@ -128,6 +129,11 @@ final tripSourceProvider = Provider<TripSource>(
     ref.watch(tokenStoreProvider),
     ref.watch(tripRepositoryProvider),
   ),
+);
+
+/// Rechnet abgebrochene Fahrten nach (siehe TripRepair).
+final tripRepairProvider = Provider<TripRepair>(
+  (ref) => TripRepair(ref.watch(tripRepositoryProvider)),
 );
 
 final keptTripsProvider = FutureProvider<List<Trip>>(

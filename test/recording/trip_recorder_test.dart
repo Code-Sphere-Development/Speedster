@@ -125,9 +125,15 @@ void main() {
 
     // Ohne die Verbindung endete die Fahrt nach 60 s Stillstand, und der
     // Rest zaehlte als zweite Fahrt.
-    final trips = await repo.keptTrips();
-    expect(trips, hasLength(1));
-    expect(trips.single.endTime, isNull, reason: 'noch nicht abgeschlossen');
+    //
+    // Ueber openTrips und nicht ueber keptTrips: die laufende Fahrt ist
+    // noch nicht abgeschlossen, und keptTrips haelt genau solche Zeilen
+    // zurueck -- sie truegen sonst die Nullen, mit denen sie angelegt
+    // wurden, mitten in die Fahrtenliste.
+    final open = await repo.openTrips();
+    expect(open, hasLength(1));
+    expect(open.single.endTime, isNull, reason: 'noch nicht abgeschlossen');
+    expect(await repo.keptTrips(), isEmpty);
 
     await rec.stop();
     await db.close();

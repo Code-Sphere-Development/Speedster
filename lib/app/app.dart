@@ -121,6 +121,14 @@ class _HomeShellState extends ConsumerState<HomeShell>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Zuerst und abgewartet: eine abgebrochene Fahrt traegt noch die
+      // Nullen, mit denen sie angelegt wurde. Liefe der Upload vorher,
+      // gingen genau die in die Cloud -- und weil markSynced danach den
+      // Stempel setzt, blieben sie dort stehen. Auch vor dem Scharfmachen
+      // der Aufzeichnung, damit keine gerade laufende Fahrt dazwischen
+      // geraet.
+      await _repairOpenTrips();
+
       _maybeStartTracking();
       _uploadPendingTrips();
       _refreshTripCache();
@@ -156,6 +164,23 @@ class _HomeShellState extends ConsumerState<HomeShell>
     if (state == AppLifecycleState.resumed) {
       _maybeStartTracking();
       _uploadPendingTrips();
+    }
+  }
+
+  /// Rechnet Fahrten nach, die nie abgeschlossen wurden.
+  ///
+  /// Sie entstehen, wenn der Prozess zwischen Fahrtbeginn und Fahrtende
+  /// endet -- iOS beendet die App, nachdem man geparkt und das Telefon
+  /// gesperrt hat. Die Punkte liegen dann bereits auf der Platte, nur die
+  /// Kennzahlen fehlen (siehe TripRepair).
+  Future<void> _repairOpenTrips() async {
+    try {
+      final repaired = await ref.read(tripRepairProvider).run();
+      if (repaired > 0 && mounted) ref.invalidate(keptTripsProvider);
+    } on Exception {
+      // Eine fehlgeschlagene Reparatur darf den Start nicht aufhalten:
+      // die Fahrt bleibt liegen und wird beim naechsten Mal erneut
+      // versucht.
     }
   }
 

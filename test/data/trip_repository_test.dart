@@ -8,9 +8,14 @@ import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/stats/stats_engine.dart';
 
-Trip newTrip() => Trip(
+/// Eine *abgeschlossene* Fahrt.
+///
+/// Mit Endzeit, weil das der Normalfall ist: ohne sie gilt die Fahrt als
+/// noch laufend, und keptTrips wie unsyncedTrips halten sie bewusst
+/// zurueck (siehe TripRepair).
+Trip newTrip({bool finished = true}) => Trip(
       startTime: DateTime(2026),
-      endTime: null,
+      endTime: finished ? DateTime(2026, 1, 1, 0, 30) : null,
       maxSpeed: 0,
       avgSpeed: 0,
       distance: 0,
@@ -195,6 +200,51 @@ void main() {
     test('tut nichts, wenn nichts jenseits der Grenze liegt', () async {
       await synced(DateTime(2026, 2, 1), uuid: 'neu');
       expect(await repo.evictSyncedBeyond(10), 0);
+    });
+  });
+
+  group('abgebrochene Fahrten', () {
+    // Eine Fahrt entsteht beim Beginn mit lauter Nullen und ohne Endzeit.
+    // Stirbt der Prozess vor dem Fahrtende, bleibt sie so stehen -- und
+    // stand vorher wie eine fertige Fahrt in Liste und Cloud.
+    test('bleiben aus der Fahrtenliste heraus', () async {
+      await repo.createTrip(newTrip());
+      await repo.createTrip(newTrip(finished: false));
+
+      expect(await repo.keptTrips(), hasLength(1));
+    });
+
+    test('werden nicht zum Hochladen angeboten', () async {
+      // Der teuerste Teil des Defekts: markSynced setzt nach dem Upload
+      // den Stempel, und danach kam die Fahrt nie wieder an die Reihe --
+      // die Nullen standen damit dauerhaft in der Cloud.
+      await repo.createTrip(newTrip(finished: false));
+
+      expect(await repo.unsyncedTrips(), isEmpty);
+    });
+
+    test('sind ueber openTrips auffindbar', () async {
+      await repo.createTrip(newTrip());
+      final open = await repo.createTrip(newTrip(finished: false));
+
+      final found = await repo.openTrips();
+      expect(found, hasLength(1));
+      expect(found.single.id, open);
+    });
+
+    test('finalizeTrip macht den Cloud-Stempel ungueltig', () async {
+      // Sonst behielte die Cloud die Nullen: die Fahrt waere lokal
+      // repariert, aber als bereits hochgeladen abgehakt.
+      final id = await repo.createTrip(newTrip(finished: false));
+      await repo.markSynced((await repo.openTrips()).single.clientUuid);
+
+      await repo.finalizeTrip(
+        id,
+        TripStats.empty,
+        DateTime(2026, 1, 1, 0, 30),
+      );
+
+      expect(await repo.unsyncedTrips(), hasLength(1));
     });
   });
 }
