@@ -68,10 +68,6 @@
   "liveWaiting": "Waiting for the drive to start …",
   "liveDistance": "Distance",
   "liveDuration": "Duration",
-  "driverTitle": "Were you driving?",
-  "driverBody": "Were you the driver? Only your own drives are kept. Drives recorded as a passenger can be discarded.",
-  "driverKeep": "Keep",
-  "driverDiscard": "Discard",
   "rankingScopeWorld": "World",
   "rankingScopeCountry": "Country",
   "rankingScopeFriends": "Friends",
@@ -153,6 +149,33 @@
   "settingsUsernameSaved": "Username changed.",
   "settingsBackup": "Backup",
   "settingsBackupSubtitle": "Write your drives to a file or read them back",
+  "settingsPending": "Waiting to upload",
+  "settingsPendingCount": "{count, plural, =0{All drives are in the cloud} =1{One drive is waiting} other{{count} drives are waiting}}",
+  "@settingsPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPendingAction": "Upload now",
+  "settingsPendingDone": "{count, plural, =0{Nothing to do} =1{One drive uploaded} other{{count} drives uploaded}}",
+  "@settingsPendingDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPendingRejected": "{count, plural, =1{One drive was rejected} other{{count} drives were rejected}} and stays behind.",
+  "@settingsPendingRejected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPendingFailed": "Upload not possible — is there a connection?",
   "tourSkip": "Skip",
   "tourNext": "Next",
   "tourDone": "Let's go",

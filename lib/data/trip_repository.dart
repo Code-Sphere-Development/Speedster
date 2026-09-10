@@ -16,8 +16,6 @@ abstract class TripRepository {
     DateTime endTime, {
     int? cloudVehicleId,
   });
-  Future<void> setKept(int tripId, bool kept);
-
   /// Die `client_uuid` einer Fahrt, oder null, wenn es sie nicht gibt.
   ///
   /// Gebraucht, um eine bereits hochgeladene Fahrt in der Cloud wieder zu
@@ -135,29 +133,6 @@ class DriftTripRepository implements TripRepository {
     await (db.update(db.trips)..where((t) => t.id.equals(tripId))).write(
       TripsCompanion(purpose: Value(purpose), note: Value(note)),
     );
-  }
-
-  @override
-  Future<void> setKept(int tripId, bool kept) async {
-    await (db.update(db.trips)..where((t) => t.id.equals(tripId)))
-        .write(TripsCompanion(kept: Value(kept)));
-    if (!kept) {
-      await _invalidateHeat();
-    }
-  }
-
-  /// Verwirft die Heatmap-Aggregate und markiert alle Fahrten als ungefaltet.
-  ///
-  /// Der Neuaufbau passiert beim naechsten Laden der Heatmap, nicht hier:
-  /// der Nutzer soll im Beifahrer-Dialog nicht auf eine Aggregation warten.
-  /// Eine Fahrt exakt herauszurechnen waere fehleranfaelliger als ein
-  /// Neuaufbau, und Ruecknahmen sind selten.
-  Future<void> _invalidateHeat() async {
-    await db.delete(db.heatEdges).go();
-    await db.delete(db.heatCells).go();
-    await db.update(db.trips).write(
-          const TripsCompanion(heatFoldedAt: Value(null)),
-        );
   }
 
   @override

@@ -156,19 +156,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveDuration => 'Duration';
 
   @override
-  String get driverTitle => 'Were you driving?';
-
-  @override
-  String get driverBody =>
-      'Were you the driver? Only your own drives are kept. Drives recorded as a passenger can be discarded.';
-
-  @override
-  String get driverKeep => 'Keep';
-
-  @override
-  String get driverDiscard => 'Discard';
-
-  @override
   String get rankingScopeWorld => 'World';
 
   @override
@@ -405,6 +392,51 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsBackupSubtitle =>
       'Write your drives to a file or read them back';
+
+  @override
+  String get settingsPending => 'Waiting to upload';
+
+  @override
+  String settingsPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count drives are waiting',
+      one: 'One drive is waiting',
+      zero: 'All drives are in the cloud',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsPendingAction => 'Upload now';
+
+  @override
+  String settingsPendingDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count drives uploaded',
+      one: 'One drive uploaded',
+      zero: 'Nothing to do',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsPendingRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count drives were rejected',
+      one: 'One drive was rejected',
+    );
+    return '$_temp0 and stays behind.';
+  }
+
+  @override
+  String get settingsPendingFailed =>
+      'Upload not possible — is there a connection?';
 
   @override
   String get tourSkip => 'Skip';

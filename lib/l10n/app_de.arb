@@ -82,10 +82,6 @@
   "liveWaiting": "Warte auf Fahrtbeginn …",
   "liveDistance": "Distanz",
   "liveDuration": "Dauer",
-  "driverTitle": "Selbst gefahren?",
-  "driverBody": "Warst du der Fahrer? Nur eigene Fahrten werden behalten. Als Beifahrer aufgezeichnete Fahrten kannst du verwerfen.",
-  "driverKeep": "Behalten",
-  "driverDiscard": "Verwerfen",
   "rankingScopeWorld": "Welt",
   "rankingScopeCountry": "Land",
   "rankingScopeFriends": "Freunde",
@@ -174,6 +170,33 @@
   "settingsUsernameSaved": "Benutzername geändert.",
   "settingsBackup": "Sicherung",
   "settingsBackupSubtitle": "Fahrten in eine Datei schreiben oder zurücklesen",
+  "settingsPending": "Warten auf Upload",
+  "settingsPendingCount": "{count, plural, =0{Alle Fahrten sind in der Cloud} =1{Eine Fahrt wartet} other{{count} Fahrten warten}}",
+  "@settingsPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPendingAction": "Jetzt hochladen",
+  "settingsPendingDone": "{count, plural, =0{Nichts zu tun} =1{Eine Fahrt hochgeladen} other{{count} Fahrten hochgeladen}}",
+  "@settingsPendingDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPendingRejected": "{count, plural, =1{Eine Fahrt wurde abgewiesen} other{{count} Fahrten wurden abgewiesen}} und bleibt liegen.",
+  "@settingsPendingRejected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPendingFailed": "Kein Upload möglich — besteht eine Verbindung?",
   "tourSkip": "Überspringen",
   "tourNext": "Weiter",
   "tourDone": "Los geht's",

@@ -30,6 +30,7 @@ import 'package:speedster/sensors/last_known_location.dart';
 import 'package:speedster/widgets/widget_publisher.dart';
 import 'package:speedster/widgets/widget_store.dart';
 import 'package:speedster/sensors/location_service.dart';
+import 'package:speedster/settings/settings_controller.dart';
 
 /// Opened in main() and injected via override.
 final databaseProvider = Provider<AppDatabase>(
@@ -257,6 +258,16 @@ final defaultVehicleProvider = FutureProvider<Vehicle?>((ref) async {
     (v) => v.isDefault,
     orElse: () => vehicles.first,
   );
+});
+
+/// Wie viele Fahrten auf den Upload warten.
+///
+/// Ohne Cloud immer null: dann wartet nichts, die Fahrten liegen dort, wo
+/// sie hingehoeren.
+final pendingUploadsProvider = FutureProvider<int>((ref) async {
+  if (!ref.watch(settingsControllerProvider).cloudEnabled) return 0;
+
+  return ref.watch(cloudSyncServiceProvider).pendingCount();
 });
 
 final rankingRepositoryProvider = Provider<RankingRepository>(

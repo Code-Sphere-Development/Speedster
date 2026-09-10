@@ -28,7 +28,12 @@ class Trip {
   final int durationSeconds;
   final double? zeroToHundredSeconds;
 
-  /// false = discarded (rode as passenger); excluded from lists and rankings.
+  /// false = verworfen; bleibt aus Listen und Wertungen heraus.
+  ///
+  /// Es gibt keinen Weg mehr, das zu setzen: die Rueckfrage "selbst
+  /// gefahren?" ist weg, wer aufzeichnet, faehrt selbst. Bestaende aus
+  /// frueheren Fassungen tragen den Wert aber noch, und ihre Fahrten
+  /// sollen verworfen bleiben.
   final bool kept;
 
   /// Stable client-generated id for idempotent cloud upload.

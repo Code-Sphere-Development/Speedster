@@ -1,6 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:speedster/data/database.dart' show AppDatabase;
+import 'package:speedster/data/database.dart' show AppDatabase, TripsCompanion;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/heat/heat_folder.dart';
 import 'package:speedster/domain/track_point.dart';
@@ -59,9 +60,18 @@ void main() {
     expect((await repo.pointsFor(id)).length, 1);
   });
 
-  test('setKept(false) hides trip from keptTrips', () async {
-    final id = await repo.createTrip(newTrip());
-    await repo.setKept(id, false);
+  test('verworfene Fahrten bleiben aus der Liste heraus', () async {
+    // Es gibt keinen Weg mehr, eine Fahrt zu verwerfen -- die Rueckfrage
+    // "selbst gefahren?" ist weg. Wer sie frueher benutzt hat, dessen
+    // verworfene Fahrten duerfen aber nicht wieder auftauchen, also
+    // filtert keptTrips() weiterhin.
+    await db.into(db.trips).insert(
+          TripsCompanion.insert(
+            startTime: DateTime(2026, 8, 17, 12),
+            kept: const Value(false),
+          ),
+        );
+
     expect(await repo.keptTrips(), isEmpty);
   });
 
@@ -107,28 +117,6 @@ void main() {
     expect(await db.select(db.heatCells).get(), isEmpty);
   });
 
-  test('setKept(false) invalidiert die Heatmap-Aggregate', () async {
-    final id = await repo.createTrip(newTrip());
-    await repo.addPoints(id, [
-      for (var i = 0; i < 20; i++)
-        TrackPoint(
-          tripId: id,
-          lat: 50.0 + (i * 12) / 111320.0,
-          lng: 6.0,
-          speed: 20,
-          altitude: 100,
-          accuracy: 5,
-          timestamp: DateTime.utc(2026, 1, 1).add(Duration(seconds: i)),
-        ),
-    ]);
-    await HeatFolder(db, runner: (fn, msg) async => fn(msg)).foldPending();
-    expect(await db.select(db.heatEdges).get(), isNotEmpty);
-
-    await repo.setKept(id, false);
-
-    // Verworfene Beifahrer-Fahrten duerfen in der Heatmap nicht leuchten.
-    expect(await db.select(db.heatEdges).get(), isEmpty);
-  });
 
   group('evictSyncedBeyond', () {
     Future<int> synced(DateTime start, {String uuid = ''}) => repo.createTrip(

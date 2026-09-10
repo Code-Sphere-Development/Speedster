@@ -96,7 +96,7 @@ void main() {
     await rec.start();
 
     final driving = states.firstWhere(
-      (s) => s.isDriving && s.awaitingConfirmationTripId == null && s.elapsedSeconds > 0,
+      (s) => s.isDriving && s.endedTripId == null && s.elapsedSeconds > 0,
     );
     expect(driving.distanceMeters, greaterThan(100));
     expect(driving.elapsedSeconds, 4); // t=10 minus start t=6

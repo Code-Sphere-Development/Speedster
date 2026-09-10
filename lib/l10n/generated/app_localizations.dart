@@ -344,30 +344,6 @@ abstract class AppLocalizations {
   /// **'Dauer'**
   String get liveDuration;
 
-  /// No description provided for @driverTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Selbst gefahren?'**
-  String get driverTitle;
-
-  /// No description provided for @driverBody.
-  ///
-  /// In de, this message translates to:
-  /// **'Warst du der Fahrer? Nur eigene Fahrten werden behalten. Als Beifahrer aufgezeichnete Fahrten kannst du verwerfen.'**
-  String get driverBody;
-
-  /// No description provided for @driverKeep.
-  ///
-  /// In de, this message translates to:
-  /// **'Behalten'**
-  String get driverKeep;
-
-  /// No description provided for @driverDiscard.
-  ///
-  /// In de, this message translates to:
-  /// **'Verwerfen'**
-  String get driverDiscard;
-
   /// No description provided for @rankingScopeWorld.
   ///
   /// In de, this message translates to:
@@ -811,6 +787,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Fahrten in eine Datei schreiben oder zurücklesen'**
   String get settingsBackupSubtitle;
+
+  /// No description provided for @settingsPending.
+  ///
+  /// In de, this message translates to:
+  /// **'Warten auf Upload'**
+  String get settingsPending;
+
+  /// No description provided for @settingsPendingCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Alle Fahrten sind in der Cloud} =1{Eine Fahrt wartet} other{{count} Fahrten warten}}'**
+  String settingsPendingCount(int count);
+
+  /// No description provided for @settingsPendingAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Jetzt hochladen'**
+  String get settingsPendingAction;
+
+  /// No description provided for @settingsPendingDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Nichts zu tun} =1{Eine Fahrt hochgeladen} other{{count} Fahrten hochgeladen}}'**
+  String settingsPendingDone(int count);
+
+  /// No description provided for @settingsPendingRejected.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{Eine Fahrt wurde abgewiesen} other{{count} Fahrten wurden abgewiesen}} und bleibt liegen.'**
+  String settingsPendingRejected(int count);
+
+  /// No description provided for @settingsPendingFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Upload möglich — besteht eine Verbindung?'**
+  String get settingsPendingFailed;
 
   /// No description provided for @tourSkip.
   ///
