@@ -326,6 +326,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get friendsWithdrawn => 'Zurückgezogen.';
 
   @override
+  String get notificationChannelName => 'Fahrtaufzeichnung';
+
+  @override
+  String get notificationChannelNameAudible => 'Fahrtaufzeichnung mit Ton';
+
+  @override
+  String get notificationTripStartedTitle => 'Aufzeichnung läuft';
+
+  @override
+  String get notificationTripStartedBody =>
+      'Speedster zeichnet deine Fahrt auf.';
+
+  @override
+  String get settingsNotifyTitle => 'Fahrtbeginn melden';
+
+  @override
+  String get settingsNotifySubtitle =>
+      'Kurze Mitteilung, auch auf der Apple Watch — im Auto mit Ton';
+
+  @override
+  String get settingsNotifyDenied =>
+      'Dafür braucht Speedster die Erlaubnis für Mitteilungen. Du kannst sie in den Systemeinstellungen erteilen.';
+
+  @override
   String get settingsSectionRecording => 'Aufzeichnung';
 
   @override

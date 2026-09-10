@@ -662,6 +662,48 @@ abstract class AppLocalizations {
   /// **'Zurückgezogen.'**
   String get friendsWithdrawn;
 
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrtaufzeichnung'**
+  String get notificationChannelName;
+
+  /// No description provided for @notificationChannelNameAudible.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrtaufzeichnung mit Ton'**
+  String get notificationChannelNameAudible;
+
+  /// No description provided for @notificationTripStartedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufzeichnung läuft'**
+  String get notificationTripStartedTitle;
+
+  /// No description provided for @notificationTripStartedBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Speedster zeichnet deine Fahrt auf.'**
+  String get notificationTripStartedBody;
+
+  /// No description provided for @settingsNotifyTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrtbeginn melden'**
+  String get settingsNotifyTitle;
+
+  /// No description provided for @settingsNotifySubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Kurze Mitteilung, auch auf der Apple Watch — im Auto mit Ton'**
+  String get settingsNotifySubtitle;
+
+  /// No description provided for @settingsNotifyDenied.
+  ///
+  /// In de, this message translates to:
+  /// **'Dafür braucht Speedster die Erlaubnis für Mitteilungen. Du kannst sie in den Systemeinstellungen erteilen.'**
+  String get settingsNotifyDenied;
+
   /// No description provided for @settingsSectionRecording.
   ///
   /// In de, this message translates to:

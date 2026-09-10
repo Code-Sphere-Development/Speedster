@@ -17,6 +17,11 @@ Das Laravel-Backend liegt in einem eigenen Repository:
   dazu ein Urteil gegen die eigene Gewohnheit auf dieser Strecke: schneller als
   sonst, wie üblich, langsamer. Die App kennt keine Tempolimits und behauptet
   das auch nirgends.
+- **Meldung zum Fahrtbeginn** als Gegenprobe, dass die Aufzeichnung
+  angesprungen ist — iOS spiegelt sie auf eine gekoppelte Apple Watch,
+  solange die Uhr am Handgelenk und das iPhone gesperrt ist. Über CarPlay
+  oder Android Auto kommt sie mit Ton: dort schaut man weder auf die Uhr
+  noch aufs Display. Abschaltbar in den Einstellungen.
 - **Heatmap** aller gefahrenen Strecken, lokal aus den Punkten gefaltet.
 - **Bestenliste** weltweit, im eigenen Land, unter Freunden oder nach Fahrzeug,
   jeweils für Woche, Monat oder gesamt.
@@ -95,6 +100,7 @@ magick bild.png -background black -alpha remove -alpha off bild.png
 | `lib/heat/` | Rasterung, Faltung und Farbskala der Heatmap |
 | `lib/cloud/` | API-Zugriff: Konto, Fahrten, Freunde, Fahrzeuge, Bestenliste |
 | `lib/live/` | Live Activity auf dem Sperrbildschirm |
+| `lib/notifications/` | Mitteilung zum Fahrtbeginn |
 | `lib/widgets/` | Daten für die Homescreen-Widgets |
 | `lib/ui/` | Bildschirme |
 | `ios/SpeedsterWidgets/` | Widget-Erweiterung und Live Activity (Swift) |
@@ -108,6 +114,10 @@ magick bild.png -background black -alpha remove -alpha off bild.png
 - **`UIFileSharingEnabled`** und **`LSSupportsOpeningDocumentsInPlace`** machen
   den Dokumentenordner in der Dateien-App sichtbar. Ohne beides läge die
   Sicherung an einer Stelle, an die niemand herankommt.
+- **`UNUserNotificationCenter.current().delegate`** wird im `AppDelegate`
+  gesetzt. Ohne das verwirft iOS eine Mitteilung stillschweigend, solange
+  die App im Vordergrund steht — also genau in dem Fall, in dem man die
+  Meldung zum Fahrtbeginn zuerst ausprobiert.
 - Die Widget-Erweiterung zieht Version und Build über `$(FLUTTER_BUILD_NAME)`
   und `$(FLUTTER_BUILD_NUMBER)` aus derselben Quelle wie die App — Apple weist
   Uploads sonst wegen abweichender Versionsnummern zurück.

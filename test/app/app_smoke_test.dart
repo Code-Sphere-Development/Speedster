@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
@@ -42,6 +43,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           permissionGateProvider
               .overrideWithValue(FakePermissionGate(granted: false)),
+          tripNotifierProvider.overrideWithValue(RecordingTripNotifier()),
           keptTripsProvider.overrideWith((ref) => []),
           heatSourceProvider.overrideWithValue(_EmptyHeatSource()),
           cloudActiveProvider.overrideWith((ref) async => false),

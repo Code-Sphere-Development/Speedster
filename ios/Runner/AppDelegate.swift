@@ -1,6 +1,7 @@
 import AVFoundation
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -12,6 +13,13 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Ohne das zeigt iOS eine Mitteilung nicht an, solange die App im
+    // Vordergrund steht -- sie wird stillschweigend verworfen. Genau das
+    // ist aber der Fall, in dem man die Meldung zum Fahrtbeginn zuerst
+    // ausprobiert: App offen, losgefahren, nichts passiert.
+    UNUserNotificationCenter.current().delegate =
+      self as? UNUserNotificationCenterDelegate
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

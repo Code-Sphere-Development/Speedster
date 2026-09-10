@@ -323,6 +323,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendsWithdrawn => 'Withdrawn.';
 
   @override
+  String get notificationChannelName => 'Trip recording';
+
+  @override
+  String get notificationChannelNameAudible => 'Trip recording with sound';
+
+  @override
+  String get notificationTripStartedTitle => 'Recording your drive';
+
+  @override
+  String get notificationTripStartedBody => 'Speedster has started recording.';
+
+  @override
+  String get settingsNotifyTitle => 'Notify on trip start';
+
+  @override
+  String get settingsNotifySubtitle =>
+      'A brief notification, on your Apple Watch too — with sound in the car';
+
+  @override
+  String get settingsNotifyDenied =>
+      'Speedster needs permission to send notifications. You can grant it in system settings.';
+
+  @override
   String get settingsSectionRecording => 'Recording';
 
   @override

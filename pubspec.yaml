@@ -53,6 +53,7 @@ dependencies:
   flutter_secure_storage: ^11.0.0
   url_launcher: ^6.3.2
   package_info_plus: ^10.2.1
+  flutter_local_notifications: ^22.3.0
 
 dev_dependencies:
   # Zeitgesteuertes ohne echtes Warten pruefen -- etwa die Frist, nach der

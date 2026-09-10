@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/heat_map.dart';
@@ -25,6 +26,7 @@ Widget wrap(SharedPreferences prefs, Stream<RecorderState> states) =>
         sharedPreferencesProvider.overrideWithValue(prefs),
         permissionGateProvider
             .overrideWithValue(FakePermissionGate(granted: false)),
+        tripNotifierProvider.overrideWithValue(RecordingTripNotifier()),
         heatSourceProvider.overrideWithValue(_EmptySource()),
         cloudActiveProvider.overrideWith((ref) async => false),
         keptTripsProvider.overrideWith((ref) => []),
@@ -195,6 +197,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(await prefs()),
           permissionGateProvider
               .overrideWithValue(FakePermissionGate(granted: false)),
+          tripNotifierProvider.overrideWithValue(RecordingTripNotifier()),
           heatSourceProvider.overrideWithValue(_EmptySource()),
           cloudActiveProvider.overrideWith((ref) async => false),
           recorderStateProvider.overrideWith((ref) => const Stream.empty()),

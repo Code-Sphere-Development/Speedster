@@ -8,6 +8,7 @@ import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/sensors/location_service.dart';
 import 'package:speedster/stats/stats_engine.dart';
 
@@ -49,6 +50,7 @@ class TripRecorder {
     required this.repo,
     this.carConnected,
     this.liveActivity,
+    this.notifier,
     this.usualSpeed,
     this.comparison = const SpeedComparison(),
     this.defaultVehicleId,
@@ -81,6 +83,13 @@ class TripRecorder {
   /// aufgezeichnet wie zuvor. Die Anzeige ist Beiwerk und darf nie der
   /// Grund sein, dass eine Fahrt nicht zustande kommt.
   final LiveActivity? liveActivity;
+
+  /// Meldet den Fahrtbeginn als Mitteilung -- die Gegenprobe, dass die
+  /// Aufzeichnung angesprungen ist. Wie [liveActivity] optional und wie
+  /// sie Beiwerk: fehlt sie oder schlaegt sie fehl, wird trotzdem
+  /// aufgezeichnet. Ob ueberhaupt gemeldet wird, entscheidet der Melder
+  /// selbst -- der Rekorder soll die Einstellungsschicht nicht kennen.
+  final TripNotifier? notifier;
 
   /// Liefert die gewohnte Geschwindigkeit am aktuellen Ort, den Massstab
   /// fuer "schneller/langsamer als sonst".
@@ -178,6 +187,9 @@ class TripRecorder {
       _savedCount = 0;
       _lastActivityUpdate = null;
       await _pushActivity(s, start: true);
+      // Der Verbindungsstand kommt vom Detektor: er fuehrt ihn ohnehin,
+      // weil eine bestehende Verbindung das Fahrtende unterdrueckt.
+      await notifier?.tripStarted(inCar: detector.carConnected);
       _emit(isDriving: true, last: s);
       return;
     }
@@ -211,6 +223,7 @@ class TripRecorder {
       _buffer.clear();
       _savedCount = 0;
       await liveActivity?.end();
+      await notifier?.tripEnded();
       _emit(isDriving: false, last: s, endedTripId: endedTripId);
       _startTime = null;
       _distance = 0;

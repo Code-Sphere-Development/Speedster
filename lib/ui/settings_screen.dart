@@ -52,6 +52,40 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  /// Schaltet die Meldung zum Fahrtbeginn ein oder aus.
+  ///
+  /// Die Erlaubnis wird erst beim Einschalten abgefragt und nicht beim
+  /// ersten Start: ungefragt gefragt zu werden laedt zum Ablehnen ein,
+  /// und danach fuehrt der Weg nur noch ueber die Systemeinstellungen.
+  ///
+  /// Wird sie verweigert, bleibt der Schalter aus. Ihn umzulegen und dann
+  /// nichts zu melden waere die schlechtere Antwort -- die Funktion ist
+  /// eine Gegenprobe, und eine, die stumm ausfaellt, ist keine.
+  Future<void> _toggleNotify(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final controller = ref.read(settingsControllerProvider.notifier);
+
+    if (!enabled) {
+      await controller.setNotifyOnTripStart(false);
+      return;
+    }
+
+    // Vor dem Warten holen: danach ist der Kontext moeglicherweise nicht
+    // mehr eingehaengt.
+    final messenger = ScaffoldMessenger.of(context);
+    final denied = AppLocalizations.of(context).settingsNotifyDenied;
+
+    if (await ref.read(tripNotifierProvider).requestPermission()) {
+      await controller.setNotifyOnTripStart(true);
+      return;
+    }
+
+    messenger.showSnackBar(SnackBar(content: Text(denied)));
+  }
+
   Future<void> _toggleCloud(
     BuildContext context,
     WidgetRef ref,
@@ -155,6 +189,14 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(l.settingsPauseSubtitle),
             value: settings.trackingPaused,
             onChanged: controller.setTrackingPaused,
+          ),
+          SwitchListTile(
+            key: const Key('notifySwitch'),
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: Text(l.settingsNotifyTitle),
+            subtitle: Text(l.settingsNotifySubtitle),
+            value: settings.notifyOnTripStart,
+            onChanged: (v) => _toggleNotify(context, ref, v),
           ),
           SectionHeader(title: l.settingsSectionAccount),
           SwitchListTile(

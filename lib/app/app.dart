@@ -137,6 +137,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
       // Anfragen-Dialog darueber, und man beantwortete etwas, das man
       // noch gar nicht einordnen kann.
       await _maybeShowTour();
+      // Nach dem Rundgang: dort steht, wozu die App den Standort und die
+      // Mitteilungen braucht. Davor gefragt waere es eine Abfrage ohne
+      // erkennbaren Anlass.
+      await _ensureNotificationPermission();
       _askAboutFriendRequests();
     });
   }
@@ -165,6 +169,27 @@ class _HomeShellState extends ConsumerState<HomeShell>
       _maybeStartTracking();
       _uploadPendingTrips();
     }
+  }
+
+  /// Holt die Erlaubnis fuer die Meldung zum Fahrtbeginn ein.
+  ///
+  /// Die Einstellung ist voreingestellt an, die Erlaubnis aber nicht --
+  /// ohne diese Stelle bliebe die Meldung auf einer frischen
+  /// Installation stumm, und der Schalter behauptete das Gegenteil.
+  ///
+  /// Wird sie verweigert, faellt der Schalter auf aus. Er soll nicht
+  /// etwas versprechen, was iOS anschliessend verwirft; wer ihn danach
+  /// wieder umlegt, bekommt den Hinweis auf die Systemeinstellungen.
+  ///
+  /// iOS fragt nur beim ersten Mal nach; spaetere Aufrufe liefern den
+  /// bestehenden Stand zurueck, ohne einen Dialog zu zeigen.
+  Future<void> _ensureNotificationPermission() async {
+    if (!ref.read(settingsControllerProvider).notifyOnTripStart) return;
+    if (await ref.read(tripNotifierProvider).requestPermission()) return;
+
+    await ref
+        .read(settingsControllerProvider.notifier)
+        .setNotifyOnTripStart(false);
   }
 
   /// Rechnet Fahrten nach, die nie abgeschlossen wurden.

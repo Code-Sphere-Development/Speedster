@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
+import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/recording/trip_repair.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
@@ -72,6 +74,16 @@ final tripDetectorProvider = Provider<TripDetector>(
   (ref) => TripDetector(const DetectorConfig()),
 );
 
+/// Meldet den Fahrtbeginn. Ob gemeldet wird, liest der Melder bei jedem
+/// Fahrtbeginn frisch aus den Einstellungen -- ueber ref.read und nicht
+/// ref.watch, damit ein umgelegter Schalter nicht den Rekorder samt
+/// laufender Fahrt neu erzeugt.
+final tripNotifierProvider = Provider<TripNotifier>(
+  (ref) => LocalTripNotifier(
+    enabled: () => ref.read(settingsControllerProvider).notifyOnTripStart,
+  ),
+);
+
 final recorderProvider = Provider<TripRecorder>(
   (ref) => TripRecorder(
     source: ref.watch(sampleSourceProvider),
@@ -81,6 +93,7 @@ final recorderProvider = Provider<TripRecorder>(
     // Ampel und Stau sind kein Fahrtende (siehe TripDetector.carConnected).
     carConnected: ref.watch(carConnectionProvider).connected,
     liveActivity: ref.watch(liveActivityProvider),
+    notifier: ref.watch(tripNotifierProvider),
     usualSpeed: UsualSpeedReader(ref.watch(databaseProvider)),
     // Erst am Fahrtende abgefragt, nicht beim Erzeugen: die Garage kann
     // sich waehrend der Fahrt aendern. Faellt die Abfrage aus -- kein

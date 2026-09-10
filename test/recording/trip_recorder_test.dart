@@ -5,6 +5,7 @@ import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
 import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/domain/sample.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/sensors/location_service.dart';
@@ -155,6 +156,81 @@ void main() {
     expect((await repo.keptTrips()).single.endTime, isNotNull);
     await rec.stop();
     await db.close();
+  });
+
+  group('Mitteilung zum Fahrtbeginn', () {
+    test('meldet den Beginn und nimmt die Meldung am Ende weg', () async {
+      // Die Gegenprobe, dass die Aufzeichnung angesprungen ist -- ohne
+      // sie sieht man das erst hinterher an der Fahrtenliste, und wenn
+      // sie nicht angesprungen ist, gar nicht.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final notifier = RecordingTripNotifier();
+      final rec = TripRecorder(
+        source: FakeSampleSource([
+          s(10, 0), s(10, 6), // Fahrtbeginn
+          s(20, 10),
+          s(0, 20), s(0, 85), // Fahrtende
+        ]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        notifier: notifier,
+      );
+
+      await rec.start();
+
+      expect(notifier.started, 1);
+      expect(notifier.ended, 1);
+      expect(notifier.startedInCar, [false]);
+      await rec.stop();
+      await db.close();
+    });
+
+    test('meldet mit Ton, wenn das Auto verbunden ist', () async {
+      // Die Gegenprobe im Auto: dort schaut man weder auf die Uhr noch
+      // aufs Display.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final notifier = RecordingTripNotifier();
+      final rec = TripRecorder(
+        source: FakeSampleSource([
+          s(10, 0), s(10, 6), // Fahrtbeginn
+          s(20, 10),
+        ]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        carConnected: Stream.value(true),
+        notifier: notifier,
+      );
+
+      await rec.start();
+
+      expect(notifier.startedInCar, [true]);
+      await rec.stop();
+      await db.close();
+    });
+
+    test('zeichnet auch ohne Melder auf', () async {
+      // Die Meldung ist Beiwerk und darf nie der Grund sein, dass eine
+      // Fahrt nicht zustande kommt.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final rec = TripRecorder(
+        source: FakeSampleSource([
+          s(10, 0), s(10, 6),
+          s(20, 10),
+          s(0, 20), s(0, 85),
+        ]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+      );
+
+      await rec.start();
+
+      expect(await repo.keptTrips(), hasLength(1));
+      await rec.stop();
+      await db.close();
+    });
   });
 
   group('Sperrbildschirm', () {

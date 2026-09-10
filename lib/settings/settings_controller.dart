@@ -16,6 +16,7 @@ class SettingsState {
     this.trackingPaused = false,
     this.consentAccepted = false,
     this.tourSeen = false,
+    this.notifyOnTripStart = true,
   });
 
   final UnitSystem unit;
@@ -29,17 +30,27 @@ class SettingsState {
   /// nicht bei jedem Start wiederkommen.
   final bool tourSeen;
 
+  /// Ob der Beginn einer Fahrt als Mitteilung gemeldet wird.
+  ///
+  /// Voreingestellt an: dass die Aufzeichnung angesprungen ist, sieht man
+  /// sonst erst hinterher an der Fahrtenliste -- und wenn sie nicht
+  /// angesprungen ist, gar nicht. Wem das zu viel ist, schaltet es in den
+  /// Einstellungen ab.
+  final bool notifyOnTripStart;
+
   SettingsState copyWith({
     UnitSystem? unit,
     bool? trackingPaused,
     bool? consentAccepted,
     bool? tourSeen,
+    bool? notifyOnTripStart,
   }) {
     return SettingsState(
       unit: unit ?? this.unit,
       trackingPaused: trackingPaused ?? this.trackingPaused,
       consentAccepted: consentAccepted ?? this.consentAccepted,
       tourSeen: tourSeen ?? this.tourSeen,
+      notifyOnTripStart: notifyOnTripStart ?? this.notifyOnTripStart,
     );
   }
 }
@@ -57,6 +68,7 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kPaused = 'trackingPaused';
   static const _kConsent = 'consentAccepted';
   static const _kTour = 'tourSeen';
+  static const _kNotifyStart = 'notifyOnTripStart';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
@@ -68,6 +80,7 @@ class SettingsController extends Notifier<SettingsState> {
       trackingPaused: p.getBool(_kPaused) ?? false,
       consentAccepted: p.getBool(_kConsent) ?? false,
       tourSeen: p.getBool(_kTour) ?? false,
+      notifyOnTripStart: p.getBool(_kNotifyStart) ?? true,
     );
   }
 
@@ -92,6 +105,11 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> setTourSeen(bool seen) async {
     state = state.copyWith(tourSeen: seen);
     await _prefs.setBool(_kTour, seen);
+  }
+
+  Future<void> setNotifyOnTripStart(bool notify) async {
+    state = state.copyWith(notifyOnTripStart: notify);
+    await _prefs.setBool(_kNotifyStart, notify);
   }
 
 }

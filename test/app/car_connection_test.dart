@@ -9,6 +9,7 @@ import 'package:speedster/app/app.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
@@ -27,6 +28,7 @@ Widget wrap(SharedPreferences prefs, {required bool carConnected}) =>
         sharedPreferencesProvider.overrideWithValue(prefs),
         permissionGateProvider
             .overrideWithValue(FakePermissionGate(granted: false)),
+        tripNotifierProvider.overrideWithValue(RecordingTripNotifier()),
         heatSourceProvider.overrideWithValue(_EmptySource()),
         cloudActiveProvider.overrideWith((ref) async => false),
         keptTripsProvider.overrideWith((ref) => []),
