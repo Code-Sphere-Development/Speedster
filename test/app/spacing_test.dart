@@ -22,9 +22,9 @@ void main() {
   });
 
   test('der Seitenrand liegt zwischen l und xl', () {
-    // 20, weil ScreenHeader und listTileTheme diesen Wert fuehren --
-    // faellt er auf eine der Nachbarstufen, wandert die Ueberschrift
-    // jedes Bildschirms.
+    // 20, weil listTileTheme diesen Wert fuehrt -- faellt er auf eine
+    // der Nachbarstufen, wandern die Zeilen jeder Liste gegen ihre
+    // Ueberschrift.
     expect(Insets.screen, greaterThan(Insets.l));
     expect(Insets.screen, lessThan(Insets.xl));
   });

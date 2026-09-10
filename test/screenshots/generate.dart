@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/domain/sample.dart';
 import 'package:speedster/domain/route_preview.dart';
@@ -171,9 +172,20 @@ Widget frame(Widget screen, {required AppTab tab, required String locale}) {
         ];
 
         return Scaffold(
-          // Keine Titelleiste, wie in der App: die Ueberschrift traegt
-          // der Inhalt.
-          body: SafeArea(bottom: false, child: screen),
+          // Derselbe Kopfbereich wie in der App: Name und die beiden
+          // Summen, nicht der Name des Reiters.
+          body: Column(
+            children: [
+              GradientHeader(
+                title: 'Speedster',
+                stats: [
+                  HeaderStat(label: l.headerThisMonth, value: '244,9 km'),
+                  HeaderStat(label: l.headerThisYear, value: '3.120 km'),
+                ],
+              ),
+              Expanded(child: screen),
+            ],
+          ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: tabs.indexOf(tab),
             onDestinationSelected: (_) {},

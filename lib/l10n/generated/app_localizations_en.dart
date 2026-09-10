@@ -18,6 +18,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabLive => 'Live';
 
   @override
+  String get headerThisMonth => 'This month';
+
+  @override
+  String get headerThisYear => 'This year';
+
+  @override
   String get tabTrips => 'Drives';
 
   @override
@@ -85,6 +91,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String tripMapUnavailable(String message) {
     return 'Map unavailable: $message';
   }
+
+  @override
+  String get tripMetrics => 'Metrics';
 
   @override
   String get tripPurpose => 'Purpose';

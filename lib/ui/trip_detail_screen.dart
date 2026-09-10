@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -7,6 +8,7 @@ import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/ui/components/empty_state.dart';
 import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/settings/settings_controller.dart';
@@ -44,8 +46,14 @@ class TripDetailScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(Formatters.dateTime(trip.startTime))),
-      body: ListView(
+      body: Column(
+        children: [
+          GradientHeader(
+            title: Formatters.dateTime(trip.startTime),
+            showBack: true,
+          ),
+          Expanded(
+            child: ListView(
         children: [
           SizedBox(
             height: 280,
@@ -57,61 +65,35 @@ class TripDetailScreen extends ConsumerWidget {
             ),
           ),
           _PurposeBlock(trip: trip),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Insets.screen,
-              Insets.l,
-              Insets.screen,
-              Insets.xl,
-            ),
-            // Zwei Kacheln je Zeile, aus der verfuegbaren Breite gerechnet
-            // statt auf 150 Pixel festgenagelt: fest gesetzt blieb rechts
-            // je nach Geraet ein unterschiedlich breiter Rest stehen.
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = (constraints.maxWidth - Insets.m) / 2;
-
-                return Wrap(
-                  spacing: Insets.m,
-                  runSpacing: Insets.m,
-                  children: [
-                    for (final (label, measure) in [
-                      (l.metricMax, SpeedFormat.speedParts(trip.maxSpeed, unit)),
-                      (
-                        l.metricAverage,
-                        SpeedFormat.speedParts(trip.avgSpeed, unit)
-                      ),
-                      (
-                        l.metricDistance,
-                        SpeedFormat.distanceParts(trip.distance, unit)
-                      ),
-                      (
-                        l.metricDuration,
-                        (
-                          value: Formatters.duration(trip.durationSeconds),
-                          unit: ''
-                        )
-                      ),
-                      (
-                        l.metricZeroToHundred,
-                        Formatters.secondsParts(trip.zeroToHundredSeconds)
-                      ),
-                      (
-                        l.metricElevation,
-                        Formatters.metersParts(trip.elevationGain)
-                      ),
-                    ])
-                      SizedBox(
-                        width: width,
-                        child: _StatTile(label: label, measure: measure),
-                      ),
-                  ],
-                );
-              },
-            ),
+          CardSection(
+            title: l.tripMetrics,
+            icon: Icons.speed,
+            children: [
+              for (final (label, measure) in [
+                (l.metricMax, SpeedFormat.speedParts(trip.maxSpeed, unit)),
+                (l.metricAverage, SpeedFormat.speedParts(trip.avgSpeed, unit)),
+                (
+                  l.metricDistance,
+                  SpeedFormat.distanceParts(trip.distance, unit)
+                ),
+                (
+                  l.metricDuration,
+                  (value: Formatters.duration(trip.durationSeconds), unit: '')
+                ),
+                (
+                  l.metricZeroToHundred,
+                  Formatters.secondsParts(trip.zeroToHundredSeconds)
+                ),
+                (l.metricElevation, Formatters.metersParts(trip.elevationGain)),
+              ])
+                _MetricRow(label: label, measure: measure),
+            ],
           ),
         ],
       ),
+          ),
+        ],
+      )
     );
   }
 }
@@ -159,28 +141,45 @@ class _TripMap extends StatelessWidget {
   }
 }
 
-class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.measure});
+/// Eine Kennzahl als Zeile: Beschriftung links, Wert rechts.
+///
+/// Vorher lagen die sechs Werte als Kacheln in einem Raster und nahmen
+/// den halben Bildschirm. Als Zeilen in einer Karte stehen sie
+/// untereinander auf derselben Kante -- und lassen sich damit vergleichen,
+/// was bei Kacheln nebeneinander nicht ging.
+class _MetricRow extends StatelessWidget {
+  const _MetricRow({required this.label, required this.measure});
 
   final String label;
   final Measure measure;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(Insets.l),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(Radii.small),
-      ),
-      child: MetricValue(
-        value: measure.value,
-        unit: measure.unit.isEmpty ? null : measure.unit,
-        label: label,
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Insets.s),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
+          MetricValue(
+            value: measure.value,
+            unit: measure.unit.isEmpty ? null : measure.unit,
+            size: 20,
+            alignment: CrossAxisAlignment.end,
+          ),
+        ],
       ),
     );
   }
 }
+
 
 /// Zweck und Notiz einer Fahrt.
 ///

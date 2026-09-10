@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
@@ -77,8 +78,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.backupTitle)),
-      body: ListView(
+      body: Column(
+        children: [
+          GradientHeader(title: l.backupTitle, showBack: true),
+          Expanded(
+            child: ListView(
         padding: const EdgeInsets.all(Insets.screen),
         children: [
           Text(l.backupLead),
@@ -111,6 +115,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               ),
         ],
       ),
+          ),
+        ],
+      )
     );
   }
 }

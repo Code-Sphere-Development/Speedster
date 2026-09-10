@@ -18,6 +18,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tabLive => 'Live';
 
   @override
+  String get headerThisMonth => 'Diesen Monat';
+
+  @override
+  String get headerThisYear => 'Dieses Jahr';
+
+  @override
   String get tabTrips => 'Fahrten';
 
   @override
@@ -86,6 +92,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String tripMapUnavailable(String message) {
     return 'Karte nicht verfügbar: $message';
   }
+
+  @override
+  String get tripMetrics => 'Kennzahlen';
 
   @override
   String get tripPurpose => 'Zweck';

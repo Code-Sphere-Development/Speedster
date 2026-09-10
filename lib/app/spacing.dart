@@ -5,9 +5,9 @@
 /// oder 32. Das faellt einzeln nicht auf und in der Summe sofort: nichts
 /// steht untereinander auf derselben Kante.
 ///
-/// [screen] ist 20 und nicht 16, weil `ScreenHeader` und `listTileTheme`
-/// diesen Wert bereits fuehren. Alles andere richtet sich danach, nicht
-/// umgekehrt -- sonst muesste die Ueberschrift jedes Bildschirms wandern.
+/// [screen] ist 20 und nicht 16, weil `listTileTheme` diesen Wert
+/// bereits fuehrt. Alles andere richtet sich danach, nicht umgekehrt --
+/// sonst wandern die Zeilen jeder Liste gegen ihre Ueberschrift.
 abstract final class Insets {
   static const double xs = 4;
   static const double s = 8;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/links.dart';
@@ -7,7 +8,7 @@ import 'package:speedster/cloud/friend_repository.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/components/empty_state.dart';
-import 'package:speedster/ui/components/section_header.dart';
+import 'package:speedster/ui/components/card_section.dart';
 
 /// Freunde verwalten: hinzufuegen, annehmen, entfernen.
 ///
@@ -81,8 +82,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.friendsTitle)),
-      body: overview.when(
+      body: Column(
+        children: [
+          GradientHeader(title: l.friendsTitle, showBack: true),
+          Expanded(
+            child: overview.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => EmptyState(
           icon: Icons.cloud_off,
@@ -234,10 +238,17 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
           ],
         ),
       ),
+          ),
+        ],
+      )
     );
   }
 }
 
+/// Ein Abschnitt der Freundesliste.
+///
+/// Duenne Huelle um [CardSection], damit die drei Aufrufstellen nicht
+/// jeweils dasselbe Symbol mitschleppen muessen.
 class _Section extends StatelessWidget {
   const _Section({required this.title, required this.children});
 
@@ -245,13 +256,9 @@ class _Section extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SectionHeader(title: title),
-        ...children,
-      ],
-    );
-  }
+  Widget build(BuildContext context) => CardSection(
+        title: title,
+        icon: Icons.people_outline,
+        children: children,
+      );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
@@ -85,8 +86,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(_register ? l.authRegister : l.authSignIn)),
-      body: ListView(
+      body: Column(
+        children: [
+          GradientHeader(
+            title: _register ? l.authRegister : l.authSignIn,
+            showBack: true,
+          ),
+          Expanded(
+            child: ListView(
         padding: const EdgeInsets.fromLTRB(
           Insets.screen,
           Insets.xl,
@@ -153,6 +160,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           ),
         ],
       ),
+          ),
+        ],
+      )
     );
   }
 }

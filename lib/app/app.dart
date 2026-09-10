@@ -7,6 +7,8 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
+import 'package:speedster/settings/unit_system.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:speedster/ui/consent_screen.dart';
 import 'package:speedster/ui/garage_screen.dart';
 import 'package:speedster/ui/heatmap_screen.dart';
@@ -355,14 +357,33 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
     final l = AppLocalizations.of(context);
 
+    final unit = ref.watch(settingsControllerProvider).unit;
+    final totals = ref.watch(distanceTotalsProvider);
+
     return Scaffold(
-      // Keine Titelleiste: sie wiederholte nur das Wort, das unten in der
-      // Leiste ohnehin markiert ist, und nahm dafuer eine Zeile Hoehe.
-      // Die Ueberschrift traegt jetzt der Inhalt (siehe ScreenHeader) und
-      // scrollt mit.
-      body: SafeArea(
-        bottom: false,
-        child: IndexedStack(index: tab.index, children: _screens),
+      // Keine Titelleiste im Sinne von Material: der Kopfbereich nennt
+      // den Namen der App und zwei Summen, nicht den des Reiters. Den
+      // sagt die Leiste unten bereits -- ihn oben zu wiederholen war der
+      // Grund, warum die Titelleiste seinerzeit weggefallen ist.
+      body: Column(
+        children: [
+          GradientHeader(
+            title: 'Speedster',
+            stats: [
+              HeaderStat(
+                label: l.headerThisMonth,
+                value: SpeedFormat.distance(totals.month, unit),
+              ),
+              HeaderStat(
+                label: l.headerThisYear,
+                value: SpeedFormat.distance(totals.year, unit),
+              ),
+            ],
+          ),
+          Expanded(
+            child: IndexedStack(index: tab.index, children: _screens),
+          ),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: visible.indexOf(tab),

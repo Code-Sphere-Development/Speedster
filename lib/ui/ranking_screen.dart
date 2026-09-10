@@ -7,7 +7,7 @@ import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/components/empty_state.dart';
 import 'package:speedster/ui/components/metric_value.dart';
-import 'package:speedster/ui/screen_header.dart';
+import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 
@@ -106,17 +106,13 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
     return Column(
       children: [
-        ScreenHeader(
-          title: l.tabRanking,
-          subtitle: l.rankingSummary(
-            scopeLabel(l, _scope),
-            periodLabel(l, _period),
-          ),
-        ),
+        // Keine Seitenueberschrift mehr: die traegt der Kopfbereich der
+        // App. Was Bereich und Zeitfenster sind, steht an den
+        // Bedienelementen selbst.
         Padding(
           padding: const EdgeInsets.fromLTRB(
             Insets.screen,
-            0,
+            Insets.l,
             Insets.screen,
             Insets.m,
           ),
@@ -194,7 +190,13 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
                     icon: Icons.directions_car_outlined,
                     message: l.rankingNoVehicle,
                   )
-                : _BoardList(board: b, metric: _metric, unit: unit),
+                : _BoardList(
+                    board: b,
+                    metric: _metric,
+                    unit: unit,
+                    scope: _scope,
+                    period: _period,
+                  ),
           ),
         ),
       ],
@@ -311,11 +313,19 @@ class _CloudRequired extends StatelessWidget {
 }
 
 class _BoardList extends StatelessWidget {
-  const _BoardList({required this.board, required this.metric, required this.unit});
+  const _BoardList({
+    required this.board,
+    required this.metric,
+    required this.unit,
+    required this.scope,
+    required this.period,
+  });
 
   final RankingBoard board;
   final RankMetric metric;
   final UnitSystem unit;
+  final RankScope scope;
+  final RankPeriod period;
 
   @override
   Widget build(BuildContext context) {
@@ -327,7 +337,16 @@ class _BoardList extends StatelessWidget {
           Builder(
             builder: (context) {
               final scheme = Theme.of(context).colorScheme;
-              return DecoratedBox(
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Insets.l,
+                  Insets.s,
+                  Insets.l,
+                  0,
+                ),
+                child: ClipRRect(
+                borderRadius: BorderRadius.circular(Radii.card),
+                child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: scheme.primaryContainer,
                   // Akzentkante links, wie in der Web-Bestenliste: die
@@ -372,6 +391,8 @@ class _BoardList extends StatelessWidget {
                     );
                   },
                 ),
+                ),
+                ),
               );
             },
           ),
@@ -381,13 +402,22 @@ class _BoardList extends StatelessWidget {
                   icon: Icons.emoji_events_outlined,
                   message: l.rankingEmpty,
                 )
-              : ListView.builder(
-                  itemCount: board.entries.length,
-                  itemBuilder: (context, i) => _BoardRow(
-                    entry: board.entries[i],
-                    metric: metric,
-                    unit: unit,
-                  ),
+              // Eine Karte um die ganze Wertung statt einer Zeile je
+              // Eintrag: die Liste ist eine Gruppe, und die Trennlinien
+              // darin genuegen, um die Eintraege auseinanderzuhalten.
+              : ListView(
+                  padding: const EdgeInsets.only(top: Insets.s),
+                  children: [
+                    CardSection(
+                      title: scopeLabel(l, scope),
+                      icon: Icons.emoji_events_outlined,
+                      trailing: Text(periodLabel(l, period)),
+                      children: [
+                        for (final entry in board.entries)
+                          _BoardRow(entry: entry, metric: metric, unit: unit),
+                      ],
+                    ),
+                  ],
                 ),
         ),
       ],

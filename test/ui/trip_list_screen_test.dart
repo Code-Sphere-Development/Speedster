@@ -6,6 +6,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
+import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/ui/components/route_thumbnail.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
 
@@ -58,7 +59,11 @@ void main() {
       (tester) async {
     await pumpTrips(tester, [trip(1, 10), trip(2, 20)]);
 
-    expect(find.byType(Card), findsNWidgets(2));
+    // Eine Karte je Monat, nicht je Fahrt: beide Fahrten liegen im
+    // Januar 2026 und teilen sich damit einen Abschnitt.
+    expect(find.byType(CardSection), findsOneWidget);
+    expect(find.text('JANUAR 2026'), findsOneWidget);
+
     // Zahl und Einheit stehen in zwei Textknoten: nur so laesst sich die
     // Zahl gross und die Einheit klein setzen.
     expect(find.text('36'), findsOneWidget); // 10 m/s
@@ -95,5 +100,30 @@ void main() {
     ]);
 
     expect(find.byIcon(Icons.cloud_upload_outlined), findsOneWidget);
+  });
+
+  testWidgets('gruppiert nach Monat', (tester) async {
+    // Die Gruppierung ersetzt die Reihe gleich aussehender Karten und
+    // traegt nebenbei eine Zahl, die vorher nirgends stand: wie weit man
+    // in diesem Monat gekommen ist.
+    await pumpTrips(tester, [
+      trip(1, 10),
+      Trip(
+        id: 9,
+        startTime: DateTime(2025, 12, 24, 12),
+        endTime: DateTime(2025, 12, 24, 12, 30),
+        maxSpeed: 30,
+        avgSpeed: 5,
+        distance: 2500,
+        elevationGain: 0,
+        durationSeconds: 1800,
+        zeroToHundredSeconds: null,
+        kept: true,
+      ),
+    ]);
+
+    expect(find.byType(CardSection), findsNWidgets(2));
+    expect(find.text('JANUAR 2026'), findsOneWidget);
+    expect(find.text('DEZEMBER 2025'), findsOneWidget);
   });
 }

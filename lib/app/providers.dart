@@ -19,6 +19,7 @@ import 'package:speedster/data/backup_service.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
+import 'package:speedster/domain/distance_totals.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/cloud_heat_source.dart';
 import 'package:speedster/heat/heat_folder.dart';
@@ -152,6 +153,19 @@ final tripRepairProvider = Provider<TripRepair>(
 final keptTripsProvider = FutureProvider<List<Trip>>(
   (ref) => ref.watch(tripSourceProvider).keptTrips(),
 );
+
+/// Monats- und Jahressumme fuer den Kopfbereich.
+///
+/// Aus der Fahrtenliste gerechnet und nicht vom Server geholt:
+/// CloudTripSource blaettert ohnehin alle Seiten durch, die Liste ist
+/// also vollstaendig -- ein eigener Endpunkt waere eine zweite Wahrheit
+/// fuer dieselbe Zahl.
+final distanceTotalsProvider = Provider<DistanceTotals>((ref) {
+  final trips = ref.watch(keptTripsProvider).asData?.value;
+  if (trips == null) return DistanceTotals.empty;
+
+  return DistanceTotals.of(trips, DateTime.now());
+});
 
 final heatSnapshotStoreProvider = Provider<HeatSnapshotStore>(
   (ref) => HeatSnapshotStore(ref.watch(databaseProvider)),

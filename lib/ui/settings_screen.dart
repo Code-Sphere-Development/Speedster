@@ -11,8 +11,7 @@ import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
-import 'package:speedster/ui/components/section_header.dart';
-import 'package:speedster/ui/screen_header.dart';
+import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/username_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -168,11 +167,14 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       body: ListView(
+        // Keine Seitenueberschrift mehr: die traegt der Kopfbereich der
+        // App.
+        padding: const EdgeInsets.only(top: Insets.l, bottom: Insets.s),
         children: [
-          // Ohne Untertitel: die Version steht weiter unten bei den
-          // Angaben zur App, und hier waere sie bloss Zierat.
-          ScreenHeader(title: l.tabSettings),
-          SectionHeader(title: l.settingsSectionRecording),
+          CardSection(
+            title: l.settingsSectionRecording,
+            icon: Icons.fiber_manual_record_outlined,
+            children: [
           SwitchListTile(
             key: const Key('unitSwitch'),
             secondary: const Icon(Icons.straighten),
@@ -198,7 +200,12 @@ class SettingsScreen extends ConsumerWidget {
             value: settings.notifyOnTripStart,
             onChanged: (v) => _toggleNotify(context, ref, v),
           ),
-          SectionHeader(title: l.settingsSectionAccount),
+            ],
+          ),
+          CardSection(
+            title: l.settingsSectionAccount,
+            icon: Icons.person_outline,
+            children: [
           SwitchListTile(
             key: const Key('cloudSwitch'),
             secondary: const Icon(Icons.cloud_outlined),
@@ -210,18 +217,23 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (v) => _toggleCloud(context, ref, v),
           ),
           // Benutzername und Freunde: nur mit Konto.
-          const _CloudAccountSection(),
+          ..._accountRows(context, ref),
           if (cloudOn)
             _DestructiveTile(
               icon: Icons.person_remove,
               label: l.settingsDeleteAccount,
               onTap: () => _deleteAccount(context, ref),
             ),
-          SectionHeader(title: l.settingsSectionData),
+            ],
+          ),
+          CardSection(
+            title: l.settingsSectionData,
+            icon: Icons.folder_outlined,
+            children: [
           // Bewusst nicht im Konto-Abschnitt: der blendet sich aus, wenn
           // das Konto nicht geladen werden kann -- also gerade dann,
           // wenn Uploads warten, naemlich ohne Netz.
-          const _PendingUploads(),
+          if (cloudOn) const _PendingUploads(),
           // Nicht mehr hinter der Cloud versteckt: ohne sie liegen die
           // Fahrten nur auf dem Geraet, und die Sicherung ist dann das
           // einzige Netz, das es gibt.
@@ -239,7 +251,12 @@ class SettingsScreen extends ConsumerWidget {
             label: l.settingsDeleteAll,
             onTap: () => _confirmDeleteAll(context, ref),
           ),
-          SectionHeader(title: l.settingsSectionHelp),
+            ],
+          ),
+          CardSection(
+            title: l.settingsSectionHelp,
+            icon: Icons.help_outline,
+            children: [
           ListTile(
             leading: const Icon(Icons.explore_outlined),
             title: Text(l.settingsTour),
@@ -251,7 +268,14 @@ class SettingsScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const TourScreen()),
             ),
           ),
-          const _AboutSection(),
+          ..._helpRows(context),
+            ],
+          ),
+          CardSection(
+            title: l.settingsSectionLegal,
+            icon: Icons.gavel_outlined,
+            children: _legalRows(context),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(
               Insets.screen,
@@ -272,126 +296,125 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Benutzername und Freunde -- nur sichtbar, wenn die Cloud in Gebrauch
-/// ist. Ohne Konto gibt es weder das eine noch das andere.
-class _CloudAccountSection extends ConsumerWidget {
-  const _CloudAccountSection();
+/// Benutzername und Freunde -- nur mit Konto.
+///
+/// Eine Zeilenliste und kein Widget: ein Widget, das sich selbst
+/// ausblendet, ist fuer die Karte darum trotzdem ein Kind, und sie zieht
+/// dann eine Trennlinie zu einer leeren Flaeche.
+List<Widget> _accountRows(BuildContext context, WidgetRef ref) {
+  final account = ref.watch(cloudAccountProvider).asData?.value;
+  if (account == null) return const [];
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final account = ref.watch(cloudAccountProvider).asData?.value;
-    if (account == null) return const SizedBox.shrink();
-    final l = AppLocalizations.of(context);
+  final l = AppLocalizations.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ListTile(
-          leading: const Icon(Icons.alternate_email),
-          title: Text(l.settingsUsername),
-          subtitle: Text(
-            // Bestandskonten haben noch keinen; vergeben wird er im Web.
-            account.username ?? l.settingsUsernameMissing,
-          ),
-          // Ohne Namen fuehrt der Weg ueber das Web -- die App aendert
-          // nur einen bestehenden.
-          trailing: account.username == null
-              ? null
-              : const Icon(Icons.edit_outlined),
-          onTap: account.username == null
-              ? null
-              : () => showDialog<void>(
-                    context: context,
-                    builder: (_) => UsernameDialog(account: account),
-                  ),
+  return [
+    ListTile(
+      leading: const Icon(Icons.alternate_email),
+      title: Text(l.settingsUsername),
+      subtitle: Text(
+        // Bestandskonten haben noch keinen; vergeben wird er im Web.
+        account.username ?? l.settingsUsernameMissing,
+      ),
+      // Ohne Namen fuehrt der Weg ueber das Web -- die App aendert nur
+      // einen bestehenden.
+      trailing:
+          account.username == null ? null : const Icon(Icons.edit_outlined),
+      onTap: account.username == null
+          ? null
+          : () => showDialog<void>(
+                context: context,
+                builder: (_) => UsernameDialog(account: account),
+              ),
+    ),
+    ListTile(
+      leading: const Icon(Icons.people_outline),
+      title: Text(l.settingsFriends),
+      subtitle: Text(l.settingsFriendsSubtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => FriendsScreen(username: account.username),
         ),
-        ListTile(
-          leading: const Icon(Icons.people_outline),
-          title: Text(l.settingsFriends),
-          subtitle: Text(l.settingsFriendsSubtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).push<void>(
-            MaterialPageRoute(
-              builder: (_) => FriendsScreen(username: account.username),
-            ),
-          ),
-        ),
-      ],
-    );
+      ),
+    ),
+  ];
+}
+
+/// Oeffnet einen Rechtstext oder eine Hilfeseite im Browser.
+Future<void> _openLink(BuildContext context, String url) async {
+  final messenger = ScaffoldMessenger.of(context);
+  // Vor dem Warten holen: danach ist der Kontext moeglicherweise nicht
+  // mehr eingehaengt.
+  final failure = AppLocalizations.of(context).settingsLinkFailed;
+  final opened = await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  );
+  if (!opened) {
+    messenger.showSnackBar(SnackBar(content: Text(failure)));
   }
 }
 
-/// Rechtliches, Hilfe und Unterstuetzung.
-class _AboutSection extends StatelessWidget {
-  const _AboutSection();
+/// Hilfe und Unterstuetzung.
+///
+/// Eine Liste von Zeilen und kein eigenes Widget: die Karte darum zieht
+/// die Trennlinien zwischen ihnen, und ein Widget dazwischen waere fuer
+/// sie ein einziges Kind ohne Linien.
+List<Widget> _helpRows(BuildContext context) {
+  final l = AppLocalizations.of(context);
 
-  Future<void> _open(BuildContext context, String url) async {
-    final messenger = ScaffoldMessenger.of(context);
-    // Vor dem Warten holen: danach ist der Kontext moeglicherweise nicht
-    // mehr eingehaengt.
-    final failure = AppLocalizations.of(context).settingsLinkFailed;
-    final opened = await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    );
-    if (!opened) {
-      messenger.showSnackBar(SnackBar(content: Text(failure)));
-    }
-  }
+  return [
+    ListTile(
+      leading: const Icon(Icons.help_outline),
+      title: Text(l.settingsHelp),
+      subtitle: Text(l.settingsHelpSubtitle),
+      onTap: () => _openLink(context, AppLinks.help),
+    ),
+    ListTile(
+      leading: const Icon(Icons.star_outline),
+      title: Text(l.settingsRate),
+      onTap: () => _openLink(context, AppLinks.review),
+    ),
+    ListTile(
+      leading: const Icon(Icons.rate_review_outlined),
+      title: Text(l.settingsFeedback),
+      subtitle: Text(l.settingsFeedbackSubtitle),
+      onTap: () => _openLink(context, AppLinks.appStore),
+    ),
+    ListTile(
+      leading: const Icon(Icons.mail_outline),
+      title: Text(l.settingsContact),
+      subtitle: Text(l.settingsContactSubtitle),
+      onTap: () => _openLink(context, AppLinks.contact),
+    ),
+    ListTile(
+      leading: const Icon(Icons.volunteer_activism_outlined),
+      title: Text(l.settingsTip),
+      subtitle: Text(l.settingsTipSubtitle),
+      onTap: () => _openLink(context, AppLinks.tip),
+    ),
+  ];
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
+/// Rechtliches und die Fassung.
+List<Widget> _legalRows(BuildContext context) {
+  final l = AppLocalizations.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ListTile(
-          leading: const Icon(Icons.help_outline),
-          title: Text(l.settingsHelp),
-          subtitle: Text(l.settingsHelpSubtitle),
-          onTap: () => _open(context, AppLinks.help),
-        ),
-        ListTile(
-          leading: const Icon(Icons.star_outline),
-          title: Text(l.settingsRate),
-          onTap: () => _open(context, AppLinks.review),
-        ),
-        ListTile(
-          leading: const Icon(Icons.rate_review_outlined),
-          title: Text(l.settingsFeedback),
-          subtitle: Text(l.settingsFeedbackSubtitle),
-          onTap: () => _open(context, AppLinks.appStore),
-        ),
-        ListTile(
-          leading: const Icon(Icons.mail_outline),
-          title: Text(l.settingsContact),
-          subtitle: Text(l.settingsContactSubtitle),
-          onTap: () => _open(context, AppLinks.contact),
-        ),
-        ListTile(
-          leading: const Icon(Icons.volunteer_activism_outlined),
-          title: Text(l.settingsTip),
-          subtitle: Text(l.settingsTipSubtitle),
-          onTap: () => _open(context, AppLinks.tip),
-        ),
-        SectionHeader(title: l.settingsSectionLegal),
-        // Rechtstexte liegen in der Cloud, nicht in der App: ein Text
-        // statt zweier, und Aenderungen brauchen kein App-Update.
-        ListTile(
-          leading: const Icon(Icons.gavel_outlined),
-          title: Text(l.settingsImprint),
-          onTap: () => _open(context, AppLinks.imprint),
-        ),
-        ListTile(
-          leading: const Icon(Icons.privacy_tip_outlined),
-          title: Text(l.settingsPrivacy),
-          onTap: () => _open(context, AppLinks.privacy),
-        ),
-        const _VersionTile(),
-      ],
-    );
-  }
+  return [
+    // Rechtstexte liegen in der Cloud, nicht in der App: ein Text statt
+    // zweier, und Aenderungen brauchen kein App-Update.
+    ListTile(
+      leading: const Icon(Icons.gavel_outlined),
+      title: Text(l.settingsImprint),
+      onTap: () => _openLink(context, AppLinks.imprint),
+    ),
+    ListTile(
+      leading: const Icon(Icons.privacy_tip_outlined),
+      title: Text(l.settingsPrivacy),
+      onTap: () => _openLink(context, AppLinks.privacy),
+    ),
+    const _VersionTile(),
+  ];
 }
 
 /// Eine Zeile, die Daten unwiederbringlich loescht.

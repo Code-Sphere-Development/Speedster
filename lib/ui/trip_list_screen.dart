@@ -1,17 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
+import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/ui/components/empty_state.dart';
 import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/ui/components/route_thumbnail.dart';
-import 'package:speedster/ui/screen_header.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
 import 'package:speedster/ui/trip_detail_screen.dart';
+
+/// Fahrten eines Kalendermonats.
+class TripMonth {
+  const TripMonth({required this.first, required this.trips});
+
+  /// Irgendein Zeitpunkt in diesem Monat -- fuer die Ueberschrift.
+  final DateTime first;
+  final List<Trip> trips;
+
+  double get distance =>
+      trips.fold<double>(0, (sum, t) => sum + t.distance);
+
+  /// Zerlegt eine absteigend sortierte Fahrtenliste in Monate.
+  ///
+  /// Die Gruppierung ersetzt die Reihe gleich aussehender Karten: sie
+  /// gibt der Liste einen Rhythmus und traegt nebenbei eine Zahl, die
+  /// vorher nirgends stand -- wie weit man in diesem Monat gekommen ist.
+  static List<TripMonth> split(List<Trip> trips) {
+    final months = <TripMonth>[];
+
+    for (final trip in trips) {
+      final last = months.isEmpty ? null : months.last;
+      if (last != null &&
+          last.first.year == trip.startTime.year &&
+          last.first.month == trip.startTime.month) {
+        last.trips.add(trip);
+        continue;
+      }
+      months.add(TripMonth(first: trip.startTime, trips: [trip]));
+    }
+
+    return months;
+  }
+}
 
 class TripListScreen extends ConsumerWidget {
   const TripListScreen({super.key});
@@ -29,49 +64,49 @@ class TripListScreen extends ConsumerWidget {
         message: l.commonError(e.toString()),
       ),
       data: (trips) {
-        // Die Ueberschrift steht im Inhalt und scrollt mit; deshalb ist
-        // sie das erste Element der Liste und kein Rahmen darum.
-        final total = trips.fold<double>(0, (sum, t) => sum + t.distance);
-        final header = ScreenHeader(
-          title: l.tabTrips,
-          subtitle: trips.isEmpty
-              ? null
-              : l.tripsSummary(trips.length, SpeedFormat.distance(total, unit)),
-        );
-
         if (trips.isEmpty) {
-          return ListView(
-            children: [
-              header,
-              EmptyState(
-                icon: Icons.route_outlined,
-                message: l.tripsEmpty,
-              ),
-            ],
-          );
+          return EmptyState(icon: Icons.route_outlined, message: l.tripsEmpty);
         }
 
+        final locale = Localizations.localeOf(context).toLanguageTag();
+        final months = TripMonth.split(trips);
+
         return ListView.builder(
-          padding: const EdgeInsets.only(bottom: Insets.l),
-          itemCount: trips.length + 1,
-          itemBuilder: (context, i) =>
-              i == 0 ? header : _TripCard(trip: trips[i - 1], unit: unit),
+          padding: const EdgeInsets.only(top: Insets.l, bottom: Insets.s),
+          itemCount: months.length,
+          itemBuilder: (context, i) {
+            final month = months[i];
+
+            return CardSection(
+              title: DateFormat.yMMMM(locale).format(month.first),
+              icon: Icons.calendar_today,
+              trailing: Text(SpeedFormat.distance(month.distance, unit)),
+              children: [
+                for (final trip in month.trips)
+                  _TripRow(trip: trip, unit: unit),
+              ],
+            );
+          },
         );
       },
     );
   }
 }
 
-/// Eine Fahrt: Streckenbild links, die beiden Kennzahlen rechts.
+/// Eine Fahrt: Streckenbild links, die Kennzahlen rechts.
 ///
-/// Vorher stand hier eine Punktkette -- "Max 160 km/h · 42,3 km · 40m
-/// 10s" -- in derselben Groesse wie das Datum darueber. Damit sahen alle
-/// Fahrten gleich aus, und die interessante Zahl musste man suchen.
-class _TripCard extends StatelessWidget {
-  const _TripCard({required this.trip, required this.unit});
+/// Vorher stand hier eine Punktkette in derselben Groesse wie das Datum
+/// darueber. Damit sahen alle Fahrten gleich aus, und die interessante
+/// Zahl musste man suchen.
+class _TripRow extends StatelessWidget {
+  const _TripRow({required this.trip, required this.unit});
 
   final Trip trip;
   final UnitSystem unit;
+
+  /// Feste Breite fuer die Dauer, damit die Spalte ueber alle Zeilen auf
+  /// derselben Kante endet.
+  static const double _durationWidth = 74;
 
   @override
   Widget build(BuildContext context) {
@@ -80,87 +115,77 @@ class _TripCard extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
     final locale = Localizations.localeOf(context).toLanguageTag();
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => TripDetailScreen(trip: trip),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(Insets.l),
-          child: Row(
-            children: [
-              RouteThumbnail(encoded: trip.routePreview),
-              const SizedBox(width: Insets.l),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            Formatters.dayAndTime(trip.startTime, locale),
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: muted),
-                          ),
-                        ),
-                        // Die Liste mischt Fahrten, die noch auf dem
-                        // Geraet liegen, unter die aus der Cloud. Bisher
-                        // sah man ihnen das nicht an.
-                        if (trip.syncedAt == null)
-                          Tooltip(
-                            message: l.settingsPending,
-                            child: Icon(
-                              Icons.cloud_upload_outlined,
-                              size: 16,
-                              color: muted,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: Insets.s),
-                    // Beide Kennzahlen bekommen dieselbe Breite: sonst
-                    // beginnt das Tempo je nach Laenge der Distanz an einer
-                    // anderen Stelle, und die Spalte franst ueber die Liste
-                    // hinweg aus.
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MetricValue.of(
-                            SpeedFormat.distanceParts(trip.distance, unit),
-                            size: 22,
-                          ),
-                        ),
-                        Expanded(
-                          child: MetricValue.of(
-                            SpeedFormat.speedParts(trip.maxSpeed, unit),
-                            size: 22,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Insets.xs),
-                    Row(
-                      children: [
-                        Text(
-                          Formatters.duration(trip.durationSeconds),
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => TripDetailScreen(trip: trip)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: Insets.s),
+        child: Row(
+          children: [
+            RouteThumbnail(encoded: trip.routePreview, size: 52),
+            const SizedBox(width: Insets.m),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          Formatters.dayAndTime(trip.startTime, locale),
                           style:
                               theme.textTheme.bodySmall?.copyWith(color: muted),
                         ),
-                        if (trip.purpose != null) ...[
-                          const SizedBox(width: Insets.s),
-                          _PurposeBadge(label: purposeLabel(l, trip.purpose)),
-                        ],
+                      ),
+                      if (trip.purpose != null) ...[
+                        _PurposeBadge(label: purposeLabel(l, trip.purpose)),
+                        const SizedBox(width: Insets.s),
                       ],
-                    ),
-                  ],
-                ),
+                      // Die Liste mischt Fahrten, die noch auf dem Geraet
+                      // liegen, unter die aus der Cloud. Bisher sah man
+                      // ihnen das nicht an.
+                      if (trip.syncedAt == null)
+                        Tooltip(
+                          message: l.settingsPending,
+                          child: Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 14,
+                            color: muted,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MetricValue.of(
+                          SpeedFormat.distanceParts(trip.distance, unit),
+                          size: 20,
+                        ),
+                      ),
+                      Expanded(
+                        child: MetricValue.of(
+                          SpeedFormat.speedParts(trip.maxSpeed, unit),
+                          size: 20,
+                        ),
+                      ),
+                      SizedBox(
+                        width: _durationWidth,
+                        child: Text(
+                          Formatters.duration(trip.durationSeconds),
+                          textAlign: TextAlign.end,
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: muted),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -168,9 +193,6 @@ class _TripCard extends StatelessWidget {
 }
 
 /// Der Zweck einer Fahrt, sofern einer gesetzt ist.
-///
-/// Er war bislang nur in der Detailansicht zu sehen -- und damit nirgends,
-/// wo man ihn zum Vergleichen gebraucht haette.
 class _PurposeBadge extends StatelessWidget {
   const _PurposeBadge({required this.label});
 

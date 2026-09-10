@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/ui/components/gradient_header.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
@@ -13,8 +14,11 @@ class ConsentScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.consentTitle)),
-      body: Padding(
+      body: Column(
+        children: [
+          GradientHeader(title: l.consentTitle),
+          Expanded(
+            child: Padding(
         padding: const EdgeInsets.all(Insets.screen),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,6 +43,9 @@ class ConsentScreen extends ConsumerWidget {
           ],
         ),
       ),
+          ),
+        ],
+      )
     );
   }
 }

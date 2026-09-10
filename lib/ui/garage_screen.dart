@@ -7,8 +7,7 @@ import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/components/empty_state.dart';
 import 'package:speedster/ui/components/metric_value.dart';
-import 'package:speedster/ui/components/section_header.dart';
-import 'package:speedster/ui/screen_header.dart';
+import 'package:speedster/ui/components/card_section.dart';
 
 /// Die Garage: Fahrzeuge anlegen, das Standardfahrzeug waehlen, loeschen.
 ///
@@ -87,18 +86,19 @@ class GarageScreen extends ConsumerWidget {
                       // Kein Wert aus dem Raster: die Zahl richtet sich
                       // nach der Hoehe des schwebenden Knopfes, damit er
                       // die letzte Kachel nicht verdeckt.
-                      padding: const EdgeInsets.only(bottom: 88),
+                      padding: const EdgeInsets.only(
+                        top: Insets.s,
+                        bottom: 88,
+                      ),
                       children: [
-                        ScreenHeader(
-                          title: l.tabGarage,
-                          subtitle: l.garageSummary(list.length),
-                        ),
+                        // Keine Seitenueberschrift mehr: die traegt der
+                        // Kopfbereich der App.
                         Padding(
                           padding: const EdgeInsets.fromLTRB(
                             Insets.screen,
-                            0,
+                            Insets.s,
                             Insets.screen,
-                            Insets.m,
+                            Insets.s,
                           ),
                           child: Text(
                             l.garageLead,
@@ -157,69 +157,72 @@ class _VehicleTile extends ConsumerWidget {
       if (vehicle.model?.fuel != null) vehicle.model!.fuel!,
     ].join(' · ');
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Insets.l),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              vehicle.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          if (vehicle.isDefault) ...[
-                            const SizedBox(width: Insets.s),
-                            _DefaultBadge(label: l.garageDefault),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: Insets.xs),
-                      Text(
-                        details,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Der Name steht ueber den Karten und nicht darin: er ist der
+        // Gegenstand, nicht die Ueberschrift eines Abschnitts.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Insets.screen,
+            Insets.s,
+            Insets.s,
+            Insets.s,
+          ),
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  vehicle.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                // Ein Klappmenue statt dreier Schaltflaechen. Vorher
-                // standen "Bearbeiten", "Zum Standard machen" und
-                // "Loeschen" als rote Beschriftungen in der Kachel -- alle
-                // drei gleich auffaellig, obwohl nur eine davon etwas
-                // zerstoert.
-                _VehicleMenu(
-                  vehicle: vehicle,
-                  onEdit: onEdit,
-                  onDelete: onDelete,
-                  onMakeDefault: () async {
-                    await ref
-                        .read(vehicleRepositoryProvider)
-                        .makeDefault(vehicle.id);
-                    ref.invalidate(vehiclesProvider);
-                  },
-                ),
+              ),
+              if (vehicle.isDefault) ...[
+                const SizedBox(width: Insets.s),
+                _DefaultBadge(label: l.garageDefault),
               ],
-            ),
-            _OdometerBlock(vehicle: vehicle),
-            _MaintenanceBlock(vehicle: vehicle),
-          ],
+              const Spacer(),
+              // Ein Klappmenue statt dreier Schaltflaechen. Vorher
+              // standen "Bearbeiten", "Zum Standard machen" und
+              // "Loeschen" als rote Beschriftungen in der Kachel -- alle
+              // drei gleich auffaellig, obwohl nur eine davon etwas
+              // zerstoert.
+              _VehicleMenu(
+                vehicle: vehicle,
+                onEdit: onEdit,
+                onDelete: onDelete,
+                onMakeDefault: () async {
+                  await ref
+                      .read(vehicleRepositoryProvider)
+                      .makeDefault(vehicle.id);
+                  ref.invalidate(vehiclesProvider);
+                },
+              ),
+            ],
+          ),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Insets.screen,
+            0,
+            Insets.screen,
+            Insets.m,
+          ),
+          child: Text(
+            details,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+        _OdometerBlock(vehicle: vehicle),
+        _MaintenanceBlock(vehicle: vehicle),
+        const SizedBox(height: Insets.s),
+      ],
     );
   }
 }
@@ -397,48 +400,72 @@ class _OdometerBlock extends ConsumerWidget {
 
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return CardSection(
+      title: l.garageOdometer,
+      icon: Icons.speed,
+      // Ein Plus statt einer roten Beschriftung: die Aktion gehoert zur
+      // Ueberschrift des Abschnitts, nicht in die Datenzeile.
+      trailing: _AddButton(
+        tooltip: l.garageOdometerAdd,
+        onPressed: () => _add(context, ref),
+      ),
       children: [
-        SectionHeader(
-          title: l.garageOdometer,
-          padding: const EdgeInsets.only(top: Insets.m),
-          // Ein Plus statt einer roten Beschriftung: die Aktion gehoert
-          // zur Ueberschrift des Abschnitts, nicht in die Datenzeile.
-          trailing: IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: l.garageOdometerAdd,
-            visualDensity: VisualDensity.compact,
-            onPressed: () => _add(context, ref),
-          ),
-        ),
-        if (odometer.estimateKm == null)
-          Text(l.garageOdometerNone, style: small?.copyWith(color: muted))
-        else
-          MetricValue(
-            value: _km(context, odometer.estimateKm!),
-            unit: 'km',
-            // Ohne Beschriftung: dass die Zahl geschaetzt ist, sagt die
-            // Grundlagenzeile direkt darunter -- dreimal dasselbe Wort
-            // untereinander liest niemand.
-            label: odometer.readingKm == null ? l.garageOdometerApprox : null,
-          ),
-        if (odometer.readingKm != null && odometer.readAt != null)
-          Padding(
-            padding: const EdgeInsets.only(top: Insets.xs),
-            child: Text(
-              l.garageOdometerBasis(
-                _km(context, odometer.readingKm!),
-                DateFormat.yMd(Localizations.localeOf(context).toLanguageTag())
-                    .format(odometer.readAt!),
-                _km(context, odometer.trackedKm.round()),
+        // Wert und Grundlage sind ein Kind und nicht zwei: zwischen
+        // ihnen gehoert keine Trennlinie, sie gehoeren zusammen.
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (odometer.estimateKm == null)
+              Text(l.garageOdometerNone, style: small?.copyWith(color: muted))
+            else
+              MetricValue(
+                value: _km(context, odometer.estimateKm!),
+                unit: 'km',
+                // Ohne Beschriftung: dass die Zahl geschaetzt ist, sagt
+                // die Grundlagenzeile darunter -- dreimal dasselbe Wort
+                // untereinander liest niemand.
+                label:
+                    odometer.readingKm == null ? l.garageOdometerApprox : null,
               ),
-              style: small?.copyWith(color: muted),
-            ),
-          ),
+            if (odometer.readingKm != null && odometer.readAt != null)
+              Padding(
+                padding: const EdgeInsets.only(top: Insets.xs),
+                child: Text(
+                  l.garageOdometerBasis(
+                    _km(context, odometer.readingKm!),
+                    DateFormat.yMd(
+                      Localizations.localeOf(context).toLanguageTag(),
+                    ).format(odometer.readAt!),
+                    _km(context, odometer.trackedKm.round()),
+                  ),
+                  style: small?.copyWith(color: muted),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
+}
+
+/// Das Plus in der Ueberschrift eines Abschnitts.
+///
+/// Eigene Klasse, weil ein gewoehnlicher IconButton mit seinen 48 Pixeln
+/// die Kopfzeile der Karte auseinanderzoege.
+class _AddButton extends StatelessWidget {
+  const _AddButton({required this.tooltip, required this.onPressed});
+
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        icon: const Icon(Icons.add, size: 20),
+        tooltip: tooltip,
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+      );
 }
 
 /// Faellige Wartungen, nach Termin oder Laufleistung.
@@ -492,25 +519,20 @@ class _MaintenanceBlock extends ConsumerWidget {
 
     final muted = scheme.onSurfaceVariant;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return CardSection(
+      title: l.garageMaintenance,
+      icon: Icons.build_outlined,
+      trailing: _AddButton(
+        tooltip: l.garageMaintenanceAdd,
+        onPressed: () => _add(context, ref),
+      ),
       children: [
-        SectionHeader(
-          title: l.garageMaintenance,
-          padding: const EdgeInsets.only(top: Insets.m),
-          trailing: IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: l.garageMaintenanceAdd,
-            visualDensity: VisualDensity.compact,
-            onPressed: () => _add(context, ref),
-          ),
-        ),
         if (vehicle.maintenance.isEmpty)
           Text(l.garageMaintenanceNone, style: small?.copyWith(color: muted))
         else
           for (final item in vehicle.maintenance)
             Padding(
-              padding: const EdgeInsets.only(bottom: Insets.xs),
+              padding: const EdgeInsets.symmetric(vertical: Insets.xs),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

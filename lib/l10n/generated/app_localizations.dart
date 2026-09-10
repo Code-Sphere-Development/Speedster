@@ -116,6 +116,18 @@ abstract class AppLocalizations {
   /// **'Live'**
   String get tabLive;
 
+  /// No description provided for @headerThisMonth.
+  ///
+  /// In de, this message translates to:
+  /// **'Diesen Monat'**
+  String get headerThisMonth;
+
+  /// No description provided for @headerThisYear.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieses Jahr'**
+  String get headerThisYear;
+
   /// No description provided for @tabTrips.
   ///
   /// In de, this message translates to:
@@ -205,6 +217,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Karte nicht verfügbar: {message}'**
   String tripMapUnavailable(String message);
+
+  /// No description provided for @tripMetrics.
+  ///
+  /// In de, this message translates to:
+  /// **'Kennzahlen'**
+  String get tripMetrics;
 
   /// No description provided for @tripPurpose.
   ///

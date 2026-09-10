@@ -134,10 +134,9 @@ class SpeedsterTheme {
       colorScheme: scheme,
       useMaterial3: true,
       scaffoldBackgroundColor: scheme.surface,
-      // Die Reiter tragen keine Titelleiste mehr -- ihre Ueberschrift
-      // steht im Inhalt (siehe ScreenHeader). Das Thema gilt weiterhin
-      // fuer die Bildschirme darunter, die eine haben: Fahrtdetail,
-      // Freunde, Rundgang.
+      // Es gibt keine AppBar mehr: den Kopfbereich stellt
+      // GradientHeader, auch auf den Bildschirmen, die auf den Stapel
+      // gelegt werden. Das Thema bleibt als Rueckfall stehen.
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,

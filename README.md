@@ -90,6 +90,26 @@ Store Connect weist Bilder damit zurück, auch wenn sie deckend sind:
 magick bild.png -background black -alpha remove -alpha off bild.png
 ```
 
+## Oberfläche
+
+Die Formensprache folgt **EasyWallet** (derselbe Entwickler), in den Farben
+dieser App statt in Blau:
+
+- **`GradientHeader`** — Verlauf von fast schwarz nach tiefrot, darin der Name
+  der App und zwei Kennzahlkarten (`HeaderStat`). Er nennt bewusst den
+  App-Namen und nicht den des Reiters: den sagt die Leiste unten bereits.
+  Bildschirme, die auf den Stapel gelegt werden, tragen dort ihren Titel und
+  einen Zurück-Pfeil — eine `AppBar` gibt es nirgends mehr.
+- **`CardSection`** — gruppierte Karte mit Versalüberschrift, Symbol und
+  halben Bildpunktlinien zwischen den Zeilen. Ordnet die Fahrten nach Monat,
+  die Einstellungen nach Bereich und die Bestenliste als Ganzes.
+- Die Karte ist ein `Material` und kein gefärbter `Container`: `ListTile` und
+  `InkWell` malen Hintergrund und Wellenanimation auf das nächste `Material`,
+  und ein gefärbter Container darüber macht beides unsichtbar.
+
+Das Raster (`lib/app/spacing.dart`) und die Akzentregel gelten unverändert
+weiter: Rot markiert Zustand und genau eine Hauptaktion je Bildschirm.
+
 ## Aufbau
 
 | Verzeichnis | Inhalt |
@@ -103,6 +123,7 @@ magick bild.png -background black -alpha remove -alpha off bild.png
 | `lib/notifications/` | Mitteilung zum Fahrtbeginn |
 | `lib/widgets/` | Daten für die Homescreen-Widgets |
 | `lib/ui/` | Bildschirme |
+| `lib/ui/components/` | Gemeinsame Bausteine der Oberfläche |
 | `ios/SpeedsterWidgets/` | Widget-Erweiterung und Live Activity (Swift) |
 
 ## iOS

@@ -34,10 +34,10 @@ void main() {
     )));
     await tester.pump();
 
-    expect(find.text('Offene Anfragen an dich'), findsOneWidget);
+    expect(find.text('OFFENE ANFRAGEN AN DICH'), findsOneWidget);
     expect(find.text('@fragtan'), findsOneWidget);
     expect(find.text('@freund'), findsOneWidget);
-    expect(find.text('Von dir verschickt'), findsOneWidget);
+    expect(find.text('VON DIR VERSCHICKT'), findsOneWidget);
     expect(find.text('@angefragt'), findsOneWidget);
   });
 
@@ -46,8 +46,8 @@ void main() {
     await tester.pumpWidget(wrap(FriendOverview.empty));
     await tester.pump();
 
-    expect(find.text('Offene Anfragen an dich'), findsNothing);
-    expect(find.text('Von dir verschickt'), findsNothing);
+    expect(find.text('OFFENE ANFRAGEN AN DICH'), findsNothing);
+    expect(find.text('VON DIR VERSCHICKT'), findsNothing);
     // Statt einer leeren Liste ein Hinweis, was zu tun ist.
     expect(find.text('Noch niemand.'), findsOneWidget);
   });
