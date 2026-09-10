@@ -23,6 +23,9 @@ class CloudSyncService {
   /// behoben sein (ein Serverstand, der das Format inzwischen annimmt).
   final rejected = <String>{};
 
+  /// Wie viele Fahrten auf den Upload warten.
+  Future<int> pendingCount() async => (await repo.unsyncedTrips()).length;
+
   Future<void> syncOnce() async {
     if (await tokenStore.read() == null) return; // not logged in
     rejected.clear();

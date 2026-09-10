@@ -399,6 +399,51 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fahrten in eine Datei schreiben oder zurücklesen';
 
   @override
+  String get settingsPending => 'Warten auf Upload';
+
+  @override
+  String settingsPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fahrten warten',
+      one: 'Eine Fahrt wartet',
+      zero: 'Alle Fahrten sind in der Cloud',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsPendingAction => 'Jetzt hochladen';
+
+  @override
+  String settingsPendingDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fahrten hochgeladen',
+      one: 'Eine Fahrt hochgeladen',
+      zero: 'Nichts zu tun',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsPendingRejected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fahrten wurden abgewiesen',
+      one: 'Eine Fahrt wurde abgewiesen',
+    );
+    return '$_temp0 und bleibt liegen.';
+  }
+
+  @override
+  String get settingsPendingFailed =>
+      'Kein Upload möglich — besteht eine Verbindung?';
+
+  @override
   String get tourSkip => 'Überspringen';
 
   @override

@@ -151,6 +151,10 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(l.settingsDeleteAll),
             onTap: () => _confirmDeleteAll(context, ref),
           ),
+          // Bewusst nicht im Konto-Abschnitt: der blendet sich aus, wenn
+          // das Konto nicht geladen werden kann -- also gerade dann,
+          // wenn Uploads warten, naemlich ohne Netz.
+          const _PendingUploads(),
           const _CloudAccountSection(),
           const Divider(),
           const _AboutSection(),
@@ -338,6 +342,86 @@ class _VersionTile extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+}
+
+/// Wie viele Fahrten auf den Upload warten -- und ein Knopf, es jetzt zu
+/// versuchen.
+///
+/// Ohne diese Anzeige ist der Upload eine Blackbox: eine Fahrt fehlt in
+/// der Cloud, und niemand kann sagen, ob sie wartet, abgewiesen wurde
+/// oder nie aufgezeichnet worden ist.
+class _PendingUploads extends ConsumerStatefulWidget {
+  const _PendingUploads();
+
+  @override
+  ConsumerState<_PendingUploads> createState() => _PendingUploadsState();
+}
+
+class _PendingUploadsState extends ConsumerState<_PendingUploads> {
+  bool _busy = false;
+
+  Future<void> _upload() async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final sync = ref.read(cloudSyncServiceProvider);
+
+    setState(() => _busy = true);
+    final before = await sync.pendingCount();
+
+    String message;
+    try {
+      await sync.syncOnce();
+      final after = await sync.pendingCount();
+      final rejected = sync.rejected.length;
+
+      message = rejected > 0
+          ? l.settingsPendingRejected(rejected)
+          : l.settingsPendingDone(before - after);
+    } on Exception {
+      message = l.settingsPendingFailed;
+    }
+
+    ref
+      ..invalidate(pendingUploadsProvider)
+      ..invalidate(keptTripsProvider);
+
+    if (mounted) setState(() => _busy = false);
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ConsumerState kennt `ref` selbst -- ein Parameter waere hier der
+    // falsche Bauplan.
+    final l = AppLocalizations.of(context);
+    final pending = ref.watch(pendingUploadsProvider).asData?.value;
+
+    // Ohne Cloud gibt es nichts hochzuladen -- dann auch keine Zeile
+    // darueber.
+    if (!ref.watch(settingsControllerProvider).cloudEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    return ListTile(
+      leading: const Icon(Icons.cloud_upload_outlined),
+      title: Text(l.settingsPending),
+      subtitle: Text(l.settingsPendingCount(pending ?? 0)),
+      trailing: _busy
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : TextButton(
+              // Auch bei null wartenden Fahrten anklickbar: der Lauf holt
+              // dann nichts, aber der Nutzer bekommt eine Antwort statt
+              // eines toten Knopfes.
+              onPressed: _upload,
+              child: Text(l.settingsPendingAction),
+            ),
     );
   }
 }
