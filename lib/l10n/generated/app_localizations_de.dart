@@ -436,6 +436,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Upload möglich — besteht eine Verbindung?';
 
   @override
+  String settingsPendingServerError(int status) {
+    return 'Der Server hat mit $status geantwortet. Am Netz liegt es nicht.';
+  }
+
+  @override
   String get settingsPendingLoggedOut =>
       'Nicht angemeldet — schalte die Cloud-Synchronisierung oben ein.';
 

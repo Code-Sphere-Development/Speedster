@@ -195,6 +195,14 @@
     }
   },
   "settingsPendingFailed": "Kein Upload möglich — besteht eine Verbindung?",
+  "settingsPendingServerError": "Der Server hat mit {status} geantwortet. Am Netz liegt es nicht.",
+  "@settingsPendingServerError": {
+    "placeholders": {
+      "status": {
+        "type": "int"
+      }
+    }
+  },
   "settingsPendingLoggedOut": "Nicht angemeldet — schalte die Cloud-Synchronisierung oben ein.",
   "tourSkip": "Überspringen",
   "tourNext": "Weiter",

@@ -812,6 +812,12 @@ abstract class AppLocalizations {
   /// **'Kein Upload möglich — besteht eine Verbindung?'**
   String get settingsPendingFailed;
 
+  /// No description provided for @settingsPendingServerError.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Server hat mit {status} geantwortet. Am Netz liegt es nicht.'**
+  String settingsPendingServerError(int status);
+
   /// No description provided for @settingsPendingLoggedOut.
   ///
   /// In de, this message translates to:

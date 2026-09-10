@@ -13,12 +13,23 @@ class SyncOutcome {
     this.uploaded = 0,
     this.rejected = 0,
     this.unreachable = false,
+    this.serverStatus,
   });
 
   final bool loggedIn;
   final int uploaded;
   final int rejected;
+
+  /// Die Anfrage kam nicht durch -- kein Netz, kein erreichbarer Server.
   final bool unreachable;
+
+  /// Der Server hat geantwortet, aber mit einem Fehler (5xx).
+  ///
+  /// Getrennt von [unreachable], weil die beiden nichts miteinander zu tun
+  /// haben: das eine liegt am Netz des Nutzers, das andere am Server.
+  /// Beides in einen Text zu werfen ("besteht eine Verbindung?") schickt
+  /// ihn dazu, sein WLAN zu pruefen, waehrend die Ursache anderswo liegt.
+  final int? serverStatus;
 }
 
 /// Pushes locally-kept, not-yet-synced trips to the cloud. Idempotent on the
@@ -96,10 +107,13 @@ class CloudSyncService {
 
         // Netzfehler oder 5xx: der naechste Lauf versucht es erneut, und
         // zwar wieder von vorn -- die Reihenfolge bleibt so erhalten.
+        // Welches von beidem, gehoert in die Meldung: der Nutzer kann am
+        // Netz etwas aendern, am Serverfehler nicht.
         return SyncOutcome(
           uploaded: uploaded,
           rejected: rejected.length,
-          unreachable: true,
+          unreachable: status == null,
+          serverStatus: status,
         );
       }
     }

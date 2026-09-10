@@ -398,6 +398,8 @@ class _PendingUploadsState extends ConsumerState<_PendingUploads> {
       message = switch (outcome) {
         SyncOutcome(loggedIn: false) => l.settingsPendingLoggedOut,
         SyncOutcome(unreachable: true) => l.settingsPendingFailed,
+        SyncOutcome(serverStatus: final status?) =>
+          l.settingsPendingServerError(status),
         SyncOutcome(rejected: final n) when n > 0 =>
           l.settingsPendingRejected(n),
         SyncOutcome(uploaded: final n) => l.settingsPendingDone(n),
