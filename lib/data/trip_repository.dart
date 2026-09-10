@@ -15,6 +15,7 @@ abstract class TripRepository {
     TripStats stats,
     DateTime endTime, {
     int? cloudVehicleId,
+    String? routePreview,
   });
   /// Die `client_uuid` einer Fahrt, oder null, wenn es sie nicht gibt.
   ///
@@ -102,10 +103,15 @@ class DriftTripRepository implements TripRepository {
     TripStats stats,
     DateTime endTime, {
     int? cloudVehicleId,
+    String? routePreview,
   }) async {
     await (db.update(db.trips)..where((t) => t.id.equals(tripId))).write(
       TripsCompanion(
         endTime: Value(endTime),
+        // Die Strecke kommt vom Aufrufer: der Rekorder hat die Punkte der
+        // gerade beendeten Fahrt ohnehin im Puffer, ein erneutes Lesen aus
+        // der Tabelle waere eine Abfrage fuer nichts.
+        routePreview: Value(routePreview),
         // Hier festgehalten und nicht erst beim Hochladen bestimmt: wer
         // zwischendurch das Standardfahrzeug wechselt, saehe seine
         // wartenden Fahrten sonst am neuen Auto haengen.
@@ -247,5 +253,6 @@ class DriftTripRepository implements TripRepository {
         cloudVehicleId: r.cloudVehicleId,
         purpose: r.purpose,
         note: r.note,
+        routePreview: r.routePreview,
       );
 }

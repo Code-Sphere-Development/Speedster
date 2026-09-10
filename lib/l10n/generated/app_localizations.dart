@@ -662,6 +662,36 @@ abstract class AppLocalizations {
   /// **'Zurückgezogen.'**
   String get friendsWithdrawn;
 
+  /// No description provided for @settingsSectionRecording.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufzeichnung'**
+  String get settingsSectionRecording;
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsSectionData.
+  ///
+  /// In de, this message translates to:
+  /// **'Daten'**
+  String get settingsSectionData;
+
+  /// No description provided for @settingsSectionHelp.
+  ///
+  /// In de, this message translates to:
+  /// **'Hilfe'**
+  String get settingsSectionHelp;
+
+  /// No description provided for @settingsSectionLegal.
+  ///
+  /// In de, this message translates to:
+  /// **'Rechtliches'**
+  String get settingsSectionLegal;
+
   /// No description provided for @settingsUnitTitle.
   ///
   /// In de, this message translates to:
@@ -1081,6 +1111,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'ca. {km} km'**
   String garageOdometerEstimate(String km);
+
+  /// No description provided for @garageOdometerApprox.
+  ///
+  /// In de, this message translates to:
+  /// **'geschätzt'**
+  String get garageOdometerApprox;
 
   /// No description provided for @garageOdometerBasis.
   ///

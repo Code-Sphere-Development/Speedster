@@ -192,6 +192,17 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _routePreviewMeta = const VerificationMeta(
+    'routePreview',
+  );
+  @override
+  late final GeneratedColumn<String> routePreview = GeneratedColumn<String>(
+    'route_preview',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -210,6 +221,7 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     cloudVehicleId,
     purpose,
     note,
+    routePreview,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -333,6 +345,15 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('route_preview')) {
+      context.handle(
+        _routePreviewMeta,
+        routePreview.isAcceptableOrUnknown(
+          data['route_preview']!,
+          _routePreviewMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -406,6 +427,10 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      routePreview: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}route_preview'],
+      ),
     );
   }
 
@@ -447,6 +472,14 @@ class Trip extends DataClass implements Insertable<Trip> {
   /// Aenderung mitwandern.
   final String? purpose;
   final String? note;
+
+  /// Die gefahrene Strecke als wenige Stuetzpunkte (siehe RoutePreview).
+  ///
+  /// Bewusst hier und nicht aus `trackPoints` gerechnet: die Punkte
+  /// raeumt `evictSyncedBeyond` jenseits der zehn neuesten weg, die Zeile
+  /// der Fahrt bleibt stehen. Nur so hat auch eine alte Fahrt in der
+  /// Liste noch ihr Streckenbild -- und zwar ohne Netzabfrage.
+  final String? routePreview;
   const Trip({
     required this.id,
     required this.startTime,
@@ -464,6 +497,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     this.cloudVehicleId,
     this.purpose,
     this.note,
+    this.routePreview,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -498,6 +532,9 @@ class Trip extends DataClass implements Insertable<Trip> {
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || routePreview != null) {
+      map['route_preview'] = Variable<String>(routePreview);
+    }
     return map;
   }
 
@@ -531,6 +568,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           ? const Value.absent()
           : Value(purpose),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      routePreview: routePreview == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routePreview),
     );
   }
 
@@ -558,6 +598,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       cloudVehicleId: serializer.fromJson<int?>(json['cloudVehicleId']),
       purpose: serializer.fromJson<String?>(json['purpose']),
       note: serializer.fromJson<String?>(json['note']),
+      routePreview: serializer.fromJson<String?>(json['routePreview']),
     );
   }
   @override
@@ -580,6 +621,7 @@ class Trip extends DataClass implements Insertable<Trip> {
       'cloudVehicleId': serializer.toJson<int?>(cloudVehicleId),
       'purpose': serializer.toJson<String?>(purpose),
       'note': serializer.toJson<String?>(note),
+      'routePreview': serializer.toJson<String?>(routePreview),
     };
   }
 
@@ -600,6 +642,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     Value<int?> cloudVehicleId = const Value.absent(),
     Value<String?> purpose = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<String?> routePreview = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     startTime: startTime ?? this.startTime,
@@ -621,6 +664,7 @@ class Trip extends DataClass implements Insertable<Trip> {
         : this.cloudVehicleId,
     purpose: purpose.present ? purpose.value : this.purpose,
     note: note.present ? note.value : this.note,
+    routePreview: routePreview.present ? routePreview.value : this.routePreview,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -652,6 +696,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           : this.cloudVehicleId,
       purpose: data.purpose.present ? data.purpose.value : this.purpose,
       note: data.note.present ? data.note.value : this.note,
+      routePreview: data.routePreview.present
+          ? data.routePreview.value
+          : this.routePreview,
     );
   }
 
@@ -673,7 +720,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('heatFoldedAt: $heatFoldedAt, ')
           ..write('cloudVehicleId: $cloudVehicleId, ')
           ..write('purpose: $purpose, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('routePreview: $routePreview')
           ..write(')'))
         .toString();
   }
@@ -696,6 +744,7 @@ class Trip extends DataClass implements Insertable<Trip> {
     cloudVehicleId,
     purpose,
     note,
+    routePreview,
   );
   @override
   bool operator ==(Object other) =>
@@ -716,7 +765,8 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.heatFoldedAt == this.heatFoldedAt &&
           other.cloudVehicleId == this.cloudVehicleId &&
           other.purpose == this.purpose &&
-          other.note == this.note);
+          other.note == this.note &&
+          other.routePreview == this.routePreview);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -736,6 +786,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<int?> cloudVehicleId;
   final Value<String?> purpose;
   final Value<String?> note;
+  final Value<String?> routePreview;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -753,6 +804,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.cloudVehicleId = const Value.absent(),
     this.purpose = const Value.absent(),
     this.note = const Value.absent(),
+    this.routePreview = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -771,6 +823,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.cloudVehicleId = const Value.absent(),
     this.purpose = const Value.absent(),
     this.note = const Value.absent(),
+    this.routePreview = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<Trip> custom({
     Expression<int>? id,
@@ -789,6 +842,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<int>? cloudVehicleId,
     Expression<String>? purpose,
     Expression<String>? note,
+    Expression<String>? routePreview,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -808,6 +862,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (cloudVehicleId != null) 'cloud_vehicle_id': cloudVehicleId,
       if (purpose != null) 'purpose': purpose,
       if (note != null) 'note': note,
+      if (routePreview != null) 'route_preview': routePreview,
     });
   }
 
@@ -828,6 +883,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<int?>? cloudVehicleId,
     Value<String?>? purpose,
     Value<String?>? note,
+    Value<String?>? routePreview,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -846,6 +902,7 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       cloudVehicleId: cloudVehicleId ?? this.cloudVehicleId,
       purpose: purpose ?? this.purpose,
       note: note ?? this.note,
+      routePreview: routePreview ?? this.routePreview,
     );
   }
 
@@ -902,6 +959,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (routePreview.present) {
+      map['route_preview'] = Variable<String>(routePreview.value);
+    }
     return map;
   }
 
@@ -923,7 +983,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('heatFoldedAt: $heatFoldedAt, ')
           ..write('cloudVehicleId: $cloudVehicleId, ')
           ..write('purpose: $purpose, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('routePreview: $routePreview')
           ..write(')'))
         .toString();
   }
@@ -2631,6 +2692,7 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<int?> cloudVehicleId,
       Value<String?> purpose,
       Value<String?> note,
+      Value<String?> routePreview,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -2650,6 +2712,7 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<int?> cloudVehicleId,
       Value<String?> purpose,
       Value<String?> note,
+      Value<String?> routePreview,
     });
 
 final class $$TripsTableReferences
@@ -2760,6 +2823,11 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get routePreview => $composableBuilder(
+    column: $table.routePreview,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2877,6 +2945,11 @@ class $$TripsTableOrderingComposer
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get routePreview => $composableBuilder(
+    column: $table.routePreview,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TripsTableAnnotationComposer
@@ -2948,6 +3021,11 @@ class $$TripsTableAnnotationComposer
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
+  GeneratedColumn<String> get routePreview => $composableBuilder(
+    column: $table.routePreview,
+    builder: (column) => column,
+  );
+
   Expression<T> trackPointsRefs<T extends Object>(
     Expression<T> Function($$TrackPointsTableAnnotationComposer a) f,
   ) {
@@ -3018,6 +3096,7 @@ class $$TripsTableTableManager
                 Value<int?> cloudVehicleId = const Value.absent(),
                 Value<String?> purpose = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> routePreview = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 startTime: startTime,
@@ -3035,6 +3114,7 @@ class $$TripsTableTableManager
                 cloudVehicleId: cloudVehicleId,
                 purpose: purpose,
                 note: note,
+                routePreview: routePreview,
               ),
           createCompanionCallback:
               ({
@@ -3054,6 +3134,7 @@ class $$TripsTableTableManager
                 Value<int?> cloudVehicleId = const Value.absent(),
                 Value<String?> purpose = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> routePreview = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 startTime: startTime,
@@ -3071,6 +3152,7 @@ class $$TripsTableTableManager
                 cloudVehicleId: cloudVehicleId,
                 purpose: purpose,
                 note: note,
+                routePreview: routePreview,
               ),
           withReferenceMapper: (p0) => p0
               .map(

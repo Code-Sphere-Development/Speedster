@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
+import 'package:speedster/ui/components/empty_state.dart';
+import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/ui/screen_header.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
@@ -33,15 +36,25 @@ String metricLabel(AppLocalizations l, RankMetric metric) => switch (metric) {
     };
 
 String formatValue(RankMetric metric, double value, UnitSystem unit) {
+  final m = valueParts(metric, value, unit);
+  return m.unit.isEmpty ? m.value : '${m.value} ${m.unit}';
+}
+
+/// Wert und Einheit getrennt, damit die Zahl gross und die Einheit klein
+/// gesetzt werden kann.
+///
+/// Die Fahrtenzahl hat keine Einheit: "12 Fahrten" stuende in einer
+/// Rangliste, in der jede Zeile dasselbe Wort traegt, viermal umsonst.
+Measure valueParts(RankMetric metric, double value, UnitSystem unit) {
   switch (metric) {
     case RankMetric.maxSpeed:
-      return SpeedFormat.speed(value, unit);
+      return SpeedFormat.speedParts(value, unit);
     case RankMetric.totalDistance:
-      return SpeedFormat.distance(value, unit);
+      return SpeedFormat.distanceParts(value, unit);
     case RankMetric.tripCount:
-      return '${value.toInt()}';
+      return (value: '${value.toInt()}', unit: '');
     case RankMetric.bestZeroToHundred:
-      return '${value.toStringAsFixed(1)} s';
+      return (value: value.toStringAsFixed(1), unit: 's');
   }
 }
 
@@ -101,8 +114,14 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(
+            Insets.screen,
+            0,
+            Insets.screen,
+            Insets.m,
+          ),
           child: SegmentedButton<RankScope>(
+            showSelectedIcon: false,
             segments: [
               ButtonSegment(
                   value: RankScope.world, label: Text(l.rankingScopeWorld)),
@@ -117,42 +136,42 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             onSelectionChanged: (s) => setState(() => _scope = s.first),
           ),
         ),
-        // Das Zeitfenster steht ueber den Kennzahlen: es entscheidet, ob
-        // die Liste ueberhaupt in Bewegung ist. Ohne Fenster steht eine
-        // einmalige Spitze dort dauerhaft, und niemand schaut mehr hin.
-        SizedBox(
-          height: 40,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: [
-              for (final p in RankPeriod.values)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(periodLabel(l, p)),
-                    selected: _period == p,
-                    onSelected: (_) => setState(() => _period = p),
-                  ),
-                ),
-            ],
+        // Kennzahl und Zeitfenster teilen sich eine Zeile. Vorher standen
+        // sie untereinander, und mit dem Bereich darueber lagen elf
+        // Bedienelemente vor der ersten Zahl -- rund ein Fuenftel des
+        // Bildschirms, bevor die Liste anfing.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Insets.screen,
+            0,
+            Insets.screen,
+            Insets.s,
           ),
-        ),
-        SizedBox(
-          height: 44,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
             children: [
-              for (final m in RankMetric.values)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(metricLabel(l, m)),
-                    selected: _metric == m,
-                    onSelected: (_) => setState(() => _metric = m),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final m in RankMetric.values)
+                        Padding(
+                          padding: const EdgeInsets.only(right: Insets.s),
+                          child: ChoiceChip(
+                            label: Text(metricLabel(l, m)),
+                            selected: _metric == m,
+                            onSelected: (_) => setState(() => _metric = m),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+              ),
+              const SizedBox(width: Insets.s),
+              _PeriodButton(
+                period: _period,
+                onChanged: (p) => setState(() => _period = p),
+              ),
             ],
           ),
         ),
@@ -161,15 +180,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
         // steht, wird zur Tapete, die niemand mehr liest.
         if (_metric == RankMetric.maxSpeed ||
             _metric == RankMetric.bestZeroToHundred)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: Text(
-              l.rankingSpeedNotice,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ),
+          _SpeedNotice(text: l.rankingSpeedNotice),
         Expanded(
           child: board.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -179,11 +190,98 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
                 // Standardfahrzeug mit Modell kann diese Wertung nie
                 // etwas liefern, und eine leere Liste saehe aus wie ein
                 // Fehler.
-                ? _NeedsVehicle(text: l.rankingNoVehicle)
+                ? EmptyState(
+                    icon: Icons.directions_car_outlined,
+                    message: l.rankingNoVehicle,
+                  )
                 : _BoardList(board: b, metric: _metric, unit: unit),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Das Zeitfenster als Klappmenue statt als dritte Chip-Reihe.
+///
+/// Es wird selten umgestellt und braucht deshalb keine dauerhaft
+/// ausgebreitete Auswahl -- der aktuelle Wert steht drauf, das genuegt.
+class _PeriodButton extends StatelessWidget {
+  const _PeriodButton({required this.period, required this.onChanged});
+
+  final RankPeriod period;
+  final ValueChanged<RankPeriod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return PopupMenuButton<RankPeriod>(
+      initialValue: period,
+      onSelected: onChanged,
+      tooltip: periodLabel(l, period),
+      position: PopupMenuPosition.under,
+      itemBuilder: (context) => [
+        for (final p in RankPeriod.values)
+          PopupMenuItem(value: p, child: Text(periodLabel(l, p))),
+      ],
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(Insets.m, Insets.s, Insets.s, Insets.s),
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(Radii.pill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              periodLabel(l, period),
+              style: theme.textTheme.labelLarge,
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Die Mahnung zur StVO, als Zeile statt als Absatz.
+class _SpeedNotice extends StatelessWidget {
+  const _SpeedNotice({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        Insets.screen,
+        0,
+        Insets.screen,
+        Insets.s,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: muted),
+          const SizedBox(width: Insets.s),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodySmall?.copyWith(color: muted),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -197,45 +295,19 @@ class _CloudRequired extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).textTheme.bodySmall?.color;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off, size: 40, color: muted),
-            const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center),
-
-            if (showLogin) ...[
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: () => Navigator.of(context).push<bool>(
-                  MaterialPageRoute(builder: (_) => const AuthScreen()),
-                ),
-                child: Text(AppLocalizations.of(context).authSignIn),
+    return EmptyState(
+      icon: Icons.cloud_off,
+      message: message,
+      action: showLogin
+          ? FilledButton(
+              onPressed: () => Navigator.of(context).push<bool>(
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
               ),
-            ],
-          ],
-        ),
-      ),
+              child: Text(AppLocalizations.of(context).authSignIn),
+            )
+          : null,
     );
   }
-}
-
-class _NeedsVehicle extends StatelessWidget {
-  const _NeedsVehicle({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(text, textAlign: TextAlign.center),
-        ),
-      );
 }
 
 class _BoardList extends StatelessWidget {
@@ -266,38 +338,113 @@ class _BoardList extends StatelessWidget {
                     left: BorderSide(color: scheme.primary, width: 4),
                   ),
                 ),
-                child: ListTile(
-                  textColor: scheme.onPrimaryContainer,
-                  leading: Text(
-                    '#${board.me!.rank}',
-                    style: TextStyle(color: scheme.onPrimaryContainer),
-                  ),
-                  title: Text(l.rankingYourRank),
-                  trailing: Text(
-                    formatValue(metric, board.me!.value, unit),
-                    style: TextStyle(color: scheme.onPrimaryContainer),
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    final me = valueParts(metric, board.me!.value, unit);
+
+                    return ListTile(
+                      textColor: scheme.onPrimaryContainer,
+                      leading: SizedBox(
+                        width: 32,
+                        child: Text(
+                          '${board.me!.rank}',
+                          textAlign: TextAlign.end,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: scheme.onPrimaryContainer),
+                        ),
+                      ),
+                      title: Text(l.rankingYourRank),
+                      // Wie in den uebrigen Zeilen gesetzt -- vorher stand
+                      // hier als einziger Wert der Liste ein kleiner
+                      // Fliesstext. Flaeche und Schrift bleiben aus
+                      // demselben Paar: genau daran war diese Zeile einmal
+                      // unlesbar.
+                      trailing: MetricValue(
+                        value: me.value,
+                        unit: me.unit.isEmpty ? null : me.unit,
+                        size: 20,
+                        color: scheme.onPrimaryContainer,
+                        unitColor: scheme.onPrimaryContainer,
+                        alignment: CrossAxisAlignment.end,
+                      ),
+                    );
+                  },
                 ),
               );
             },
           ),
         Expanded(
           child: board.entries.isEmpty
-              ? Center(child: Text(l.rankingEmpty))
+              ? EmptyState(
+                  icon: Icons.emoji_events_outlined,
+                  message: l.rankingEmpty,
+                )
               : ListView.builder(
                   itemCount: board.entries.length,
-                  itemBuilder: (context, i) {
-                    final e = board.entries[i];
-                    return ListTile(
-                      leading: Text('#${e.rank}'),
-                      title: Text(e.displayName),
-                      subtitle: e.country != null ? Text(e.country!) : null,
-                      trailing: Text(formatValue(metric, e.value, unit)),
-                    );
-                  },
+                  itemBuilder: (context, i) => _BoardRow(
+                    entry: board.entries[i],
+                    metric: metric,
+                    unit: unit,
+                  ),
                 ),
         ),
       ],
+    );
+  }
+}
+
+/// Eine Zeile der Bestenliste.
+///
+/// Ohne Verhaeltnisbalken: ein solcher stand hier zwischenzeitlich, war
+/// aber bei nah beieinanderliegenden Werten fast immer voll, sass optisch
+/// zwischen den Zeilen statt an einer und brachte sechs rote Linien auf
+/// einen Bildschirm. Die Zahlen stehen ohnehin sortiert und mit
+/// Tabellenziffern untereinander -- das Verhaeltnis liest man daran ab.
+class _BoardRow extends StatelessWidget {
+  const _BoardRow({
+    required this.entry,
+    required this.metric,
+    required this.unit,
+  });
+
+  final RankingEntry entry;
+  final RankMetric metric;
+  final UnitSystem unit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final measure = valueParts(metric, entry.value, unit);
+
+    // Die ersten drei bekommen Gewicht statt einer Farbe: eine Medaille
+    // oder ein Farbwechsel waere ein weiteres Signal in einer App, die an
+    // Signalen schon zu viele hatte.
+    final leading = entry.rank <= 3;
+
+    return ListTile(
+      leading: SizedBox(
+        width: 32,
+        child: Text(
+          '${entry.rank}',
+          textAlign: TextAlign.end,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: leading ? FontWeight.w700 : FontWeight.w400,
+            color: leading
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      title: Text(entry.displayName),
+      subtitle: entry.country != null ? Text(entry.country!) : null,
+      trailing: MetricValue(
+        value: measure.value,
+        unit: measure.unit.isEmpty ? null : measure.unit,
+        size: 20,
+        alignment: CrossAxisAlignment.end,
+      ),
     );
   }
 }

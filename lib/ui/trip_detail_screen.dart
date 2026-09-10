@@ -5,7 +5,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/ui/components/empty_state.dart';
+import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
@@ -45,7 +48,7 @@ class TripDetailScreen extends ConsumerWidget {
       body: ListView(
         children: [
           SizedBox(
-            height: 260,
+            height: 280,
             child: pointsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) =>
@@ -55,22 +58,56 @@ class TripDetailScreen extends ConsumerWidget {
           ),
           _PurposeBlock(trip: trip),
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _StatTile(l.metricMax, SpeedFormat.speed(trip.maxSpeed, unit)),
-                _StatTile(l.metricAverage, SpeedFormat.speed(trip.avgSpeed, unit)),
-                _StatTile(
-                    l.metricDistance, SpeedFormat.distance(trip.distance, unit)),
-                _StatTile(
-                    l.metricDuration, Formatters.duration(trip.durationSeconds)),
-                _StatTile(l.metricZeroToHundred,
-                    Formatters.seconds(trip.zeroToHundredSeconds)),
-                _StatTile(
-                    l.metricElevation, Formatters.meters(trip.elevationGain)),
-              ],
+            padding: const EdgeInsets.fromLTRB(
+              Insets.screen,
+              Insets.l,
+              Insets.screen,
+              Insets.xl,
+            ),
+            // Zwei Kacheln je Zeile, aus der verfuegbaren Breite gerechnet
+            // statt auf 150 Pixel festgenagelt: fest gesetzt blieb rechts
+            // je nach Geraet ein unterschiedlich breiter Rest stehen.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = (constraints.maxWidth - Insets.m) / 2;
+
+                return Wrap(
+                  spacing: Insets.m,
+                  runSpacing: Insets.m,
+                  children: [
+                    for (final (label, measure) in [
+                      (l.metricMax, SpeedFormat.speedParts(trip.maxSpeed, unit)),
+                      (
+                        l.metricAverage,
+                        SpeedFormat.speedParts(trip.avgSpeed, unit)
+                      ),
+                      (
+                        l.metricDistance,
+                        SpeedFormat.distanceParts(trip.distance, unit)
+                      ),
+                      (
+                        l.metricDuration,
+                        (
+                          value: Formatters.duration(trip.durationSeconds),
+                          unit: ''
+                        )
+                      ),
+                      (
+                        l.metricZeroToHundred,
+                        Formatters.secondsParts(trip.zeroToHundredSeconds)
+                      ),
+                      (
+                        l.metricElevation,
+                        Formatters.metersParts(trip.elevationGain)
+                      ),
+                    ])
+                      SizedBox(
+                        width: width,
+                        child: _StatTile(label: label, measure: measure),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -92,28 +129,29 @@ class _TripMap extends StatelessWidget {
       // Bei aktiver Cloud liegen nur die zuletzt gefahrenen Strecken als
       // Punkte auf dem Geraet (siehe TripCacheService); fuer aeltere
       // Fahrten kommt die Strecke aus dem Netz.
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            l.tripNoRoute,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
+      return EmptyState(icon: Icons.route_outlined, message: l.tripNoRoute);
     }
     final coords = points.map((p) => LatLng(p.lat, p.lng)).toList();
     return FlutterMap(
       options: MapOptions(
         initialCenter: coords.first,
         initialZoom: 14,
+        // Wie in der Heatmap. Vorher waren helle OSM-Kacheln mit blauer
+        // Linie das einzige Kartenbild der App, das anders aussah -- und
+        // Blau kommt sonst nirgends vor.
+        backgroundColor: esriDarkBackground,
       ),
       children: [
-                  const OsmTileLayer(),
-                  const OsmAttribution(),
+        const EsriDarkTileLayer(),
+        const EsriDarkLabelsTileLayer(),
+        const EsriDarkAttribution(),
         PolylineLayer(
           polylines: [
-            Polyline(points: coords, strokeWidth: 4, color: Colors.blue),
+            Polyline(
+              points: coords,
+              strokeWidth: 4,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ],
         ),
       ],
@@ -122,31 +160,26 @@ class _TripMap extends StatelessWidget {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile(this.label, this.value);
+  const _StatTile({required this.label, required this.measure});
 
   final String label;
-  final String value;
+  final Measure measure;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 150,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Insets.l),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(Radii.small),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.headlineSmall),
-        ],
+      child: MetricValue(
+        value: measure.value,
+        unit: measure.unit.isEmpty ? null : measure.unit,
+        label: label,
       ),
     );
   }
-
 }
 
 /// Zweck und Notiz einer Fahrt.
@@ -166,6 +199,18 @@ class _PurposeBlock extends ConsumerStatefulWidget {
   ConsumerState<_PurposeBlock> createState() => _PurposeBlockState();
 }
 
+/// Beschriftung eines Zwecks. `null` heisst "kein Zweck" und ist ein
+/// gueltiger Wert, kein fehlender.
+///
+/// Als Funktion und nicht als Konstante: eine Konstante liesse sich nicht
+/// uebersetzen, weil sie ohne Kontext ausgewertet wird.
+String purposeLabel(AppLocalizations l, String? purpose) => switch (purpose) {
+      'private' => l.tripPurposePrivate,
+      'commute' => l.tripPurposeCommute,
+      'business' => l.tripPurposeBusiness,
+      _ => l.tripPurposeNone,
+    };
+
 class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
   static const _purposes = ['private', 'commute', 'business'];
 
@@ -177,13 +222,6 @@ class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
     _note.dispose();
     super.dispose();
   }
-
-  String _label(AppLocalizations l, String? purpose) => switch (purpose) {
-        'private' => l.tripPurposePrivate,
-        'commute' => l.tripPurposeCommute,
-        'business' => l.tripPurposeBusiness,
-        _ => l.tripPurposeNone,
-      };
 
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
@@ -213,7 +251,12 @@ class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
     final l = AppLocalizations.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(
+        Insets.screen,
+        Insets.l,
+        Insets.screen,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -222,13 +265,13 @@ class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
             children: [
               for (final value in <String?>[null, ..._purposes])
                 ChoiceChip(
-                  label: Text(_label(l, value)),
+                  label: Text(purposeLabel(l, value)),
                   selected: _purpose == value,
                   onSelected: (_) => setState(() => _purpose = value),
                 ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Insets.s),
           Row(
             children: [
               Expanded(
@@ -237,7 +280,7 @@ class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
                   decoration: InputDecoration(labelText: l.tripNote),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: Insets.s),
               FilledButton(onPressed: _save, child: Text(l.commonSave)),
             ],
           ),

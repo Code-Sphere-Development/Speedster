@@ -9,11 +9,11 @@ void main() {
   setUp(() => db = AppDatabase.forTesting(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  test('Schemaversion ist 7', () async {
+  test('Schemaversion ist 8', () async {
     // Die Zahl steht hier fest, damit eine Aenderung am Schema auffaellt,
     // solange die zugehoerige Migration noch fehlt. Wer sie hebt, hat
     // sie geschrieben.
-    expect(db.schemaVersion, 7);
+    expect(db.schemaVersion, 8);
   });
 
   test('Fahrten fuehren ein Fahrzeug, das leer bleiben darf', () async {

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -13,6 +14,7 @@ import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
 import 'package:speedster/domain/sample.dart';
+import 'package:speedster/domain/route_preview.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/recording/trip_recorder.dart';
@@ -155,11 +157,17 @@ Widget frame(Widget screen, {required AppTab tab, required String locale}) {
     home: Builder(
       builder: (context) {
         final l = AppLocalizations.of(context);
-        // "Live" erscheint in der App nur waehrend einer Fahrt -- auf
-        // den Bildern also genauso.
+        // Dieselbe Regel wie SpeedsterApp._visibleTabs: "Live" erscheint
+        // nur waehrend einer Fahrt, und dann weicht die Garage dafuer.
+        //
+        // Die alte Fassung liess beide stehen und baute damit ein Bild
+        // mit sechs Reitern, das die App nie zeigt -- und bei sechs
+        // bricht "Einstellungen" um. Genau so ging es in den App Store.
+        final onTheRoad = tab == AppTab.live;
         final tabs = [
           for (final t in AppTab.values)
-            if (t != AppTab.live || tab == AppTab.live) t,
+            if (t == AppTab.live ? onTheRoad : t != AppTab.garage || !onTheRoad)
+              t,
         ];
 
         return Scaffold(
@@ -194,12 +202,38 @@ Future<void> pumpScreen(WidgetTester tester, Target target, Widget app) async {
   await tester.pumpAndSettle();
 }
 
+/// Eine strassenaehnliche Strecke fuer die Miniatur in der Fahrtenliste.
+///
+/// Ein Zufallslauf mit Traegheit und nicht reines Rauschen: die Richtung
+/// wird fortgeschrieben und nur leicht gestoert, sonst entstuende ein
+/// Knaeuel statt einer Fahrt. Der Startwert haengt an der Fahrt, damit
+/// jede Zeile eine eigene Form bekommt und die Bilder zwischen zwei
+/// Laeufen dieselben bleiben.
+String demoRoute(int seed) {
+  final random = math.Random(seed);
+  var lat = 52.5, lng = 13.4;
+  var stepLat = 0.5, stepLng = 0.5;
+  final points = <({double lat, double lng})>[];
+
+  for (var i = 0; i < 40; i++) {
+    stepLat += (random.nextDouble() - 0.5) * 0.8;
+    stepLng += (random.nextDouble() - 0.5) * 0.8;
+    lat += stepLat * 0.004;
+    lng += stepLng * 0.004;
+    points.add((lat: lat, lng: lng));
+  }
+
+  return RoutePreview.encodeLatLng(points)!;
+}
+
 Trip demoTrip({
   required int id,
   required int day,
   required double maxSpeed,
   required double distance,
   required int seconds,
+  String? purpose,
+  bool synced = true,
 }) => Trip(
   id: id,
   startTime: DateTime(2026, 8, day, 17, 42),
@@ -211,6 +245,11 @@ Trip demoTrip({
   durationSeconds: seconds,
   zeroToHundredSeconds: 7.4,
   kept: true,
+  purpose: purpose,
+  // Eine Fahrt wartet noch: so ist im Bild zu sehen, dass die Liste das
+  // ueberhaupt kennzeichnet.
+  syncedAt: synced ? DateTime(2026, 8, day, 18, 20) : null,
+  routePreview: demoRoute(id),
 );
 
 void main() {
@@ -346,6 +385,8 @@ void main() {
                     maxSpeed: 44.4,
                     distance: 42300,
                     seconds: 2410,
+                    purpose: 'commute',
+                    synced: false,
                   ),
                   demoTrip(
                     id: 2,
@@ -360,6 +401,7 @@ void main() {
                     maxSpeed: 38.9,
                     distance: 86200,
                     seconds: 4020,
+                    purpose: 'private',
                   ),
                   demoTrip(
                     id: 4,

@@ -16,6 +16,7 @@ class Trip {
     this.cloudVehicleId,
     this.purpose,
     this.note,
+    this.routePreview,
   });
 
   final int? id;
@@ -56,6 +57,15 @@ class Trip {
 
   final String? note;
 
+  /// Die gefahrene Strecke, auf wenige Stuetzpunkte eingedampft (siehe
+  /// [RoutePreview]).
+  ///
+  /// Liegt an der Fahrt und nicht bei den Punkten, weil die Punkte bei
+  /// aktiver Cloud nach zehn Fahrten verworfen werden -- die Miniatur in
+  /// der Fahrtenliste soll aber bleiben. `null` heisst: nie aufgezeichnet
+  /// (etwa weil die Fahrt von einem anderen Geraet stammt).
+  final String? routePreview;
+
   Trip copyWith({
     int? id,
     DateTime? startTime,
@@ -72,6 +82,7 @@ class Trip {
     int? cloudVehicleId,
     String? purpose,
     String? note,
+    String? routePreview,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -86,6 +97,7 @@ class Trip {
       cloudVehicleId: cloudVehicleId ?? this.cloudVehicleId,
       purpose: purpose ?? this.purpose,
       note: note ?? this.note,
+      routePreview: routePreview ?? this.routePreview,
       kept: kept ?? this.kept,
       clientUuid: clientUuid ?? this.clientUuid,
       syncedAt: syncedAt ?? this.syncedAt,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 
 /// Grosse Ueberschrift im Inhalt, statt einer Titelleiste darueber.
 ///
@@ -27,7 +28,12 @@ class ScreenHeader extends StatelessWidget {
       width: double.infinity,
       // Oben grosszuegig: darueber liegt nur noch die Statusleiste, und
       // die Ueberschrift soll nicht daran kleben.
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+      padding: const EdgeInsets.fromLTRB(
+        Insets.screen,
+        Insets.xl,
+        Insets.screen,
+        Insets.m,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -40,7 +46,7 @@ class ScreenHeader extends StatelessWidget {
           ),
           if (subtitle != null)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: Insets.xs),
               child: Text(
                 subtitle!,
                 style: theme.textTheme.bodyMedium?.copyWith(

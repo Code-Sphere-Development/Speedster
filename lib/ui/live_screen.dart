@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
+import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/ui/formatters.dart';
 
 /// Shows current speed during a drive; idle prompt otherwise.
@@ -15,6 +17,9 @@ class LiveScreen extends ConsumerWidget {
     final unit = ref.watch(settingsControllerProvider).unit;
     final l = AppLocalizations.of(context);
     final stateAsync = ref.watch(recorderStateProvider);
+
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     final state = stateAsync.asData?.value;
     final driving = state?.isDriving ?? false;
@@ -28,87 +33,70 @@ class LiveScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (driving) ...[
-              Text(
-                SpeedFormat.speed(speedMps, unit),
-                style: const TextStyle(
-                  fontSize: 72,
-                  fontWeight: FontWeight.bold,
-                ),
+              // Ueber MetricValue und nicht als handgesetzte TextStyle:
+              // eine solche verliert die Tabellenziffern des Textthemas,
+              // und genau deshalb sprang die Zahl hier bisher bei jedem
+              // Zifferwechsel in der Breite.
+              MetricValue.of(
+                SpeedFormat.speedParts(speedMps, unit),
+                size: 72,
+                alignment: CrossAxisAlignment.center,
               ),
-              const SizedBox(height: 12),
-              Text(l.liveRecording),
-              const SizedBox(height: 24),
+              const SizedBox(height: Insets.m),
+              Text(
+                l.liveRecording,
+                style: theme.textTheme.bodyMedium?.copyWith(color: muted),
+              ),
+              const SizedBox(height: Insets.xl),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _LiveMetric(
+                  MetricValue.of(
+                    SpeedFormat.distanceParts(distanceM, unit),
                     icon: Icons.straighten,
-                    value: SpeedFormat.distance(distanceM, unit),
                     label: l.liveDistance,
+                    size: 22,
+                    alignment: CrossAxisAlignment.center,
                   ),
-                  const SizedBox(width: 40),
-                  _LiveMetric(
-                    icon: Icons.timer_outlined,
+                  const SizedBox(width: Insets.xxl),
+                  MetricValue(
                     value: Formatters.duration(elapsed),
+                    icon: Icons.timer_outlined,
                     label: l.liveDuration,
+                    size: 22,
+                    alignment: CrossAxisAlignment.center,
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Insets.xxl),
               // Statisch und unaufdringlich. Bewusst keine Warnung, die
               // bei hohem Tempo aufpoppt: die zoege den Blick genau in dem
               // Moment aufs Display, in dem er dort nicht hingehoert.
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: Insets.xxl),
                 child: Text(
                   l.liveSpeedNotice,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
                 ),
               ),
             ] else ...[
-              const Icon(Icons.speed, size: 96),
-              const SizedBox(height: 16),
+              Icon(Icons.speed, size: 96, color: muted),
+              const SizedBox(height: Insets.l),
               Text(
                 l.liveReady,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18),
+                style: theme.textTheme.titleMedium,
               ),
-              const SizedBox(height: 8),
-              Text(l.liveUnit(unit == UnitSystem.kmh ? 'km/h' : 'mph')),
+              const SizedBox(height: Insets.s),
+              Text(
+                l.liveUnit(unit == UnitSystem.kmh ? 'km/h' : 'mph'),
+                style: theme.textTheme.bodyMedium?.copyWith(color: muted),
+              ),
             ],
           ],
         ),
       ),
-    );
-  }
-}
-
-class _LiveMetric extends StatelessWidget {
-  const _LiveMetric({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
-
-  final IconData icon;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 28),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-        Text(
-          label,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-      ],
     );
   }
 }

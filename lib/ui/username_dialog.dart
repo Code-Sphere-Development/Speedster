@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
@@ -97,7 +98,7 @@ class _UsernameDialogState extends ConsumerState<UsernameDialog> {
             l.settingsUsernameChangeLead,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Insets.l),
           TextField(
             controller: _controller,
             enabled: open && !_busy,
@@ -113,7 +114,7 @@ class _UsernameDialogState extends ConsumerState<UsernameDialog> {
             onSubmitted: (_) => open && !_busy ? _submit() : null,
           ),
           if (!open && locked != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: Insets.m),
             // Ein gesperrtes Feld ohne Begruendung liest sich wie ein
             // Fehler.
             Text(

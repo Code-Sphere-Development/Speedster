@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/app.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
@@ -237,6 +238,66 @@ void _containerTests() {
 
       expect(theme.cardTheme.elevation, 0);
       expect(theme.cardTheme.color, isNot(theme.colorScheme.surface));
+    }
+  });
+
+  testWidgets('Schaltflaechen mit Beschriftung tragen nicht den Akzent',
+      (tester) async {
+    // Der eigentliche Defekt der alten Oberflaeche: in Material traegt
+    // jede TextButton-Beschriftung `primary`, und in der Garage standen
+    // dadurch bis zu achtzehn rote Woerter auf einem Bildschirm --
+    // "Loeschen" sah aus wie "Erledigt". Rot markiert jetzt Zustand und
+    // genau eine Hauptaktion je Bildschirm.
+    for (final brightness in Brightness.values) {
+      final theme = brightness == Brightness.dark
+          ? SpeedsterTheme.dark
+          : SpeedsterTheme.light;
+
+      final foreground = theme.textButtonTheme.style?.foregroundColor
+          ?.resolve(const <WidgetState>{});
+
+      expect(foreground, isNotNull, reason: 'textButtonTheme ist gesetzt');
+      expect(foreground, theme.colorScheme.onSurface);
+      expect(foreground, isNot(theme.colorScheme.primary));
+    }
+  });
+
+  testWidgets('der Rand der Karten kommt aus dem Thema, nicht vom Aufrufer',
+      (tester) async {
+    // Vorher setzte das Thema eine Margin, die beide Aufrufstellen
+    // ueberschrieben -- der Wert hier wirkte nirgends, und die Karten der
+    // Fahrtenliste standen auf einer anderen Kante als die Ueberschrift
+    // darueber.
+    for (final brightness in Brightness.values) {
+      final theme = brightness == Brightness.dark
+          ? SpeedsterTheme.dark
+          : SpeedsterTheme.light;
+
+      expect(
+        theme.cardTheme.margin,
+        const EdgeInsets.fromLTRB(
+          Insets.screen,
+          0,
+          Insets.screen,
+          Insets.m,
+        ),
+      );
+    }
+  });
+
+  test('Eingabefelder liegen nicht auf der Farbe der Karten', () {
+    // Alle Containerstufen sind hier bewusst derselbe Ton; ein gefuelltes
+    // Feld auf einer Karte oder in einem Dialog waere damit unsichtbar.
+    for (final brightness in Brightness.values) {
+      final theme = brightness == Brightness.dark
+          ? SpeedsterTheme.dark
+          : SpeedsterTheme.light;
+
+      expect(theme.inputDecorationTheme.filled, isTrue);
+      expect(
+        theme.inputDecorationTheme.fillColor,
+        isNot(theme.colorScheme.surfaceContainer),
+      );
     }
   });
 }

@@ -326,6 +326,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get friendsWithdrawn => 'Zurückgezogen.';
 
   @override
+  String get settingsSectionRecording => 'Aufzeichnung';
+
+  @override
+  String get settingsSectionAccount => 'Konto';
+
+  @override
+  String get settingsSectionData => 'Daten';
+
+  @override
+  String get settingsSectionHelp => 'Hilfe';
+
+  @override
+  String get settingsSectionLegal => 'Rechtliches';
+
+  @override
   String get settingsUnitTitle => 'Einheit: Meilen (mph)';
 
   @override
@@ -589,6 +604,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String garageOdometerEstimate(String km) {
     return 'ca. $km km';
   }
+
+  @override
+  String get garageOdometerApprox => 'geschätzt';
 
   @override
   String garageOdometerBasis(String km, String date, String tracked) {

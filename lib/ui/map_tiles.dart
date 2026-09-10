@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:speedster/app/spacing.dart';
+import 'package:speedster/ui/components/map_pill.dart';
 
 /// OpenStreetMap-Kacheln, in beiden Helligkeiten unveraendert.
 ///
@@ -101,23 +103,13 @@ class _TileAttribution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Align(
       alignment: Alignment.bottomRight,
       child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 10, color: scheme.onSurface),
-            ),
-          ),
+        padding: const EdgeInsets.all(Insets.xs),
+        child: MapPill(
+          compact: true,
+          child: Text(text, style: Theme.of(context).textTheme.labelSmall),
         ),
       ),
     );

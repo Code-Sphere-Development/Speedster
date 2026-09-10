@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/friend_repository.dart';
@@ -72,7 +73,7 @@ class _FriendRequestsPromptState extends ConsumerState<FriendRequestsPrompt> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l.friendsPendingLead(open.length)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Insets.s),
           for (final f in open)
             ListTile(
               contentPadding: EdgeInsets.zero,

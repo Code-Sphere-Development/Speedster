@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/links.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/friend_repository.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/ui/components/empty_state.dart';
+import 'package:speedster/ui/components/section_header.dart';
 
 /// Freunde verwalten: hinzufuegen, annehmen, entfernen.
 ///
@@ -81,24 +84,29 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
       appBar: AppBar(title: Text(l.friendsTitle)),
       body: overview.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(
-              l.friendsLoadFailed,
-              textAlign: TextAlign.center,
-            ),
-          ),
+        error: (e, _) => EmptyState(
+          icon: Icons.cloud_off,
+          message: l.friendsLoadFailed,
         ),
         data: (data) => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(bottom: Insets.xl),
           children: [
-            Text(
-              l.friendsLead,
-              style: Theme.of(context).textTheme.bodySmall,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Insets.screen,
+                Insets.l,
+                Insets.screen,
+                0,
+              ),
+              child: Text(
+                l.friendsLead,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
-            const SizedBox(height: 16),
-            Row(
+            const SizedBox(height: Insets.l),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Insets.screen),
+              child: Row(
               children: [
                 Expanded(
                   child: TextField(
@@ -113,19 +121,23 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                     onSubmitted: (_) => _busy ? null : _add(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Insets.m),
                 FilledButton(
                   onPressed: _busy ? null : _add,
                   child: Text(l.friendsRequest),
                 ),
               ],
+              ),
             ),
             if (widget.username != null) ...[
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _copyInvite,
-                icon: const Icon(Icons.link),
-                label: Text(l.friendsCopyInvite),
+              const SizedBox(height: Insets.m),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Insets.screen),
+                child: OutlinedButton.icon(
+                  onPressed: _copyInvite,
+                  icon: const Icon(Icons.link),
+                  label: Text(l.friendsCopyInvite),
+                ),
               ),
             ],
             if (data.incoming.isNotEmpty)
@@ -237,9 +249,7 @@ class _Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 24),
-        Text(title, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 4),
+        SectionHeader(title: title),
         ...children,
       ],
     );

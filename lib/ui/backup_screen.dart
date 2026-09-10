@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
@@ -78,20 +79,20 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l.backupTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Insets.screen),
         children: [
           Text(l.backupLead),
-          const SizedBox(height: 16),
+          const SizedBox(height: Insets.l),
           FilledButton.icon(
             onPressed: _busy ? null : _export,
             icon: const Icon(Icons.save_outlined),
             label: Text(l.backupExport),
           ),
-          const Divider(height: 32),
+          const Divider(height: Insets.xxl),
           Text(l.backupFiles, style: Theme.of(context).textTheme.titleSmall),
           if (_files.isEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: Insets.s),
               child: Text(
                 l.backupNone,
                 style: Theme.of(context).textTheme.bodySmall,

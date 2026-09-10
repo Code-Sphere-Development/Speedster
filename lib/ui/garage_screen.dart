@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/vehicle_repository.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/ui/components/empty_state.dart';
+import 'package:speedster/ui/components/metric_value.dart';
+import 'package:speedster/ui/components/section_header.dart';
 import 'package:speedster/ui/screen_header.dart';
 
 /// Die Garage: Fahrzeuge anlegen, das Standardfahrzeug waehlen, loeschen.
@@ -30,6 +34,10 @@ class GarageScreen extends ConsumerWidget {
             child: Text(l.commonCancel),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(l.commonDelete),
           ),
@@ -63,13 +71,22 @@ class GarageScreen extends ConsumerWidget {
       body: !cloud
           // Ohne Cloud gibt es kein Konto, an dem Fahrzeuge haengen
           // koennten. Eine leere Liste saehe aus wie ein Fehler.
-          ? _Hint(text: l.garageNeedsCloud)
+          ? EmptyState(icon: Icons.cloud_off, message: l.garageNeedsCloud)
           : vehicles.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => _Hint(text: l.commonError(e.toString())),
+              error: (e, _) => EmptyState(
+                icon: Icons.error_outline,
+                message: l.commonError(e.toString()),
+              ),
               data: (list) => list.isEmpty
-                  ? _Hint(text: l.garageEmpty)
+                  ? EmptyState(
+                      icon: Icons.garage_outlined,
+                      message: l.garageEmpty,
+                    )
                   : ListView(
+                      // Kein Wert aus dem Raster: die Zahl richtet sich
+                      // nach der Hoehe des schwebenden Knopfes, damit er
+                      // die letzte Kachel nicht verdeckt.
                       padding: const EdgeInsets.only(bottom: 88),
                       children: [
                         ScreenHeader(
@@ -77,10 +94,22 @@ class GarageScreen extends ConsumerWidget {
                           subtitle: l.garageSummary(list.length),
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                          padding: const EdgeInsets.fromLTRB(
+                            Insets.screen,
+                            0,
+                            Insets.screen,
+                            Insets.m,
+                          ),
                           child: Text(
                             l.garageLead,
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
                           ),
                         ),
                         for (final vehicle in list)
@@ -97,20 +126,6 @@ class GarageScreen extends ConsumerWidget {
             ),
     );
   }
-}
-
-class _Hint extends StatelessWidget {
-  const _Hint({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(text, textAlign: TextAlign.center),
-        ),
-      );
 }
 
 class _VehicleTile extends ConsumerWidget {
@@ -143,74 +158,156 @@ class _VehicleTile extends ConsumerWidget {
     ].join(' · ');
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Insets.l),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    vehicle.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                if (vehicle.isDefault)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: scheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      l.garageDefault,
-                      // Flaeche und Schrift aus demselben Paar -- sonst
-                      // steht die Beschriftung auf eigener Farbe.
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.onSecondaryContainer,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              vehicle.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          if (vehicle.isDefault) ...[
+                            const SizedBox(width: Insets.s),
+                            _DefaultBadge(label: l.garageDefault),
+                          ],
+                        ],
                       ),
-                    ),
+                      const SizedBox(height: Insets.xs),
+                      Text(
+                        details,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
                   ),
-                // Beim Namen, nicht am Fuss der Kachel: die ist durch
-                // Tachostand und Wartung so lang geworden, dass ein Knopf
-                // unten kaum noch auffaellt -- und geaendert wird meist
-                // genau das, was oben steht.
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: l.garageEdit,
-                  onPressed: onEdit,
+                ),
+                // Ein Klappmenue statt dreier Schaltflaechen. Vorher
+                // standen "Bearbeiten", "Zum Standard machen" und
+                // "Loeschen" als rote Beschriftungen in der Kachel -- alle
+                // drei gleich auffaellig, obwohl nur eine davon etwas
+                // zerstoert.
+                _VehicleMenu(
+                  vehicle: vehicle,
+                  onEdit: onEdit,
+                  onDelete: onDelete,
+                  onMakeDefault: () async {
+                    await ref
+                        .read(vehicleRepositoryProvider)
+                        .makeDefault(vehicle.id);
+                    ref.invalidate(vehiclesProvider);
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(details, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 12),
             _OdometerBlock(vehicle: vehicle),
-            const SizedBox(height: 8),
             _MaintenanceBlock(vehicle: vehicle),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                if (!vehicle.isDefault)
-                  TextButton(
-                    onPressed: () async {
-                      await ref
-                          .read(vehicleRepositoryProvider)
-                          .makeDefault(vehicle.id);
-                      ref.invalidate(vehiclesProvider);
-                    },
-                    child: Text(l.garageMakeDefault),
-                  ),
-                const Spacer(),
-                TextButton(onPressed: onDelete, child: Text(l.garageDelete)),
-              ],
-            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Die Pille am Standardfahrzeug.
+class _DefaultBadge extends StatelessWidget {
+  const _DefaultBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: Insets.s, vertical: 2),
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(Radii.pill),
+      ),
+      child: Text(
+        label,
+        // Flaeche und Schrift aus demselben Paar -- sonst steht die
+        // Beschriftung auf eigener Farbe.
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: scheme.onSecondaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+      ),
+    );
+  }
+}
+
+/// Alles, was man mit einem Fahrzeug tun kann, an einer Stelle.
+class _VehicleMenu extends StatelessWidget {
+  const _VehicleMenu({
+    required this.vehicle,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onMakeDefault,
+  });
+
+  final Vehicle vehicle;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onMakeDefault;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<VoidCallback>(
+      icon: const Icon(Icons.more_vert),
+      tooltip: l.garageEdit,
+      position: PopupMenuPosition.under,
+      onSelected: (action) => action(),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: onEdit,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l.garageEdit),
+          ),
+        ),
+        if (!vehicle.isDefault)
+          PopupMenuItem(
+            value: onMakeDefault,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.star_outline),
+              title: Text(l.garageMakeDefault),
+            ),
+          ),
+        PopupMenuItem(
+          value: onDelete,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            // Zerstoerendes traegt die Fehlerfarbe, nicht den Akzent:
+            // vorher sah "Loeschen" genauso aus wie "Erledigt".
+            iconColor: scheme.error,
+            textColor: scheme.error,
+            leading: const Icon(Icons.delete_outline),
+            title: Text(l.garageDelete),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -298,37 +395,46 @@ class _OdometerBlock extends ConsumerWidget {
     final odometer = vehicle.odometer;
     final small = Theme.of(context).textTheme.bodySmall;
 
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                odometer.estimateKm == null
-                    ? l.garageOdometerNone
-                    : l.garageOdometerEstimate(
-                        _km(context, odometer.estimateKm!)),
-                style: odometer.estimateKm == null
-                    ? small
-                    : Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            TextButton(
-              onPressed: () => _add(context, ref),
-              child: Text(l.garageOdometerAdd),
-            ),
-          ],
+        SectionHeader(
+          title: l.garageOdometer,
+          padding: const EdgeInsets.only(top: Insets.m),
+          // Ein Plus statt einer roten Beschriftung: die Aktion gehoert
+          // zur Ueberschrift des Abschnitts, nicht in die Datenzeile.
+          trailing: IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: l.garageOdometerAdd,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => _add(context, ref),
+          ),
         ),
+        if (odometer.estimateKm == null)
+          Text(l.garageOdometerNone, style: small?.copyWith(color: muted))
+        else
+          MetricValue(
+            value: _km(context, odometer.estimateKm!),
+            unit: 'km',
+            // Ohne Beschriftung: dass die Zahl geschaetzt ist, sagt die
+            // Grundlagenzeile direkt darunter -- dreimal dasselbe Wort
+            // untereinander liest niemand.
+            label: odometer.readingKm == null ? l.garageOdometerApprox : null,
+          ),
         if (odometer.readingKm != null && odometer.readAt != null)
-          Text(
-            l.garageOdometerBasis(
-              _km(context, odometer.readingKm!),
-              DateFormat.yMd(Localizations.localeOf(context).toLanguageTag())
-                  .format(odometer.readAt!),
-              _km(context, odometer.trackedKm.round()),
+          Padding(
+            padding: const EdgeInsets.only(top: Insets.xs),
+            child: Text(
+              l.garageOdometerBasis(
+                _km(context, odometer.readingKm!),
+                DateFormat.yMd(Localizations.localeOf(context).toLanguageTag())
+                    .format(odometer.readAt!),
+                _km(context, odometer.trackedKm.round()),
+              ),
+              style: small?.copyWith(color: muted),
             ),
-            style: small,
           ),
       ],
     );
@@ -384,46 +490,80 @@ class _MaintenanceBlock extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final small = Theme.of(context).textTheme.bodySmall;
 
+    final muted = scheme.onSurfaceVariant;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(child: Text(l.garageMaintenance, style: small)),
-            TextButton(
-              onPressed: () => _add(context, ref),
-              child: Text(l.garageMaintenanceAdd),
-            ),
-          ],
+        SectionHeader(
+          title: l.garageMaintenance,
+          padding: const EdgeInsets.only(top: Insets.m),
+          trailing: IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: l.garageMaintenanceAdd,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => _add(context, ref),
+          ),
         ),
         if (vehicle.maintenance.isEmpty)
-          Text(l.garageMaintenanceNone, style: small)
+          Text(l.garageMaintenanceNone, style: small?.copyWith(color: muted))
         else
           for (final item in vehicle.maintenance)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: Insets.xs),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Ein Punkt statt eingefaerbter Schrift: die Farbe
+                  // steht damit vor der Zeile und nicht in ihr, und
+                  // ueberfaellige Eintraege sind beim Ueberfliegen zu
+                  // erkennen, ohne dass man den Titel lesen muss.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 7, right: Insets.s),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: item.overdue
+                            ? scheme.primary
+                            : scheme.outlineVariant,
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           item.title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            // Ueberfaelliges in der Akzentfarbe: es ist
-                            // die einzige Zeile, die eine Handlung
-                            // verlangt.
-                            color: item.overdue ? scheme.primary : null,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          _due(context, l, item),
+                          style: small?.copyWith(
+                            color: item.overdue ? scheme.primary : muted,
                           ),
                         ),
-                        Text(_due(context, l, item), style: small),
                       ],
                     ),
                   ),
-                  TextButton(
-                    onPressed: () async {
+                  PopupMenuButton<bool>(
+                    icon: const Icon(Icons.more_horiz),
+                    tooltip: l.garageEdit,
+                    position: PopupMenuPosition.under,
+                    onSelected: (done) async {
+                      if (done) {
+                        await ref
+                            .read(vehicleRepositoryProvider)
+                            .completeMaintenance(vehicle.id, item.id);
+                        ref.invalidate(vehiclesProvider);
+                        return;
+                      }
+
                       final changed = await showDialog<bool>(
                         context: context,
                         builder: (_) => MaintenanceDialog(
@@ -433,16 +573,24 @@ class _MaintenanceBlock extends ConsumerWidget {
                       );
                       if (changed ?? false) ref.invalidate(vehiclesProvider);
                     },
-                    child: Text(l.garageEdit),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      await ref
-                          .read(vehicleRepositoryProvider)
-                          .completeMaintenance(vehicle.id, item.id);
-                      ref.invalidate(vehiclesProvider);
-                    },
-                    child: Text(l.garageMaintenanceDone),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: true,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.check),
+                          title: Text(l.garageMaintenanceDone),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: false,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.edit_outlined),
+                          title: Text(l.garageEdit),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -575,7 +723,7 @@ class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
               errorText: _error,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Insets.m),
           if (_canUseRelative)
             SegmentedButton<bool>(
               segments: [
@@ -597,7 +745,7 @@ class _MaintenanceDialogState extends ConsumerState<MaintenanceDialog> {
               suffixText: 'km',
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Insets.m),
           OutlinedButton.icon(
             onPressed: _pickDate,
             icon: const Icon(Icons.event_outlined),
@@ -744,7 +892,7 @@ class _VehicleDialogState extends ConsumerState<VehicleDialog> {
                 errorText: _error,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Insets.l),
             Row(
               children: [
                 Expanded(
@@ -783,7 +931,7 @@ class _VehicleDialogState extends ConsumerState<VehicleDialog> {
               l.garageModelHint,
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Insets.l),
             Row(
               children: [
                 Expanded(
@@ -793,7 +941,7 @@ class _VehicleDialogState extends ConsumerState<VehicleDialog> {
                     decoration: InputDecoration(labelText: l.garageYear),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Insets.m),
                 Expanded(
                   child: TextField(
                     controller: _power,

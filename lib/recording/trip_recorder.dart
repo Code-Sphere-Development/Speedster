@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/detection/trip_detector.dart';
 import 'package:speedster/domain/sample.dart';
+import 'package:speedster/domain/route_preview.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/usual_speed.dart';
@@ -202,6 +203,9 @@ class TripRecorder {
         stats,
         s.timestamp,
         cloudVehicleId: await defaultVehicleId?.call(),
+        // Der Puffer haelt die ganze Fahrt -- die Strecke laesst sich hier
+        // ohne eine weitere Abfrage eindampfen.
+        routePreview: RoutePreview.encode(_buffer),
       );
       _tripId = null;
       _buffer.clear();

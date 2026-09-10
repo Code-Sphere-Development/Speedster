@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/auth_repository.dart';
@@ -86,13 +87,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(_register ? l.authRegister : l.authSignIn)),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(
+          Insets.screen,
+          Insets.xl,
+          Insets.screen,
+          Insets.xl,
+        ),
         children: [
           if (_register) ...[
             TextField(
               controller: _name,
               decoration: InputDecoration(labelText: l.authName),
             ),
+            const SizedBox(height: Insets.m),
             TextField(
               controller: _username,
               autocorrect: false,
@@ -103,25 +110,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 helperText: l.authUsernameHint,
               ),
             ),
+            const SizedBox(height: Insets.m),
           ],
           TextField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(labelText: l.authEmail),
           ),
+          const SizedBox(height: Insets.m),
           TextField(
             controller: _password,
             obscureText: true,
             decoration: InputDecoration(labelText: l.authPassword),
           ),
           if (_error != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: Insets.m),
             Text(
               _error!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: Insets.xl),
           FilledButton(
             onPressed: _busy ? null : _submit,
             child: Text(_register ? l.authCreateAccount : l.authSignIn),
@@ -130,13 +139,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             onPressed: _busy ? null : () => setState(() => _register = !_register),
             child: Text(_register ? l.authHaveAccount : l.authNoAccount),
           ),
-          const Divider(height: 32),
+          const Divider(height: Insets.xxl),
           OutlinedButton.icon(
             onPressed: () => _socialSoon('Apple'),
             icon: const Icon(Icons.apple),
             label: Text(l.authWithApple),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Insets.s),
           OutlinedButton.icon(
             onPressed: () => _socialSoon('Google'),
             icon: const Icon(Icons.g_mobiledata),

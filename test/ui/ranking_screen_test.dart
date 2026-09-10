@@ -243,7 +243,13 @@ void main() {
     // Bild sehen wie bisher.
     expect(asked.first, RankPeriod.all);
 
-    await tester.tap(find.text('Woche'));
+    // Das Zeitfenster steht seit dem Umbau nicht mehr als eigene
+    // Chip-Reihe da, sondern als Klappmenue neben den Kennzahlen -- es
+    // wird selten umgestellt und kostete dauerhaft eine Bildschirmzeile.
+    await tester.tap(find.byType(PopupMenuButton<RankPeriod>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Woche').last);
     await tester.pumpAndSettle();
 
     expect(asked.last, RankPeriod.week);

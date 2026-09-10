@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 
 /// Farbwelt der App: rotes Markenzeichen, elektrisch-türkiser Gegenpol,
 /// kühle Flächen.
@@ -56,6 +57,26 @@ class SpeedsterTheme {
         scheme.primary.withValues(alpha: _containerTint),
         scheme.surface,
       );
+
+  /// Stil fuer eine Kennzahl: gross, halbfett, mit Tabellenziffern.
+  ///
+  /// Aus dem Textthema abgeleitet und nicht von Hand gesetzt. Eine
+  /// handgeschriebene `TextStyle` verliert die Tabellenziffern, die
+  /// [_tabularFigures] allen Themenstilen mitgibt -- und genau daran lag
+  /// es, dass die 72 Pixel grosse Tachozahl beim Zifferwechsel sprang.
+  static TextStyle metric(BuildContext context, {double? size, Color? color}) {
+    final base = Theme.of(context).textTheme.headlineSmall!;
+
+    return base.copyWith(
+      fontSize: size,
+      fontWeight: FontWeight.w600,
+      color: color,
+      // Eng gesetzt: eine grosse Zahl mit Normalabstand wirkt auseinander
+      // gezogen, und in einer Zeile daneben fehlt sonst der Platz.
+      letterSpacing: -0.5,
+      height: 1.1,
+    );
+  }
 
   static ThemeData get light => _build(Brightness.light);
 
@@ -130,6 +151,20 @@ class SpeedsterTheme {
         // Grau, das sich kaum von der Leiste abhob.
         indicatorColor: scheme.primary.withValues(alpha: 0.22),
         elevation: 0,
+        // Der gewaehlte Reiter bekommt Gewicht, nicht nur eine Toenung:
+        // die Toenung allein liess sich beim Ueberfliegen leicht
+        // uebersehen.
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w400,
+            color: states.contains(WidgetState.selected)
+                ? scheme.onSurface
+                : scheme.onSurfaceVariant,
+          ),
+        ),
       ),
       dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 1),
       cardTheme: CardThemeData(
@@ -139,12 +174,150 @@ class SpeedsterTheme {
         // ihre Flaeche ab. Eine Linie darum wirkt neben einer getoenten
         // Flaeche wie ein doppelter Rand.
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.card),
         ),
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        margin: const EdgeInsets.fromLTRB(
+          Insets.screen,
+          0,
+          Insets.screen,
+          Insets.m,
+        ),
       ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: Insets.screen,
+          vertical: Insets.xs,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.small),
+        ),
+      ),
+      // Der Akzent ist ab hier keine Schaltflaechenfarbe mehr.
+      //
+      // Vorher trug jede Beschriftung eines TextButton `primary`, und in
+      // der Garage standen dadurch bis zu achtzehn rote Woerter auf einem
+      // Bildschirm -- "Loeschen" sah aus wie "Erledigt". Rot markiert
+      // jetzt Zustand und genau eine Hauptaktion je Bildschirm; alles
+      // Uebrige ist neutral. Zerstoerendes setzt `error` ausdruecklich am
+      // Aufrufort.
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: scheme.onSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Radii.small),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Insets.xl,
+            vertical: Insets.m,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Radii.small),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: scheme.onSurface,
+          side: BorderSide(color: scheme.outlineVariant),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Insets.xl,
+            vertical: Insets.m,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Radii.small),
+          ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
+      ),
+      // Auswahl ist tuerkis, Aktion ist rot. Vorher liefen beide Familien
+      // nebeneinander, ohne dass die Zuordnung erkennbar war.
+      chipTheme: ChipThemeData(
+        backgroundColor: scheme.surfaceContainer,
+        selectedColor: scheme.secondaryContainer,
+        // Das Haekchen wiederholt nur, was die Faerbung schon sagt, und
+        // laesst die Chips beim Umschalten in der Breite springen.
+        showCheckmark: false,
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? BorderSide(color: scheme.secondary.withValues(alpha: 0.5))
+              : BorderSide(color: scheme.outlineVariant),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.pill),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.secondaryContainer
+                : Colors.transparent,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.onSecondaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+          side: WidgetStatePropertyAll(
+            BorderSide(color: scheme.outlineVariant),
+          ),
+        ),
+      ),
+      // Eingabefelder auf der Flaechenfarbe, nicht auf der Containerfarbe:
+      // alle Containerstufen sind hier bewusst derselbe Ton (siehe
+      // scheme()), und ein Feld darauf waere auf einer Karte oder im
+      // Dialog unsichtbar.
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surfaceContainerLowest,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: Insets.l,
+          vertical: Insets.m,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Radii.small),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Radii.small),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        // Der Fokus ist Auswahl, nicht Aktion -- deshalb tuerkis und
+        // nicht rot.
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Radii.small),
+          borderSide: BorderSide(color: scheme.secondary, width: 2),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surfaceContainer,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.dialog),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.small),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Radii.card),
+        ),
       ),
     );
 

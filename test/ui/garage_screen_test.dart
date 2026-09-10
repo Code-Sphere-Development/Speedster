@@ -79,6 +79,21 @@ void main() {
       vehicle(id: 2, name: 'Winterauto', isDefault: false),
     ]);
 
+    // Die Aktionen stecken seit dem Umbau im Klappmenue der Kachel: als
+    // Schaltflaechen standen sie zu dritt und rot in jeder Kachel.
+    final menus = find.byType(PopupMenuButton<VoidCallback>);
+    expect(menus, findsNWidgets(2));
+
+    // Das Standardfahrzeug bietet den Wechsel nicht an.
+    await tester.tap(menus.first);
+    await tester.pumpAndSettle();
+    expect(find.text('Zum Standard machen'), findsNothing);
+
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    await tester.tap(menus.last);
+    await tester.pumpAndSettle();
     expect(find.text('Zum Standard machen'), findsOneWidget);
   });
 
@@ -91,12 +106,16 @@ void main() {
       vehicle(id: 2, name: 'Winterauto', isDefault: false),
     ]);
 
-    // Die Kachel traegt inzwischen Tachostand und Wartung; der Knopf des
+    // Die Kachel traegt inzwischen Tachostand und Wartung; das Menue des
     // zweiten Fahrzeugs liegt damit unterhalb des Sichtbereichs.
-    await tester.ensureVisible(find.text('Zum Standard machen'));
+    final menu = find.byType(PopupMenuButton<VoidCallback>).last;
+    await tester.ensureVisible(menu);
     await tester.pumpAndSettle();
+    await tester.tap(menu);
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Zum Standard machen'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     verify(() => repo.makeDefault(2)).called(1);
   });
@@ -107,6 +126,8 @@ void main() {
 
     await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
 
+    await tester.tap(find.byType(PopupMenuButton<VoidCallback>));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Löschen'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Die Fahrten bleiben erhalten'), findsOneWidget);
@@ -176,6 +197,8 @@ void main() {
     ]);
 
     // Der Stift steht beim Namen, nicht am Fuss der Kachel.
+    await tester.tap(find.byType(PopupMenuButton<VoidCallback>));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
 
@@ -198,6 +221,8 @@ void main() {
 
     await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
 
+    await tester.tap(find.byType(PopupMenuButton<VoidCallback>));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Golf VII');
@@ -236,7 +261,14 @@ void main() {
     ]);
 
     // Mit Tausendertrennung: "120042" liest niemand auf einen Blick.
-    expect(find.textContaining('ca. 120.042'), findsOneWidget);
+    // Die Zahl steht seit dem Umbau gross und die Einheit klein daneben,
+    // deshalb ohne "ca." im selben Textknoten -- das sagt die
+    // Beschriftung darunter.
+    expect(find.text('120.042'), findsOneWidget);
+    expect(find.text('km'), findsOneWidget);
+    // Kein zweites "geschätzt" ueber der Grundlagenzeile: die sagt es
+    // bereits, und dreimal dasselbe Wort untereinander liest niemand.
+    expect(find.text('geschätzt'), findsNothing);
     expect(find.textContaining('120.000'), findsWidgets);
   });
 
@@ -255,7 +287,7 @@ void main() {
 
     await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
 
-    await tester.tap(find.text('Tachostand eintragen'));
+    await tester.tap(find.byTooltip('Tachostand eintragen'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '120180');
     await tester.tap(find.text('Speichern'));
@@ -316,7 +348,7 @@ void main() {
     final repo = MockVehicles();
     await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
 
-    await tester.tap(find.text('Wartung eintragen'));
+    await tester.tap(find.byTooltip('Wartung eintragen'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'HU');
     await tester.tap(find.text('Speichern'));
@@ -344,8 +376,10 @@ void main() {
       ),
     ]);
 
+    await tester.tap(find.byType(PopupMenuButton<bool>));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Erledigt'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     verify(() => repo.completeMaintenance(1, 5)).called(1);
   });
@@ -356,7 +390,7 @@ void main() {
     final repo = MockVehicles();
 
     await pumpGarage(tester, cloud: true, repo: repo, vehicles: [vehicle()]);
-    await tester.tap(find.text('Wartung eintragen'));
+    await tester.tap(find.byTooltip('Wartung eintragen'));
     await tester.pumpAndSettle();
 
     expect(find.text('In x Kilometern'), findsNothing);
@@ -379,7 +413,7 @@ void main() {
       ),
     ]);
 
-    await tester.tap(find.text('Wartung eintragen'));
+    await tester.tap(find.byTooltip('Wartung eintragen'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Inspektion');
     await tester.tap(find.text('In x Kilometern'));
@@ -416,8 +450,10 @@ void main() {
       ),
     ]);
 
-    // Am Fahrzeug ist es ein Stift oben, an der Wartung ein Knopf mit
-    // Beschriftung -- hier ist die Wartung gemeint.
+    // Fahrzeug und Wartung haben je ein eigenes Klappmenue -- hier ist
+    // das der Wartung gemeint.
+    await tester.tap(find.byType(PopupMenuButton<bool>));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Bearbeiten'));
     await tester.pumpAndSettle();
 

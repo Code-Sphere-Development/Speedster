@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/heat/heat_map.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/heat/heat_palette.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/heat_glow_layer.dart';
+import 'package:speedster/ui/components/map_pill.dart';
 import 'package:speedster/ui/map_tiles.dart';
 
 /// Karte aller gefahrenen Strecken, eingefaerbt nach Befahrungshaeufigkeit.
@@ -59,7 +61,12 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _controller.fitCamera(
-          CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(32)),
+          CameraFit.bounds(
+            bounds: bounds,
+            // Kein Wert aus dem Raster: das ist der Rand *der Karte*, mit
+            // dem die Kamera die Strecken einpasst -- kein Layoutabstand.
+            padding: const EdgeInsets.all(32),
+          ),
         );
       });
       return;
@@ -134,11 +141,11 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                   HeatGlowLayer(edges: map.edges, maxCount: map.maxCount),
                 ],
               ),
-              const Positioned(left: 12, bottom: 12, child: _Legend()),
+              const Positioned(left: Insets.m, bottom: Insets.m, child: _Legend()),
               Positioned(
-                top: 12,
-                left: 12,
-                right: 12,
+                top: Insets.m,
+                left: Insets.m,
+                right: Insets.m,
                 child: Consumer(
                   builder: (context, ref, _) {
                     // Nur die Cloud kennt Monatsbuckets; lokal gibt es
@@ -147,7 +154,7 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
                         ref.watch(cloudActiveProvider).asData?.value ?? false;
                     if (!cloud) return const SizedBox.shrink();
                     return Wrap(
-                      spacing: 8,
+                      spacing: Insets.s,
                       children: [
                         for (final (range, label) in [
                           (HeatRange.all, l.heatmapRangeAll),
@@ -166,22 +173,22 @@ class _HeatmapScreenState extends ConsumerState<HeatmapScreen> {
               ),
               if (async.hasError)
                 Positioned(
-                  left: 12,
-                  right: 12,
+                  left: Insets.m,
+                  right: Insets.m,
                   bottom: 56,
                   child: _Notice(l.heatmapUnavailable),
                 )
               else if (async.isLoading)
                 Positioned(
-                  left: 12,
-                  right: 12,
+                  left: Insets.m,
+                  right: Insets.m,
                   bottom: 56,
                   child: _Notice(l.heatmapLoading),
                 )
               else if (map.edges.isEmpty)
                 Positioned(
-                  left: 12,
-                  right: 12,
+                  left: Insets.m,
+                  right: Insets.m,
                   bottom: 56,
                   child: _Notice(l.heatmapEmpty),
                 ),
@@ -200,17 +207,7 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Align(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: scheme.surface.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(text, style: TextStyle(color: scheme.onSurface)),
-      ),
-    );
+    return Align(child: MapPill(child: Text(text)));
   }
 }
 
@@ -220,22 +217,20 @@ class _Legend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(8),
-      ),
+    final l = AppLocalizations.of(context);
+    final style = Theme.of(context).textTheme.labelMedium;
+
+    return MapPill(
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('selten'),
-          const SizedBox(width: 8),
+          Text(l.heatmapLegendRare, style: style),
+          const SizedBox(width: Insets.s),
           Container(
             width: 80,
             height: 8,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(Insets.xs),
               // Der Verlauf zeigt, was die Karte tut: von dunklem Wein zu
               // hellem, fast ausgebranntem Kern.
               gradient: const LinearGradient(
@@ -247,8 +242,8 @@ class _Legend extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          const Text('oft'),
+          const SizedBox(width: Insets.s),
+          Text(l.heatmapLegendOften, style: style),
         ],
       ),
     );

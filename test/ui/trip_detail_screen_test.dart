@@ -59,8 +59,10 @@ void main() {
 
     expect(find.text('Max'), findsOneWidget);
     expect(find.text('Höhenmeter'), findsOneWidget);
-    expect(find.textContaining('36 km/h'), findsOneWidget); // maxSpeed 10 m/s
-    expect(find.text('42 m'), findsOneWidget);
+    // Zahl und Einheit stehen seit dem Umbau in zwei Textknoten.
+    expect(find.text('36'), findsOneWidget); // maxSpeed 10 m/s
+    expect(find.text('42'), findsOneWidget); // Hoehenmeter
+    expect(find.text('m'), findsOneWidget);
   });
 
   testWidgets('speichert Zweck und Notiz lokal, auch ohne Cloud',

@@ -44,9 +44,13 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.textContaining('36 km/h'), findsOneWidget);
+    // Zahl und Einheit stehen seit dem Umbau in zwei Textknoten: nur so
+    // laesst sich die Zahl gross und die Einheit klein setzen.
+    expect(find.text('36'), findsOneWidget);
+    expect(find.text('km/h'), findsOneWidget);
     // Deutsch: Komma, nicht Punkt.
-    expect(find.text('1,5 km'), findsOneWidget);
+    expect(find.text('1,5'), findsOneWidget);
+    expect(find.text('km'), findsOneWidget);
     expect(find.text('2m 05s'), findsOneWidget);
     // Waehrend der Fahrt, statisch: eine Warnung, die bei hohem Tempo
     // aufpoppt, zoege den Blick genau dann aufs Display, wenn er dort

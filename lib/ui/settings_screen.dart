@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:speedster/app/links.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:speedster/cloud/cloud_sync_service.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
@@ -10,6 +11,7 @@ import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
+import 'package:speedster/ui/components/section_header.dart';
 import 'package:speedster/ui/screen_header.dart';
 import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/username_dialog.dart';
@@ -34,6 +36,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Text(l.commonCancel),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(l.commonDelete),
           ),
@@ -132,8 +138,10 @@ class SettingsScreen extends ConsumerWidget {
           // Ohne Untertitel: die Version steht weiter unten bei den
           // Angaben zur App, und hier waere sie bloss Zierat.
           ScreenHeader(title: l.tabSettings),
+          SectionHeader(title: l.settingsSectionRecording),
           SwitchListTile(
             key: const Key('unitSwitch'),
+            secondary: const Icon(Icons.straighten),
             title: Text(l.settingsUnitTitle),
             subtitle: Text(l.settingsUnitSubtitle),
             value: settings.unit == UnitSystem.mph,
@@ -142,14 +150,16 @@ class SettingsScreen extends ConsumerWidget {
           ),
           SwitchListTile(
             key: const Key('pauseSwitch'),
+            secondary: const Icon(Icons.pause_circle_outline),
             title: Text(l.settingsPauseTitle),
             subtitle: Text(l.settingsPauseSubtitle),
             value: settings.trackingPaused,
             onChanged: controller.setTrackingPaused,
           ),
-          const Divider(),
+          SectionHeader(title: l.settingsSectionAccount),
           SwitchListTile(
             key: const Key('cloudSwitch'),
+            secondary: const Icon(Icons.cloud_outlined),
             title: Text(l.settingsCloudTitle),
             subtitle: Text(l.settingsCloudSubtitle),
             // Der Token entscheidet, nicht ein zweiter Schalterzustand:
@@ -157,34 +167,61 @@ class SettingsScreen extends ConsumerWidget {
             value: cloudOn,
             onChanged: (v) => _toggleCloud(context, ref, v),
           ),
+          // Benutzername und Freunde: nur mit Konto.
+          const _CloudAccountSection(),
           if (cloudOn)
-            ListTile(
-              leading: const Icon(Icons.person_remove),
-              title: Text(l.settingsDeleteAccount),
+            _DestructiveTile(
+              icon: Icons.person_remove,
+              label: l.settingsDeleteAccount,
               onTap: () => _deleteAccount(context, ref),
             ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.delete_forever),
-            title: Text(l.settingsDeleteAll),
-            onTap: () => _confirmDeleteAll(context, ref),
-          ),
+          SectionHeader(title: l.settingsSectionData),
           // Bewusst nicht im Konto-Abschnitt: der blendet sich aus, wenn
           // das Konto nicht geladen werden kann -- also gerade dann,
           // wenn Uploads warten, naemlich ohne Netz.
           const _PendingUploads(),
-          const _CloudAccountSection(),
-          const Divider(),
+          // Nicht mehr hinter der Cloud versteckt: ohne sie liegen die
+          // Fahrten nur auf dem Geraet, und die Sicherung ist dann das
+          // einzige Netz, das es gibt.
+          ListTile(
+            leading: const Icon(Icons.save_outlined),
+            title: Text(l.settingsBackup),
+            subtitle: Text(l.settingsBackupSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => const BackupScreen()),
+            ),
+          ),
+          _DestructiveTile(
+            icon: Icons.delete_forever,
+            label: l.settingsDeleteAll,
+            onTap: () => _confirmDeleteAll(context, ref),
+          ),
+          SectionHeader(title: l.settingsSectionHelp),
+          ListTile(
+            leading: const Icon(Icons.explore_outlined),
+            title: Text(l.settingsTour),
+            subtitle: Text(l.settingsTourSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            // Erneut aufrufbar: ein Rundgang, den man genau einmal sieht
+            // und nie wieder, ist beim zweiten Fragezeichen wertlos.
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => const TourScreen()),
+            ),
+          ),
           const _AboutSection(),
-          const Divider(),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(
+              Insets.screen,
+              Insets.l,
+              Insets.screen,
+              Insets.xl,
+            ),
             child: Text(
               l.settingsDisclaimer,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
         ],
@@ -207,7 +244,6 @@ class _CloudAccountSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Divider(),
         ListTile(
           leading: const Icon(Icons.alternate_email),
           title: Text(l.settingsUsername),
@@ -226,26 +262,6 @@ class _CloudAccountSection extends ConsumerWidget {
                     context: context,
                     builder: (_) => UsernameDialog(account: account),
                   ),
-        ),
-        ListTile(
-          leading: const Icon(Icons.explore_outlined),
-          title: Text(l.settingsTour),
-          subtitle: Text(l.settingsTourSubtitle),
-          trailing: const Icon(Icons.chevron_right),
-          // Erneut aufrufbar: ein Rundgang, den man genau einmal sieht und
-          // nie wieder, ist beim zweiten Fragezeichen wertlos.
-          onTap: () => Navigator.of(context).push<void>(
-            MaterialPageRoute(builder: (_) => const TourScreen()),
-          ),
-        ),
-        ListTile(
-          leading: const Icon(Icons.save_outlined),
-          title: Text(l.settingsBackup),
-          subtitle: Text(l.settingsBackupSubtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).push<void>(
-            MaterialPageRoute(builder: (_) => const BackupScreen()),
-          ),
         ),
         ListTile(
           leading: const Icon(Icons.people_outline),
@@ -317,7 +333,7 @@ class _AboutSection extends StatelessWidget {
           subtitle: Text(l.settingsTipSubtitle),
           onTap: () => _open(context, AppLinks.tip),
         ),
-        const Divider(),
+        SectionHeader(title: l.settingsSectionLegal),
         // Rechtstexte liegen in der Cloud, nicht in der App: ein Text
         // statt zweier, und Aenderungen brauchen kein App-Update.
         ListTile(
@@ -332,6 +348,33 @@ class _AboutSection extends StatelessWidget {
         ),
         const _VersionTile(),
       ],
+    );
+  }
+}
+
+/// Eine Zeile, die Daten unwiederbringlich loescht.
+///
+/// Traegt die Fehlerfarbe: vorher sah "Alle Daten loeschen" genauso aus
+/// wie "App bewerten" -- gleiches Symbol, gleiche Schrift, gleiches Grau.
+class _DestructiveTile extends StatelessWidget {
+  const _DestructiveTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final error = Theme.of(context).colorScheme.error;
+
+    return ListTile(
+      leading: Icon(icon, color: error),
+      title: Text(label, style: TextStyle(color: error)),
+      onTap: onTap,
     );
   }
 }

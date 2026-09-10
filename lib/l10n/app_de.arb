@@ -142,6 +142,11 @@
   "friendsDeclined": "Abgelehnt.",
   "friendsRemoved": "Entfernt.",
   "friendsWithdrawn": "Zurückgezogen.",
+  "settingsSectionRecording": "Aufzeichnung",
+  "settingsSectionAccount": "Konto",
+  "settingsSectionData": "Daten",
+  "settingsSectionHelp": "Hilfe",
+  "settingsSectionLegal": "Rechtliches",
   "settingsUnitTitle": "Einheit: Meilen (mph)",
   "settingsUnitSubtitle": "Aus = km/h",
   "settingsPauseTitle": "Tracking pausieren",
@@ -271,6 +276,7 @@
       }
     }
   },
+  "garageOdometerApprox": "geschätzt",
   "garageOdometerBasis": "Geschätzt aus {km} km vom {date}, plus {tracked} km seither aufgezeichnet.",
   "@garageOdometerBasis": {
     "placeholders": {

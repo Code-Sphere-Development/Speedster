@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
@@ -14,7 +15,7 @@ class ConsentScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l.consentTitle)),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(Insets.screen),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -26,7 +27,7 @@ class ConsentScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Insets.l),
             SizedBox(
               width: double.infinity,
               child: FilledButton(

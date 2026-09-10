@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:speedster/domain/route_preview.dart';
 
 part 'database.g.dart';
 
@@ -35,6 +36,14 @@ class Trips extends Table {
   TextColumn get purpose => text().nullable()();
 
   TextColumn get note => text().nullable()();
+
+  /// Die gefahrene Strecke als wenige Stuetzpunkte (siehe RoutePreview).
+  ///
+  /// Bewusst hier und nicht aus `trackPoints` gerechnet: die Punkte
+  /// raeumt `evictSyncedBeyond` jenseits der zehn neuesten weg, die Zeile
+  /// der Fahrt bleibt stehen. Nur so hat auch eine alte Fahrt in der
+  /// Liste noch ihr Streckenbild -- und zwar ohne Netzabfrage.
+  TextColumn get routePreview => text().nullable()();
 }
 
 class TrackPoints extends Table {
@@ -129,7 +138,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -167,6 +176,44 @@ class AppDatabase extends _$AppDatabase {
             // aber bei aktiver Cloud liegen die Punkte aelterer Fahrten gar
             // nicht mehr auf dem Geraet (siehe TripCacheService).
           }
+          if (from < 8) {
+            await m.addColumn(trips, trips.routePreview);
+            // Anders als bei den Spalten darueber laesst sich diese
+            // nachtragen: solange die Punkte noch da sind, steht die
+            // Strecke fest. Das betrifft bei aktiver Cloud die zehn
+            // neuesten Fahrten, ohne Cloud alle -- und ohne die
+            // Rueckfuellung zeigte die Fahrtenliste unmittelbar nach der
+            // Aktualisierung ueberall Platzhalter.
+            await _backfillRoutePreviews();
+          }
         },
       );
+
+  /// Traegt die Streckenvorschau fuer alle Fahrten nach, deren Punkte noch
+  /// vorliegen.
+  ///
+  /// Fahrt fuer Fahrt und nicht alle Punkte auf einmal: die Punkte einer
+  /// langen Fahrt sind Zehntausende Zeilen, und alle Fahrten zusammen
+  /// muessten dafuer gleichzeitig in den Speicher.
+  Future<void> _backfillRoutePreviews() async {
+    final ids = await (selectOnly(trackPoints, distinct: true)
+          ..addColumns([trackPoints.tripId]))
+        .map((row) => row.read(trackPoints.tripId)!)
+        .get();
+
+    for (final tripId in ids) {
+      final rows = await (select(trackPoints)
+            ..where((p) => p.tripId.equals(tripId))
+            ..orderBy([(p) => OrderingTerm.asc(p.timestamp)]))
+          .get();
+
+      final encoded = RoutePreview.encodeLatLng([
+        for (final r in rows) (lat: r.lat, lng: r.lng),
+      ]);
+      if (encoded == null) continue;
+
+      await (update(trips)..where((t) => t.id.equals(tripId)))
+          .write(TripsCompanion(routePreview: Value(encoded)));
+    }
+  }
 }

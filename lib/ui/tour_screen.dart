@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speedster/app/spacing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speedster/app/app.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
@@ -108,18 +109,18 @@ class _TourScreenState extends ConsumerState<TourScreen> {
                 itemCount: stops.length,
                 onPageChanged: (i) => setState(() => _index = i),
                 itemBuilder: (context, i) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: const EdgeInsets.symmetric(horizontal: Insets.xxl),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(stops[i].icon, size: 72, color: scheme.primary),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: Insets.xl),
                       Text(
                         stops[i].title,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Insets.m),
                       Text(
                         stops[i].body,
                         textAlign: TextAlign.center,
@@ -137,7 +138,7 @@ class _TourScreenState extends ConsumerState<TourScreen> {
                   Container(
                     width: 8,
                     height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: Insets.xs),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: i == _index
@@ -148,7 +149,7 @@ class _TourScreenState extends ConsumerState<TourScreen> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(Insets.screen),
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
