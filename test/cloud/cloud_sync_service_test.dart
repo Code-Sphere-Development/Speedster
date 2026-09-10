@@ -145,4 +145,37 @@ void main() {
     expect(await repo.unsyncedTrips(), hasLength(2));
     verify(() => dio.post('/trips', data: any(named: 'data'))).called(1);
   });
+
+  test('loescht eine Fahrt in der Cloud', () async {
+    // Fuer den Fall "nicht selbst gefahren": am Fahrtende wurde bereits
+    // hochgeladen, also muss sie dort wieder weg.
+    when(() => dio.delete(any())).thenAnswer((_) async => ok(204));
+
+    await service.deleteRemote('uuid-1');
+
+    verify(() => dio.delete('/trips/uuid-1')).called(1);
+  });
+
+  test('nimmt ein 404 beim Loeschen hin', () async {
+    // Dann war sie nie oben, und das Ziel ist ohnehin erreicht.
+    when(() => dio.delete(any())).thenThrow(
+      DioException(
+        requestOptions: RequestOptions(path: '/trips/uuid-1'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/trips/uuid-1'),
+          statusCode: 404,
+        ),
+      ),
+    );
+
+    await expectLater(service.deleteRemote('uuid-1'), completes);
+  });
+
+  test('loescht ohne Anmeldung gar nicht erst', () async {
+    await store.clear();
+
+    await service.deleteRemote('uuid-1');
+
+    verifyNever(() => dio.delete(any()));
+  });
 }

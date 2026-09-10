@@ -7,6 +7,7 @@ import 'package:speedster/app/app.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/cloud/trip_cache_service.dart';
+import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/heat_map.dart';
 import 'package:speedster/heat/heat_source.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
@@ -178,5 +179,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Willkommen bei Speedster'), findsNothing);
+  });
+
+  testWidgets('laedt die Fahrten bei jedem Aufruf des Reiters neu',
+      (tester) async {
+    // Bei aktiver Cloud fuehrt sie die Liste, und seit dem letzten Blick
+    // kann etwas dazugekommen sein -- von einem anderen Geraet oder aus
+    // dem Web. Der IndexedStack behaelt den Bildschirm, also laed er von
+    // sich aus nichts nach.
+    var loads = 0;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(await prefs()),
+          permissionGateProvider
+              .overrideWithValue(FakePermissionGate(granted: false)),
+          heatSourceProvider.overrideWithValue(_EmptySource()),
+          cloudActiveProvider.overrideWith((ref) async => false),
+          recorderStateProvider.overrideWith((ref) => const Stream.empty()),
+          tripCacheServiceProvider.overrideWithValue(_NoCache()),
+          keptTripsProvider.overrideWith((ref) {
+            loads++;
+
+            return <Trip>[];
+          }),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HomeShell(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final before = loads;
+
+    await tester.tap(find.text('Fahrten'));
+    await tester.pumpAndSettle();
+
+    expect(loads, greaterThan(before));
   });
 }

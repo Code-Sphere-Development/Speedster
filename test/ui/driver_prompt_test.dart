@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/data/trip_repository.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
@@ -14,6 +16,8 @@ class _FakeRepo implements TripRepository {
 
   @override
   Future<void> setPurpose(int id, String? purpose, String? note) async {}
+  @override
+  Future<String?> clientUuidFor(int tripId) async => 'uuid-$tripId';
   @override
   Future<void> setKept(int tripId, bool kept) async {
     keptCalls.add((tripId, kept));
@@ -45,10 +49,19 @@ class _FakeRepo implements TripRepository {
 void main() {
   testWidgets('Verwerfen marks trip kept=false', (tester) async {
     final repo = _FakeRepo();
+    // Ohne Cloud: der Dialog soll dann gar nichts verschicken.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [tripRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          tripRepositoryProvider.overrideWithValue(repo),
+          // Der Dialog fragt die Einstellungen, um zu wissen, ob die
+          // Cloud im Spiel ist -- auch beim Verwerfen, denn eine bereits
+          // hochgeladene Fahrt muss dort wieder weg.
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
         child: const MaterialApp(
         locale: Locale('de'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
