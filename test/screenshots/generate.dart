@@ -22,6 +22,7 @@ import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/live_screen.dart';
 import 'package:speedster/ui/ranking_screen.dart';
+import 'package:speedster/ui/stats_screen.dart';
 import 'package:speedster/cloud/vehicle_repository.dart';
 import 'package:speedster/ui/garage_screen.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
@@ -264,6 +265,63 @@ Trip demoTrip({
   routePreview: demoRoute(id),
 );
 
+/// Dieselben Fahrten fuer alle Bilder: die Statistik rechnet daraus,
+/// was die Fahrtenliste einzeln zeigt.
+final demoTrips = [
+                  demoTrip(
+                    id: 1,
+                    day: 17,
+                    maxSpeed: 44.4,
+                    distance: 42300,
+                    seconds: 2410,
+                    purpose: 'commute',
+                    synced: false,
+                  ),
+                  demoTrip(
+                    id: 2,
+                    day: 15,
+                    maxSpeed: 25.0,
+                    distance: 12800,
+                    seconds: 1180,
+                  ),
+                  demoTrip(
+                    id: 3,
+                    day: 12,
+                    maxSpeed: 38.9,
+                    distance: 86200,
+                    seconds: 4020,
+                    purpose: 'private',
+                  ),
+                  demoTrip(
+                    id: 4,
+                    day: 9,
+                    maxSpeed: 16.7,
+                    distance: 5600,
+                    seconds: 720,
+                  ),
+                  demoTrip(
+                    id: 5,
+                    day: 6,
+                    maxSpeed: 33.3,
+                    distance: 27400,
+                    seconds: 1640,
+                  ),
+                  demoTrip(
+                    id: 6,
+                    day: 4,
+                    maxSpeed: 22.2,
+                    distance: 9100,
+                    seconds: 880,
+                  ),
+                  demoTrip(
+                    id: 7,
+                    day: 2,
+                    maxSpeed: 41.7,
+                    distance: 61500,
+                    seconds: 3200,
+                  ),
+                ];
+
 void main() {
   setUpAll(loadFonts);
 
@@ -305,7 +363,7 @@ void main() {
         await shoot(tester, target, 'live-$locale');
       });
 
-      testWidgets('bestenliste ($locale, ${target.directory})', (tester) async {
+      testWidgets('statistik ($locale, ${target.directory})', (tester) async {
         SharedPreferences.setMockInitialValues({'cloudEnabled': true});
         final prefs = await SharedPreferences.getInstance();
 
@@ -367,16 +425,23 @@ void main() {
               sharedPreferencesProvider.overrideWithValue(prefs),
               cloudActiveProvider.overrideWith((ref) async => true),
               rankingBoardProvider.overrideWith((ref, arg) async => board),
+              // Die eigenen Zahlen stehen im Reiter zuerst; ohne Fahrten
+              // zeigte das Bild nur den Leerzustand.
+              keptTripsProvider.overrideWith((ref) => demoTrips),
+              // Feste Uhr: die Demo-Fahrten liegen im August 2026, und
+              // gegen den echten Kalender gerechnet stuende "diesen
+              // Monat" auf null -- je nachdem, wann der Lauf stattfindet.
+              nowProvider.overrideWithValue(() => DateTime(2026, 8, 20, 12)),
             ],
             child: frame(
-              const RankingScreen(),
-              tab: AppTab.ranking,
+              const StatsScreen(),
+              tab: AppTab.stats,
               locale: locale,
             ),
           ),
         );
 
-        await shoot(tester, target, 'bestenliste-$locale');
+        await shoot(tester, target, 'statistik-$locale');
       });
 
       testWidgets('fahrten ($locale, ${target.directory})', (tester) async {
@@ -390,60 +455,7 @@ void main() {
             overrides: [
               sharedPreferencesProvider.overrideWithValue(prefs),
               keptTripsProvider.overrideWith(
-                (ref) => [
-                  demoTrip(
-                    id: 1,
-                    day: 17,
-                    maxSpeed: 44.4,
-                    distance: 42300,
-                    seconds: 2410,
-                    purpose: 'commute',
-                    synced: false,
-                  ),
-                  demoTrip(
-                    id: 2,
-                    day: 15,
-                    maxSpeed: 25.0,
-                    distance: 12800,
-                    seconds: 1180,
-                  ),
-                  demoTrip(
-                    id: 3,
-                    day: 12,
-                    maxSpeed: 38.9,
-                    distance: 86200,
-                    seconds: 4020,
-                    purpose: 'private',
-                  ),
-                  demoTrip(
-                    id: 4,
-                    day: 9,
-                    maxSpeed: 16.7,
-                    distance: 5600,
-                    seconds: 720,
-                  ),
-                  demoTrip(
-                    id: 5,
-                    day: 6,
-                    maxSpeed: 33.3,
-                    distance: 27400,
-                    seconds: 1640,
-                  ),
-                  demoTrip(
-                    id: 6,
-                    day: 4,
-                    maxSpeed: 22.2,
-                    distance: 9100,
-                    seconds: 880,
-                  ),
-                  demoTrip(
-                    id: 7,
-                    day: 2,
-                    maxSpeed: 41.7,
-                    distance: 61500,
-                    seconds: 3200,
-                  ),
-                ],
+                (ref) => demoTrips,
               ),
             ],
             child: frame(

@@ -17,6 +17,7 @@ class SettingsState {
     this.consentAccepted = false,
     this.tourSeen = false,
     this.notifyOnTripStart = true,
+    this.notifyMaintenance = true,
   });
 
   final UnitSystem unit;
@@ -38,12 +39,20 @@ class SettingsState {
   /// Einstellungen ab.
   final bool notifyOnTripStart;
 
+  /// Ob an faellige Wartungen erinnert wird.
+  ///
+  /// Getrennt vom Fahrtbeginn: das eine ist eine Gegenprobe waehrend der
+  /// Fahrt, das andere eine Erinnerung an etwas, das ansteht. Wer das
+  /// eine will, will nicht zwangslaeufig das andere.
+  final bool notifyMaintenance;
+
   SettingsState copyWith({
     UnitSystem? unit,
     bool? trackingPaused,
     bool? consentAccepted,
     bool? tourSeen,
     bool? notifyOnTripStart,
+    bool? notifyMaintenance,
   }) {
     return SettingsState(
       unit: unit ?? this.unit,
@@ -51,6 +60,7 @@ class SettingsState {
       consentAccepted: consentAccepted ?? this.consentAccepted,
       tourSeen: tourSeen ?? this.tourSeen,
       notifyOnTripStart: notifyOnTripStart ?? this.notifyOnTripStart,
+      notifyMaintenance: notifyMaintenance ?? this.notifyMaintenance,
     );
   }
 }
@@ -69,6 +79,7 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kConsent = 'consentAccepted';
   static const _kTour = 'tourSeen';
   static const _kNotifyStart = 'notifyOnTripStart';
+  static const _kNotifyMaintenance = 'notifyMaintenance';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
@@ -81,6 +92,7 @@ class SettingsController extends Notifier<SettingsState> {
       consentAccepted: p.getBool(_kConsent) ?? false,
       tourSeen: p.getBool(_kTour) ?? false,
       notifyOnTripStart: p.getBool(_kNotifyStart) ?? true,
+      notifyMaintenance: p.getBool(_kNotifyMaintenance) ?? true,
     );
   }
 
@@ -110,6 +122,11 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> setNotifyOnTripStart(bool notify) async {
     state = state.copyWith(notifyOnTripStart: notify);
     await _prefs.setBool(_kNotifyStart, notify);
+  }
+
+  Future<void> setNotifyMaintenance(bool notify) async {
+    state = state.copyWith(notifyMaintenance: notify);
+    await _prefs.setBool(_kNotifyMaintenance, notify);
   }
 
 }

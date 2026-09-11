@@ -128,6 +128,90 @@ abstract class AppLocalizations {
   /// **'Dieses Jahr'**
   String get headerThisYear;
 
+  /// No description provided for @tabStats.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik'**
+  String get tabStats;
+
+  /// No description provided for @statsMine.
+  ///
+  /// In de, this message translates to:
+  /// **'Meine Zahlen'**
+  String get statsMine;
+
+  /// No description provided for @statsLeaderboard.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestenliste'**
+  String get statsLeaderboard;
+
+  /// No description provided for @statsRecords.
+  ///
+  /// In de, this message translates to:
+  /// **'Rekorde'**
+  String get statsRecords;
+
+  /// No description provided for @statsSpanDetail.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Keine Fahrt} =1{Eine Fahrt} other{{count} Fahrten}} · {duration}'**
+  String statsSpanDetail(int count, String duration);
+
+  /// No description provided for @statsTotals.
+  ///
+  /// In de, this message translates to:
+  /// **'Summen'**
+  String get statsTotals;
+
+  /// No description provided for @statsWhen.
+  ///
+  /// In de, this message translates to:
+  /// **'Wann du fährst'**
+  String get statsWhen;
+
+  /// No description provided for @statsByPurpose.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach Zweck'**
+  String get statsByPurpose;
+
+  /// No description provided for @statsAllTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Insgesamt'**
+  String get statsAllTime;
+
+  /// No description provided for @statsLongest.
+  ///
+  /// In de, this message translates to:
+  /// **'Längste Fahrt'**
+  String get statsLongest;
+
+  /// No description provided for @statsFastest.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchstes Tempo'**
+  String get statsFastest;
+
+  /// No description provided for @statsBusiestDay.
+  ///
+  /// In de, this message translates to:
+  /// **'Meiste Kilometer an einem Tag'**
+  String get statsBusiestDay;
+
+  /// No description provided for @statsTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Zeit am Steuer'**
+  String get statsTime;
+
+  /// No description provided for @statsEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Sobald du gefahren bist, steht hier, wie viel und wann.'**
+  String get statsEmpty;
+
   /// No description provided for @tabTrips.
   ///
   /// In de, this message translates to:
@@ -217,6 +301,48 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Karte nicht verfügbar: {message}'**
   String tripMapUnavailable(String message);
+
+  /// No description provided for @tripProfile.
+  ///
+  /// In de, this message translates to:
+  /// **'Verlauf'**
+  String get tripProfile;
+
+  /// No description provided for @tripRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Strecke'**
+  String get tripRoute;
+
+  /// No description provided for @tripRouteCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, other{{count}× gefahren}}'**
+  String tripRouteCount(int count);
+
+  /// No description provided for @tripRouteFaster.
+  ///
+  /// In de, this message translates to:
+  /// **'{minutes} Minuten schneller als sonst'**
+  String tripRouteFaster(int minutes);
+
+  /// No description provided for @tripRouteSlower.
+  ///
+  /// In de, this message translates to:
+  /// **'{minutes} Minuten langsamer als sonst'**
+  String tripRouteSlower(int minutes);
+
+  /// No description provided for @tripRouteUsual.
+  ///
+  /// In de, this message translates to:
+  /// **'So schnell wie sonst'**
+  String get tripRouteUsual;
+
+  /// No description provided for @statsRoutes.
+  ///
+  /// In de, this message translates to:
+  /// **'Häufigste Strecken'**
+  String get statsRoutes;
 
   /// No description provided for @tripMetrics.
   ///
@@ -721,6 +847,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Dafür braucht Speedster die Erlaubnis für Mitteilungen. Du kannst sie in den Systemeinstellungen erteilen.'**
   String get settingsNotifyDenied;
+
+  /// No description provided for @notificationChannelNameMaintenance.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartung'**
+  String get notificationChannelNameMaintenance;
+
+  /// No description provided for @notificationMaintenanceTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartung steht an'**
+  String get notificationMaintenanceTitle;
+
+  /// No description provided for @settingsSectionNotifications.
+  ///
+  /// In de, this message translates to:
+  /// **'Mitteilungen'**
+  String get settingsSectionNotifications;
+
+  /// No description provided for @settingsMaintenanceTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'An Wartungen erinnern'**
+  String get settingsMaintenanceTitle;
+
+  /// No description provided for @settingsMaintenanceSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Beim Start und nach dem Fahrtende, sobald ein Termin oder Kilometerstand näher rückt'**
+  String get settingsMaintenanceSubtitle;
 
   /// No description provided for @settingsSectionRecording.
   ///

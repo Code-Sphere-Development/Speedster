@@ -5,6 +5,26 @@
   "tabLive": "Live",
   "headerThisMonth": "This month",
   "headerThisYear": "This year",
+  "tabStats": "Stats",
+  "statsMine": "My numbers",
+  "statsLeaderboard": "Leaderboard",
+  "statsRecords": "Records",
+  "statsSpanDetail": "{count, plural, =0{No drives} =1{One drive} other{{count} drives}} · {duration}",
+  "@statsSpanDetail": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "duration": { "type": "String" }
+    }
+  },
+  "statsTotals": "Totals",
+  "statsWhen": "When you drive",
+  "statsByPurpose": "By purpose",
+  "statsAllTime": "All time",
+  "statsLongest": "Longest drive",
+  "statsFastest": "Top speed",
+  "statsBusiestDay": "Most kilometres in a day",
+  "statsTime": "Time behind the wheel",
+  "statsEmpty": "Once you have driven, this shows how much and when.",
   "tabTrips": "Drives",
   "tabGarage": "Garage",
   "tripsSummary": "{count, plural, =1{One drive} other{{count} drives}} · {distance}",
@@ -47,6 +67,22 @@
   "tripsEmpty": "No drives recorded yet.",
   "tripNoRoute": "No route data. Older drives live only in the cloud — their map needs a connection.",
   "tripMapUnavailable": "Map unavailable: {message}",
+  "tripProfile": "Profile",
+  "tripRoute": "Route",
+  "tripRouteCount": "{count, plural, other{driven {count}×}}",
+  "@tripRouteCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tripRouteFaster": "{minutes} minutes faster than usual",
+  "@tripRouteFaster": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "tripRouteSlower": "{minutes} minutes slower than usual",
+  "@tripRouteSlower": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "tripRouteUsual": "As quick as usual",
+  "statsRoutes": "Most frequent routes",
   "tripMetrics": "Metrics",
   "tripPurpose": "Purpose",
   "tripPurposeNone": "No purpose",
@@ -131,6 +167,11 @@
   "settingsNotifyTitle": "Notify on trip start",
   "settingsNotifySubtitle": "A brief notification, on your Apple Watch too — with sound in the car",
   "settingsNotifyDenied": "Speedster needs permission to send notifications. You can grant it in system settings.",
+  "notificationChannelNameMaintenance": "Maintenance",
+  "notificationMaintenanceTitle": "Maintenance due",
+  "settingsSectionNotifications": "Notifications",
+  "settingsMaintenanceTitle": "Remind me about maintenance",
+  "settingsMaintenanceSubtitle": "On start and after a drive, once a date or mileage target comes close",
   "settingsSectionRecording": "Recording",
   "settingsSectionAccount": "Account",
   "settingsSectionData": "Data",

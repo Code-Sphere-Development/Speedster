@@ -1,7 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/notifications/local_notifications.dart';
 
 /// Meldet den Beginn einer Fahrt als Mitteilung.
 ///
@@ -11,9 +9,8 @@ import 'package:speedster/l10n/generated/app_localizations.dart';
 /// selbst auf eine gekoppelte Apple Watch, solange die Uhr am Handgelenk
 /// und das iPhone gesperrt ist.
 ///
-/// Wie [LiveActivity] Beiwerk: schlaegt sie fehl, wird trotzdem
-/// aufgezeichnet. Eine Mitteilung darf nie der Grund sein, dass eine
-/// Fahrt nicht zustande kommt.
+/// Wie die Anzeige auf dem Sperrbildschirm Beiwerk: schlaegt sie fehl,
+/// wird trotzdem aufgezeichnet.
 abstract class TripNotifier {
   /// Zeigt die Meldung, sofern der Nutzer sie eingeschaltet hat.
   ///
@@ -36,8 +33,8 @@ abstract class TripNotifier {
 }
 
 class LocalTripNotifier implements TripNotifier {
-  LocalTripNotifier({required this.enabled, FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+  LocalTripNotifier({required this.enabled, LocalNotifications? notifications})
+      : _notifications = notifications ?? LocalNotifications();
 
   /// Ob der Nutzer die Meldung eingeschaltet hat.
   ///
@@ -47,122 +44,50 @@ class LocalTripNotifier implements TripNotifier {
   /// er haengt sonst an der Einstellungsschicht.
   final bool Function() enabled;
 
-  final FlutterLocalNotificationsPlugin _plugin;
+  final LocalNotifications _notifications;
 
   /// Eine feste Kennung: es gibt immer hoechstens eine laufende Fahrt,
   /// und [tripEnded] muss genau diese Meldung wieder wegnehmen koennen.
   static const int notificationId = 1;
 
-  /// Zwei Kanaele, weil Android seit Version 8 den Ton am Kanal
-  /// festmacht und nicht an der einzelnen Meldung: derselbe Kanal liesse
-  /// sich nachtraeglich nicht mehr von still auf hoerbar umstellen.
-  static const String _androidChannelId = 'trip_start';
-  static const String _androidChannelIdAudible = 'trip_start_audible';
-
-  bool _initialised = false;
+  /// Zwei Kanaele, weil Android seit Version 8 den Ton am Kanal festmacht
+  /// und nicht an der einzelnen Meldung: derselbe Kanal liesse sich
+  /// nachtraeglich nicht mehr von still auf hoerbar umstellen.
+  static const String _channelId = 'trip_start';
+  static const String _channelIdAudible = 'trip_start_audible';
 
   @override
   Future<void> tripStarted({required bool inCar}) async {
     if (!enabled()) return;
 
-    await _guard(() async {
-      await _ensureInitialised();
-      final l = _strings();
+    final l = _notifications.strings();
 
-      await _plugin.show(
-        id: notificationId,
-        title: l.notificationTripStartedTitle,
-        body: l.notificationTripStartedBody,
-        notificationDetails: NotificationDetails(
-          android: AndroidNotificationDetails(
-            inCar ? _androidChannelIdAudible : _androidChannelId,
-            inCar ? l.notificationChannelNameAudible : l.notificationChannelName,
-            importance: Importance.defaultImportance,
-            priority: Priority.defaultPriority,
-            playSound: inCar,
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: false,
-            presentSound: inCar,
-          ),
+    await _notifications.show(
+      id: notificationId,
+      title: l.notificationTripStartedTitle,
+      body: l.notificationTripStartedBody,
+      details: NotificationDetails(
+        android: AndroidNotificationDetails(
+          inCar ? _channelIdAudible : _channelId,
+          inCar ? l.notificationChannelNameAudible : l.notificationChannelName,
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+          playSound: inCar,
         ),
-      );
-    });
-  }
-
-  @override
-  Future<void> tripEnded() => _guard(() async {
-        await _ensureInitialised();
-        await _plugin.cancel(id: notificationId);
-      });
-
-  @override
-  Future<bool> requestPermission() async {
-    var granted = false;
-
-    await _guard(() async {
-      await _ensureInitialised();
-
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
-      if (ios != null) {
-        granted = await ios.requestPermissions(alert: true) ?? false;
-        return;
-      }
-
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      granted = await android?.requestNotificationsPermission() ?? false;
-    });
-
-    return granted;
-  }
-
-  /// Bewusst ohne Berechtigungsabfrage im Initialisierungsschritt: die
-  /// laeuft ueber [requestPermission] und damit an zwei klar benannten
-  /// Stellen -- nach dem Rundgang und beim Umlegen des Schalters. Sie an
-  /// die Einrichtung zu haengen hiesse, irgendwann waehrend des Starts zu
-  /// fragen, ohne dass ein Anlass erkennbar waere.
-  Future<void> _ensureInitialised() async {
-    if (_initialised) return;
-
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: false,
+          presentSound: inCar,
         ),
       ),
     );
-    _initialised = true;
   }
 
-  /// Die Texte ohne `BuildContext`.
-  ///
-  /// Der Rekorder laeuft ausserhalb des Widget-Baums, hat also keinen.
-  /// Nicht unterstuetzte Systemsprachen fallen auf Englisch zurueck --
-  /// dieselbe Wahl, die `MaterialApp` mit `supportedLocales` trifft.
-  AppLocalizations _strings() {
-    final locale = PlatformDispatcher.instance.locale;
+  @override
+  Future<void> tripEnded() => _notifications.cancel(notificationId);
 
-    return AppLocalizations.delegate.isSupported(locale)
-        ? lookupAppLocalizations(locale)
-        : lookupAppLocalizations(const Locale('en'));
-  }
-
-  /// Fehler werden geschluckt, nicht weitergereicht -- genau wie bei der
-  /// Anzeige auf dem Sperrbildschirm.
-  Future<void> _guard(Future<void> Function() action) async {
-    try {
-      await action();
-    } on Exception {
-      // Keine Mitteilung ist hinnehmbar. Eine abgebrochene Aufzeichnung
-      // nicht.
-    }
-  }
+  @override
+  Future<bool> requestPermission() => _notifications.requestPermission();
 }
 
 /// Fuer Tests: merkt sich, was gemeldet wurde.
@@ -175,7 +100,6 @@ class RecordingTripNotifier implements TripNotifier {
   int started = 0;
   int ended = 0;
   int permissionRequests = 0;
-
   final List<bool> startedInCar = [];
 
   @override

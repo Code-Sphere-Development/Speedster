@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speedster/notifications/local_notifications.dart';
+import 'package:speedster/notifications/maintenance_reminder.dart';
 import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/recording/trip_repair.dart';
@@ -75,6 +77,12 @@ final tripDetectorProvider = Provider<TripDetector>(
   (ref) => TripDetector(const DetectorConfig()),
 );
 
+/// Die gemeinsame Verdrahtung aller Mitteilungen -- eine Einrichtung,
+/// eine Berechtigungsabfrage, ein Ort fuer die Sprache.
+final localNotificationsProvider = Provider<LocalNotifications>(
+  (ref) => LocalNotifications(),
+);
+
 /// Meldet den Fahrtbeginn. Ob gemeldet wird, liest der Melder bei jedem
 /// Fahrtbeginn frisch aus den Einstellungen -- ueber ref.read und nicht
 /// ref.watch, damit ein umgelegter Schalter nicht den Rekorder samt
@@ -82,6 +90,16 @@ final tripDetectorProvider = Provider<TripDetector>(
 final tripNotifierProvider = Provider<TripNotifier>(
   (ref) => LocalTripNotifier(
     enabled: () => ref.read(settingsControllerProvider).notifyOnTripStart,
+    notifications: ref.watch(localNotificationsProvider),
+  ),
+);
+
+/// Erinnert an faellige Wartungen -- beim Start und nach dem Fahrtende.
+final maintenanceReminderProvider = Provider<MaintenanceReminder>(
+  (ref) => MaintenanceReminder(
+    notifications: ref.watch(localNotificationsProvider),
+    prefs: ref.watch(sharedPreferencesProvider),
+    enabled: () => ref.read(settingsControllerProvider).notifyMaintenance,
   ),
 );
 
@@ -154,6 +172,13 @@ final keptTripsProvider = FutureProvider<List<Trip>>(
   (ref) => ref.watch(tripSourceProvider).keptTrips(),
 );
 
+/// Die Uhr.
+///
+/// Als Provider, damit Statistik und Kopfzahlen im Test und auf den
+/// Screenshots gegen ein festes Datum rechnen koennen -- sonst haengt das
+/// Ergebnis daran, in welchem Monat der Lauf stattfindet.
+final nowProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
 /// Monats- und Jahressumme fuer den Kopfbereich.
 ///
 /// Aus der Fahrtenliste gerechnet und nicht vom Server geholt:
@@ -164,7 +189,7 @@ final distanceTotalsProvider = Provider<DistanceTotals>((ref) {
   final trips = ref.watch(keptTripsProvider).asData?.value;
   if (trips == null) return DistanceTotals.empty;
 
-  return DistanceTotals.of(trips, DateTime.now());
+  return DistanceTotals.of(trips, ref.watch(nowProvider)());
 });
 
 final heatSnapshotStoreProvider = Provider<HeatSnapshotStore>(

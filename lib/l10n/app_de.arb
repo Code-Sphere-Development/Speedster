@@ -5,6 +5,26 @@
   "tabLive": "Live",
   "headerThisMonth": "Diesen Monat",
   "headerThisYear": "Dieses Jahr",
+  "tabStats": "Statistik",
+  "statsMine": "Meine Zahlen",
+  "statsLeaderboard": "Bestenliste",
+  "statsRecords": "Rekorde",
+  "statsSpanDetail": "{count, plural, =0{Keine Fahrt} =1{Eine Fahrt} other{{count} Fahrten}} · {duration}",
+  "@statsSpanDetail": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "duration": { "type": "String" }
+    }
+  },
+  "statsTotals": "Summen",
+  "statsWhen": "Wann du fährst",
+  "statsByPurpose": "Nach Zweck",
+  "statsAllTime": "Insgesamt",
+  "statsLongest": "Längste Fahrt",
+  "statsFastest": "Höchstes Tempo",
+  "statsBusiestDay": "Meiste Kilometer an einem Tag",
+  "statsTime": "Zeit am Steuer",
+  "statsEmpty": "Sobald du gefahren bist, steht hier, wie viel und wann.",
   "tabTrips": "Fahrten",
   "tabGarage": "Garage",
   "tripsSummary": "{count, plural, =1{Eine Fahrt} other{{count} Fahrten}} · {distance}",
@@ -54,6 +74,22 @@
   "tripsEmpty": "Noch keine Fahrten aufgezeichnet.",
   "tripNoRoute": "Keine Streckendaten. Ältere Fahrten liegen nur in der Cloud — ihre Karte braucht eine Verbindung.",
   "tripMapUnavailable": "Karte nicht verfügbar: {message}",
+  "tripProfile": "Verlauf",
+  "tripRoute": "Strecke",
+  "tripRouteCount": "{count, plural, other{{count}× gefahren}}",
+  "@tripRouteCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tripRouteFaster": "{minutes} Minuten schneller als sonst",
+  "@tripRouteFaster": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "tripRouteSlower": "{minutes} Minuten langsamer als sonst",
+  "@tripRouteSlower": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "tripRouteUsual": "So schnell wie sonst",
+  "statsRoutes": "Häufigste Strecken",
   "tripMetrics": "Kennzahlen",
   "tripPurpose": "Zweck",
   "tripPurposeNone": "Kein Zweck",
@@ -152,6 +188,11 @@
   "settingsNotifyTitle": "Fahrtbeginn melden",
   "settingsNotifySubtitle": "Kurze Mitteilung, auch auf der Apple Watch — im Auto mit Ton",
   "settingsNotifyDenied": "Dafür braucht Speedster die Erlaubnis für Mitteilungen. Du kannst sie in den Systemeinstellungen erteilen.",
+  "notificationChannelNameMaintenance": "Wartung",
+  "notificationMaintenanceTitle": "Wartung steht an",
+  "settingsSectionNotifications": "Mitteilungen",
+  "settingsMaintenanceTitle": "An Wartungen erinnern",
+  "settingsMaintenanceSubtitle": "Beim Start und nach dem Fahrtende, sobald ein Termin oder Kilometerstand näher rückt",
   "settingsSectionRecording": "Aufzeichnung",
   "settingsSectionAccount": "Konto",
   "settingsSectionData": "Daten",

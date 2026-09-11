@@ -61,7 +61,9 @@ void main() {
     // "Live" fehlt, solange nicht gefahren wird -- siehe start_tab_test.
     expect(find.text('Live'), findsNothing);
     expect(find.text('Fahrten'), findsOneWidget);
-    expect(find.text('Ranking'), findsOneWidget);
+    // Die Bestenliste ist seit der Zusammenlegung ein Bereich der
+    // Statistik: die Leiste traegt nur fuenf Eintraege.
+    expect(find.text('Statistik'), findsOneWidget);
     expect(find.text('Einstellungen'), findsOneWidget);
   });
 }

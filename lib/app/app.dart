@@ -15,7 +15,7 @@ import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/friend_requests_prompt.dart';
 import 'package:speedster/ui/live_screen.dart';
-import 'package:speedster/ui/ranking_screen.dart';
+import 'package:speedster/ui/stats_screen.dart';
 import 'package:speedster/ui/settings_screen.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
 
@@ -71,7 +71,7 @@ enum AppTab {
   live(Icons.speed),
   trips(Icons.list),
   garage(Icons.garage_outlined),
-  ranking(Icons.leaderboard),
+  stats(Icons.insights),
   settings(Icons.settings);
 
   const AppTab(this.icon);
@@ -85,7 +85,7 @@ enum AppTab {
         AppTab.live => l.tabLive,
         AppTab.trips => l.tabTrips,
         AppTab.garage => l.tabGarage,
-        AppTab.ranking => l.tabRanking,
+        AppTab.stats => l.tabStats,
         AppTab.settings => l.tabSettings,
       };
 }
@@ -114,7 +114,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
     LiveScreen(),
     TripListScreen(),
     GarageScreen(),
-    RankingScreen(),
+    StatsScreen(),
     SettingsScreen(),
   ];
 
@@ -143,6 +143,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
       // Mitteilungen braucht. Davor gefragt waere es eine Abfrage ohne
       // erkennbaren Anlass.
       await _ensureNotificationPermission();
+      _checkMaintenance();
       _askAboutFriendRequests();
     });
   }
@@ -170,6 +171,21 @@ class _HomeShellState extends ConsumerState<HomeShell>
     if (state == AppLifecycleState.resumed) {
       _maybeStartTracking();
       _uploadPendingTrips();
+    }
+  }
+
+  /// Meldet faellige Wartungen.
+  ///
+  /// Die Garage haengt am Cloud-Konto: ohne Anmeldung gibt es keine
+  /// Fahrzeuge, und der Aufruf endete zwangslaeufig in einem 401.
+  Future<void> _checkMaintenance() async {
+    try {
+      if (await ref.read(cloudActiveProvider.future) != true) return;
+      final vehicles = await ref.read(vehiclesProvider.future);
+      await ref.read(maintenanceReminderProvider).check(vehicles);
+    } on Exception {
+      // Ohne Netz bleibt es beim naechsten Mal. Eine ausgefallene
+      // Erinnerung darf den Start nicht aufhalten.
     }
   }
 
@@ -337,6 +353,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
       if (state?.endedTripId != null) {
         _uploadPendingTrips();
         _publishWidgets();
+        // Gerade geparkt: der beste Zeitpunkt fuer den Hinweis, dass die
+        // HU naechste Woche ansteht -- man steht noch am Auto.
+        _checkMaintenance();
       }
     });
 

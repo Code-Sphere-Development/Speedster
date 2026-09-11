@@ -24,6 +24,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get headerThisYear => 'This year';
 
   @override
+  String get tabStats => 'Stats';
+
+  @override
+  String get statsMine => 'My numbers';
+
+  @override
+  String get statsLeaderboard => 'Leaderboard';
+
+  @override
+  String get statsRecords => 'Records';
+
+  @override
+  String statsSpanDetail(int count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count drives',
+      one: 'One drive',
+      zero: 'No drives',
+    );
+    return '$_temp0 · $duration';
+  }
+
+  @override
+  String get statsTotals => 'Totals';
+
+  @override
+  String get statsWhen => 'When you drive';
+
+  @override
+  String get statsByPurpose => 'By purpose';
+
+  @override
+  String get statsAllTime => 'All time';
+
+  @override
+  String get statsLongest => 'Longest drive';
+
+  @override
+  String get statsFastest => 'Top speed';
+
+  @override
+  String get statsBusiestDay => 'Most kilometres in a day';
+
+  @override
+  String get statsTime => 'Time behind the wheel';
+
+  @override
+  String get statsEmpty =>
+      'Once you have driven, this shows how much and when.';
+
+  @override
   String get tabTrips => 'Drives';
 
   @override
@@ -91,6 +143,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String tripMapUnavailable(String message) {
     return 'Map unavailable: $message';
   }
+
+  @override
+  String get tripProfile => 'Profile';
+
+  @override
+  String get tripRoute => 'Route';
+
+  @override
+  String tripRouteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'driven $count×',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tripRouteFaster(int minutes) {
+    return '$minutes minutes faster than usual';
+  }
+
+  @override
+  String tripRouteSlower(int minutes) {
+    return '$minutes minutes slower than usual';
+  }
+
+  @override
+  String get tripRouteUsual => 'As quick as usual';
+
+  @override
+  String get statsRoutes => 'Most frequent routes';
 
   @override
   String get tripMetrics => 'Metrics';
@@ -353,6 +437,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsNotifyDenied =>
       'Speedster needs permission to send notifications. You can grant it in system settings.';
+
+  @override
+  String get notificationChannelNameMaintenance => 'Maintenance';
+
+  @override
+  String get notificationMaintenanceTitle => 'Maintenance due';
+
+  @override
+  String get settingsSectionNotifications => 'Notifications';
+
+  @override
+  String get settingsMaintenanceTitle => 'Remind me about maintenance';
+
+  @override
+  String get settingsMaintenanceSubtitle =>
+      'On start and after a drive, once a date or mileage target comes close';
 
   @override
   String get settingsSectionRecording => 'Recording';

@@ -131,7 +131,7 @@ void main() {
     // einen von fuenf Plaetzen ein.
     expect(tabLabels(tester), isNot(contains('Live')));
     expect(tabLabels(tester),
-        ['Heatmap', 'Fahrten', 'Garage', 'Ranking', 'Einstellungen']);
+        ['Heatmap', 'Fahrten', 'Garage', 'Statistik', 'Einstellungen']);
 
     controller.add(const RecorderState(isDriving: true));
     await tester.pumpAndSettle();
@@ -140,7 +140,7 @@ void main() {
     // Aeusserste, was in die Leiste passt.
     expect(
       tabLabels(tester),
-      ['Heatmap', 'Live', 'Fahrten', 'Ranking', 'Einstellungen'],
+      ['Heatmap', 'Live', 'Fahrten', 'Statistik', 'Einstellungen'],
       reason: 'Live sitzt zwischen Heatmap und Fahrten, nicht am Ende',
     );
   });

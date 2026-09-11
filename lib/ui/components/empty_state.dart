@@ -38,6 +38,11 @@ class EmptyState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
+              // Gedeckelt, weil hier auch Fehlermeldungen landen: eine
+              // Ausnahme samt Stapelspur sprengte sonst das Layout --
+              // gemessen einmal um 123.760 Bildpunkte.
+              maxLines: 8,
+              overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

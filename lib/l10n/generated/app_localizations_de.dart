@@ -24,6 +24,58 @@ class AppLocalizationsDe extends AppLocalizations {
   String get headerThisYear => 'Dieses Jahr';
 
   @override
+  String get tabStats => 'Statistik';
+
+  @override
+  String get statsMine => 'Meine Zahlen';
+
+  @override
+  String get statsLeaderboard => 'Bestenliste';
+
+  @override
+  String get statsRecords => 'Rekorde';
+
+  @override
+  String statsSpanDetail(int count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fahrten',
+      one: 'Eine Fahrt',
+      zero: 'Keine Fahrt',
+    );
+    return '$_temp0 · $duration';
+  }
+
+  @override
+  String get statsTotals => 'Summen';
+
+  @override
+  String get statsWhen => 'Wann du fährst';
+
+  @override
+  String get statsByPurpose => 'Nach Zweck';
+
+  @override
+  String get statsAllTime => 'Insgesamt';
+
+  @override
+  String get statsLongest => 'Längste Fahrt';
+
+  @override
+  String get statsFastest => 'Höchstes Tempo';
+
+  @override
+  String get statsBusiestDay => 'Meiste Kilometer an einem Tag';
+
+  @override
+  String get statsTime => 'Zeit am Steuer';
+
+  @override
+  String get statsEmpty =>
+      'Sobald du gefahren bist, steht hier, wie viel und wann.';
+
+  @override
   String get tabTrips => 'Fahrten';
 
   @override
@@ -92,6 +144,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String tripMapUnavailable(String message) {
     return 'Karte nicht verfügbar: $message';
   }
+
+  @override
+  String get tripProfile => 'Verlauf';
+
+  @override
+  String get tripRoute => 'Strecke';
+
+  @override
+  String tripRouteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count× gefahren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tripRouteFaster(int minutes) {
+    return '$minutes Minuten schneller als sonst';
+  }
+
+  @override
+  String tripRouteSlower(int minutes) {
+    return '$minutes Minuten langsamer als sonst';
+  }
+
+  @override
+  String get tripRouteUsual => 'So schnell wie sonst';
+
+  @override
+  String get statsRoutes => 'Häufigste Strecken';
 
   @override
   String get tripMetrics => 'Kennzahlen';
@@ -357,6 +441,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsNotifyDenied =>
       'Dafür braucht Speedster die Erlaubnis für Mitteilungen. Du kannst sie in den Systemeinstellungen erteilen.';
+
+  @override
+  String get notificationChannelNameMaintenance => 'Wartung';
+
+  @override
+  String get notificationMaintenanceTitle => 'Wartung steht an';
+
+  @override
+  String get settingsSectionNotifications => 'Mitteilungen';
+
+  @override
+  String get settingsMaintenanceTitle => 'An Wartungen erinnern';
+
+  @override
+  String get settingsMaintenanceSubtitle =>
+      'Beim Start und nach dem Fahrtende, sobald ein Termin oder Kilometerstand näher rückt';
 
   @override
   String get settingsSectionRecording => 'Aufzeichnung';

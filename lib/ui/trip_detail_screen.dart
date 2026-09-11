@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/domain/recurring_routes.dart';
 import 'package:speedster/domain/track_point.dart';
 import 'package:speedster/domain/trip.dart';
 import 'package:speedster/app/spacing.dart';
@@ -11,6 +12,7 @@ import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/ui/components/empty_state.dart';
 import 'package:speedster/ui/components/metric_value.dart';
+import 'package:speedster/ui/components/trip_profile.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
@@ -65,6 +67,21 @@ class TripDetailScreen extends ConsumerWidget {
             ),
           ),
           _PurposeBlock(trip: trip),
+          // Ganz oben, weil es die Frage beantwortet, die man sich beim
+          // Aufrufen einer bekannten Strecke zuerst stellt.
+          _RouteComparison(trip: trip),
+          // Der Verlauf steht vor den Zahlen: er beantwortet, wie die
+          // Fahrt war, die Zahlen nur, wie gross sie war.
+          pointsAsync.maybeWhen(
+            data: (points) => TripProfile.worthShowing(points)
+                ? CardSection(
+                    title: l.tripProfile,
+                    icon: Icons.show_chart,
+                    children: [TripProfile(points: points, unit: unit)],
+                  )
+                : const SizedBox.shrink(),
+            orElse: () => const SizedBox.shrink(),
+          ),
           CardSection(
             title: l.tripMetrics,
             icon: Icons.speed,
@@ -135,6 +152,67 @@ class _TripMap extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Wie oft diese Strecke schon gefahren wurde -- und ob es heute
+/// schneller ging als sonst.
+///
+/// Verglichen wird gegen die eigene Gewohnheit, nicht gegen eine fremde
+/// Bestzeit: dieselbe Linie, die auch das Urteil auf dem Sperrbildschirm
+/// zieht. Die App kennt keine Tempolimits und stellt hier keine Bestzeit
+/// zum Jagen auf.
+class _RouteComparison extends ConsumerWidget {
+  const _RouteComparison({required this.trip});
+
+  final Trip trip;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final trips = ref.watch(keptTripsProvider).asData?.value;
+    if (trips == null) return const SizedBox.shrink();
+
+    final route = RecurringRoutes.forTrip(trips, trip);
+    if (route == null) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    final delta = route.fasterThanUsual(trip);
+
+    // Unter einer Minute ist der Unterschied Messrauschen -- Ampeln und
+    // GPS schwanken staerker als das.
+    final minutes = delta == null ? 0 : (delta / 60).round();
+    final verdict = minutes == 0
+        ? l.tripRouteUsual
+        : minutes > 0
+            ? l.tripRouteFaster(minutes)
+            : l.tripRouteSlower(-minutes);
+
+    return CardSection(
+      title: l.tripRoute,
+      icon: Icons.repeat,
+      trailing: Text(l.tripRouteCount(route.count)),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: Insets.s),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  verdict,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+              Text(
+                Formatters.duration(route.typicalSeconds),
+                style: theme.textTheme.bodySmall?.copyWith(color: muted),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -249,18 +327,16 @@ class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Insets.screen,
-        Insets.l,
-        Insets.screen,
-        0,
-      ),
-      child: Column(
+    return CardSection(
+      title: l.tripPurpose,
+      icon: Icons.label_outline,
+      children: [
+        Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Wrap(
-            spacing: 8,
+            spacing: Insets.s,
+            runSpacing: Insets.s,
             children: [
               for (final value in <String?>[null, ..._purposes])
                 ChoiceChip(
@@ -284,7 +360,8 @@ class _PurposeBlockState extends ConsumerState<_PurposeBlock> {
             ],
           ),
         ],
-      ),
+        ),
+      ],
     );
   }
 }

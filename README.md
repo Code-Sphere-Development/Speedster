@@ -23,10 +23,21 @@ Das Laravel-Backend liegt in einem eigenen Repository:
   oder Android Auto kommt sie mit Ton: dort schaut man weder auf die Uhr
   noch aufs Display. Abschaltbar in den Einstellungen.
 - **Heatmap** aller gefahrenen Strecken, lokal aus den Punkten gefaltet.
-- **Bestenliste** weltweit, im eigenen Land, unter Freunden oder nach Fahrzeug,
-  jeweils für Woche, Monat oder gesamt.
+- **Statistik** über die eigenen Fahrten: Summen für Monat, Jahr und gesamt,
+  Rekorde, Verteilung über die Wochentage, Aufteilung nach Zweck. Braucht
+  **kein Konto** — verglichen wird nur mit einem selbst. Die **Bestenliste**
+  liegt als zweiter Bereich daneben: weltweit, im eigenen Land, unter Freunden
+  oder nach Fahrzeug, jeweils für Woche, Monat oder gesamt.
+- **Tempo- und Höhenverlauf** je Fahrt. Die Punkte tragen beides ohnehin; erst
+  der Verlauf zeigt, wo die Autobahn anfing und wo der Stau stand.
+- **Wiederkehrende Strecken** erkennt die App an Anfang und Ende und stellt die
+  Dauer gegen die eigene Gewohnheit: „4× gefahren · 5 Minuten schneller als
+  sonst". Verglichen wird über den Abstand, nicht über die Rasterzelle — wer
+  fünfzig Meter weiter parkt, fährt dieselbe Strecke.
 - **Garage** mit Fahrzeugen aus einem Katalog, geschätztem Tachostand und
-  fälligen Wartungen.
+  fälligen Wartungen. An diese **erinnert** die App beim Start und nach dem
+  Fahrtende — nicht zu einer geplanten Uhrzeit, sondern dann, wenn man am
+  Auto steht.
 - **Widgets** für Homescreen: letzte Fahrt, Gesamtzahlen, eigener Rang,
   Mini-Heatmap.
 - **Sicherung** der Fahrten in eine Datei — ohne Cloud liegen sie nur auf dem
@@ -132,13 +143,6 @@ weiter: Rot markiert Zustand und genau eine Hauptaktion je Bildschirm.
   Live Activity die Werte, die die App hineinschreibt.
 - **CarPlay** meldet sich über den Kanal `de.codesphere.speedster/car_connection`
   an die Fahrterkennung.
-- **`UIFileSharingEnabled`** und **`LSSupportsOpeningDocumentsInPlace`** machen
-  den Dokumentenordner in der Dateien-App sichtbar. Ohne beides läge die
-  Sicherung an einer Stelle, an die niemand herankommt.
-- **`UNUserNotificationCenter.current().delegate`** wird im `AppDelegate`
-  gesetzt. Ohne das verwirft iOS eine Mitteilung stillschweigend, solange
-  die App im Vordergrund steht — also genau in dem Fall, in dem man die
-  Meldung zum Fahrtbeginn zuerst ausprobiert.
 - Die Widget-Erweiterung zieht Version und Build über `$(FLUTTER_BUILD_NAME)`
   und `$(FLUTTER_BUILD_NUMBER)` aus derselben Quelle wie die App — Apple weist
   Uploads sonst wegen abweichender Versionsnummern zurück.

@@ -36,7 +36,7 @@ List<TourStop> tourStops(AppLocalizations l) => [
         body: l.tourTripsBody,
       ),
       TourStop(
-        icon: AppTab.ranking.icon,
+        icon: AppTab.stats.icon,
         title: l.tourRankingTitle,
         body: l.tourRankingBody,
       ),

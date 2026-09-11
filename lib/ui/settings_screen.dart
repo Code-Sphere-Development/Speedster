@@ -85,6 +85,33 @@ class SettingsScreen extends ConsumerWidget {
     messenger.showSnackBar(SnackBar(content: Text(denied)));
   }
 
+  /// Wie [_toggleNotify], nur fuer die Wartungserinnerung.
+  ///
+  /// Dieselbe Erlaubnis, dieselbe Abfrage: iOS kennt nur eine je App.
+  /// Steht sie schon, kommt kein Dialog mehr.
+  Future<void> _toggleMaintenance(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final controller = ref.read(settingsControllerProvider.notifier);
+
+    if (!enabled) {
+      await controller.setNotifyMaintenance(false);
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final denied = AppLocalizations.of(context).settingsNotifyDenied;
+
+    if (await ref.read(tripNotifierProvider).requestPermission()) {
+      await controller.setNotifyMaintenance(true);
+      return;
+    }
+
+    messenger.showSnackBar(SnackBar(content: Text(denied)));
+  }
+
   Future<void> _toggleCloud(
     BuildContext context,
     WidgetRef ref,
@@ -192,14 +219,28 @@ class SettingsScreen extends ConsumerWidget {
             value: settings.trackingPaused,
             onChanged: controller.setTrackingPaused,
           ),
-          SwitchListTile(
-            key: const Key('notifySwitch'),
-            secondary: const Icon(Icons.notifications_active_outlined),
-            title: Text(l.settingsNotifyTitle),
-            subtitle: Text(l.settingsNotifySubtitle),
-            value: settings.notifyOnTripStart,
-            onChanged: (v) => _toggleNotify(context, ref, v),
+            ],
           ),
+          CardSection(
+            title: l.settingsSectionNotifications,
+            icon: Icons.notifications_none,
+            children: [
+              SwitchListTile(
+                key: const Key('notifySwitch'),
+                secondary: const Icon(Icons.notifications_active_outlined),
+                title: Text(l.settingsNotifyTitle),
+                subtitle: Text(l.settingsNotifySubtitle),
+                value: settings.notifyOnTripStart,
+                onChanged: (v) => _toggleNotify(context, ref, v),
+              ),
+              SwitchListTile(
+                key: const Key('maintenanceSwitch'),
+                secondary: const Icon(Icons.build_outlined),
+                title: Text(l.settingsMaintenanceTitle),
+                subtitle: Text(l.settingsMaintenanceSubtitle),
+                value: settings.notifyMaintenance,
+                onChanged: (v) => _toggleMaintenance(context, ref, v),
+              ),
             ],
           ),
           CardSection(

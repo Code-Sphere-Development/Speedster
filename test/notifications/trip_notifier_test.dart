@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:speedster/notifications/local_notifications.dart';
 import 'package:speedster/notifications/trip_notifier.dart';
 
 class _MockPlugin extends Mock implements FlutterLocalNotificationsPlugin {}
@@ -33,7 +34,10 @@ void main() {
   });
 
   test('meldet den Fahrtbeginn, wenn eingeschaltet', () async {
-    final notifier = LocalTripNotifier(enabled: () => true, plugin: plugin);
+    final notifier = LocalTripNotifier(
+      enabled: () => true,
+      notifications: LocalNotifications(plugin: plugin),
+    );
 
     await notifier.tripStarted(inCar: false);
 
@@ -48,7 +52,10 @@ void main() {
   });
 
   test('schweigt, wenn der Nutzer sie abgeschaltet hat', () async {
-    final notifier = LocalTripNotifier(enabled: () => false, plugin: plugin);
+    final notifier = LocalTripNotifier(
+      enabled: () => false,
+      notifications: LocalNotifications(plugin: plugin),
+    );
 
     await notifier.tripStarted(inCar: false);
 
@@ -67,7 +74,10 @@ void main() {
     // Wer sie waehrend der Fahrt abschaltet, soll die stehende Meldung
     // trotzdem los werden -- sonst behauptet der Sperrbildschirm noch
     // Stunden nach dem Parken, es werde aufgezeichnet.
-    final notifier = LocalTripNotifier(enabled: () => false, plugin: plugin);
+    final notifier = LocalTripNotifier(
+      enabled: () => false,
+      notifications: LocalNotifications(plugin: plugin),
+    );
 
     await notifier.tripEnded();
 
@@ -87,13 +97,19 @@ void main() {
       ),
     ).thenThrow(Exception('kein Kanal'));
 
-    final notifier = LocalTripNotifier(enabled: () => true, plugin: plugin);
+    final notifier = LocalTripNotifier(
+      enabled: () => true,
+      notifications: LocalNotifications(plugin: plugin),
+    );
 
     await expectLater(notifier.tripStarted(inCar: false), completes);
   });
 
   test('richtet sich nur einmal ein', () async {
-    final notifier = LocalTripNotifier(enabled: () => true, plugin: plugin);
+    final notifier = LocalTripNotifier(
+      enabled: () => true,
+      notifications: LocalNotifications(plugin: plugin),
+    );
 
     await notifier.tripStarted(inCar: false);
     await notifier.tripEnded();
@@ -107,7 +123,10 @@ void main() {
     // Ausserhalb tippt die Uhr ohnehin ans Handgelenk. Im Auto sieht man
     // weder auf die Uhr noch aufs Display -- dort ist ein kurzer Ton die
     // einzige Rueckmeldung, die ankommt.
-    final notifier = LocalTripNotifier(enabled: () => true, plugin: plugin);
+    final notifier = LocalTripNotifier(
+      enabled: () => true,
+      notifications: LocalNotifications(plugin: plugin),
+    );
 
     await notifier.tripStarted(inCar: false);
     await notifier.tripStarted(inCar: true);
