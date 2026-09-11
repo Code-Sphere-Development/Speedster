@@ -490,6 +490,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsLocationFix => 'Ändern';
 
   @override
+  String get settingsDemoRide => 'Tacho-Vorschau';
+
+  @override
+  String get settingsDemoRideSubtitle =>
+      'Zeigt die Live-Ansicht mit erfundenen Werten, ohne dass du fahren musst. Es wird nichts aufgezeichnet.';
+
+  @override
   String get settingsSectionRecording => 'Aufzeichnung';
 
   @override

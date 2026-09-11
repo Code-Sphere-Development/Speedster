@@ -162,5 +162,46 @@ void main() {
     );
   });
 
+  testWidgets('die Tacho-Vorschau ist voreingestellt aus', (tester) async {
+    // Sie zeigt erfundene Werte -- eingeschaltet ausgeliefert waere sie
+    // eine Luege ueber den eigenen Zustand.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(),
+        ),
+      ),
+    );
+
+    // Der Schalter steht unter "Hilfe", weit unten: ein ListView baut nur,
+    // was im Sichtbereich liegt.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('demoRideSwitch')),
+      300,
+    );
+    await tester.pumpAndSettle();
+
+    final tile = tester.widget<SwitchListTile>(
+      find.byKey(const Key('demoRideSwitch')),
+    );
+    expect(tile.value, isFalse);
+
+    await tester.tap(find.byKey(const Key('demoRideSwitch')));
+    await tester.pumpAndSettle();
+
+    expect(container.read(settingsControllerProvider).demoRide, isTrue);
+  });
 }
 

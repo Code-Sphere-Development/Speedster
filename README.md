@@ -15,6 +15,15 @@ Das Laravel-Backend liegt in einem eigenen Repository:
   das setzt die Standortfreigabe **„Immer"** voraus. Eine bestehende CarPlay-Verbindung
   unterdrückt das Fahrtende — Ampel und Stau sind kein Fahrtende, und eine
   kurz abreißende Verbindung erst recht nicht.
+- **Tacho** während der Fahrt: ein Bogen, der sich mit dem Tempo füllt, mit
+  Skala und Zahl in der Mitte. Bewusst ohne Nadel — die müsste springen oder
+  nachlaufen, und beides lenkt am Steuer mehr ab, als es nützt. Die Skala
+  wächst mit, statt bei Vollausschlag stehenzubleiben.
+
+  Ansehen lässt sich die Ansicht ohne Fahrt: **Einstellungen → Hilfe →
+  Tacho-Vorschau** speist sie mit erfundenen Werten. Es wird dabei nichts
+  aufgezeichnet — die Vorschau hängt an `liveStateProvider` und nicht am
+  Rekorder.
 - **Sperrbildschirm und Dynamic Island** zeigen das Tempo während der Fahrt,
   dazu ein Urteil gegen die eigene Gewohnheit auf dieser Strecke: schneller als
   sonst, wie üblich, langsamer. Die App kennt keine Tempolimits und behauptet

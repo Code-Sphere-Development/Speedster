@@ -18,6 +18,7 @@ class SettingsState {
     this.tourSeen = false,
     this.notifyOnTripStart = true,
     this.notifyMaintenance = true,
+    this.demoRide = false,
   });
 
   final UnitSystem unit;
@@ -46,6 +47,13 @@ class SettingsState {
   /// eine will, will nicht zwangslaeufig das andere.
   final bool notifyMaintenance;
 
+  /// Zeigt die Live-Ansicht mit erfundenen Werten.
+  ///
+  /// Damit sich der Tacho ansehen laesst, ohne dafuer loszufahren. Sie
+  /// speist **nur die Anzeige**: es wird nichts aufgezeichnet, keine Fahrt
+  /// angelegt und nichts hochgeladen.
+  final bool demoRide;
+
   SettingsState copyWith({
     UnitSystem? unit,
     bool? trackingPaused,
@@ -53,6 +61,7 @@ class SettingsState {
     bool? tourSeen,
     bool? notifyOnTripStart,
     bool? notifyMaintenance,
+    bool? demoRide,
   }) {
     return SettingsState(
       unit: unit ?? this.unit,
@@ -61,6 +70,7 @@ class SettingsState {
       tourSeen: tourSeen ?? this.tourSeen,
       notifyOnTripStart: notifyOnTripStart ?? this.notifyOnTripStart,
       notifyMaintenance: notifyMaintenance ?? this.notifyMaintenance,
+      demoRide: demoRide ?? this.demoRide,
     );
   }
 }
@@ -80,6 +90,7 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kTour = 'tourSeen';
   static const _kNotifyStart = 'notifyOnTripStart';
   static const _kNotifyMaintenance = 'notifyMaintenance';
+  static const _kDemoRide = 'demoRide';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
@@ -93,6 +104,7 @@ class SettingsController extends Notifier<SettingsState> {
       tourSeen: p.getBool(_kTour) ?? false,
       notifyOnTripStart: p.getBool(_kNotifyStart) ?? true,
       notifyMaintenance: p.getBool(_kNotifyMaintenance) ?? true,
+      demoRide: p.getBool(_kDemoRide) ?? false,
     );
   }
 
@@ -127,6 +139,11 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> setNotifyMaintenance(bool notify) async {
     state = state.copyWith(notifyMaintenance: notify);
     await _prefs.setBool(_kNotifyMaintenance, notify);
+  }
+
+  Future<void> setDemoRide(bool demo) async {
+    state = state.copyWith(demoRide: demo);
+    await _prefs.setBool(_kDemoRide, demo);
   }
 
 }

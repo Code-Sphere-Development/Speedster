@@ -485,6 +485,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLocationFix => 'Change';
 
   @override
+  String get settingsDemoRide => 'Speedometer preview';
+
+  @override
+  String get settingsDemoRideSubtitle =>
+      'Shows the live view with made-up values, no driving required. Nothing is recorded.';
+
+  @override
   String get settingsSectionRecording => 'Recording';
 
   @override

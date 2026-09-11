@@ -33,6 +33,7 @@ import 'package:speedster/heat/heat_source.dart';
 import 'package:speedster/heat/local_heat_source.dart';
 import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
+import 'package:speedster/recording/demo_ride.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/sensors/last_known_location.dart';
 import 'package:speedster/widgets/widget_publisher.dart';
@@ -144,6 +145,24 @@ final recorderProvider = Provider<TripRecorder>(
     },
   ),
 );
+
+/// Die erfundene Fahrt fuer die Vorschau.
+final demoRideProvider = StreamProvider<RecorderState>(
+  (ref) => DemoRide.stream(),
+);
+
+/// Was die Live-Ansicht zeigt -- und woran die Reiterleiste ablesen kann,
+/// ob "Live" ueberhaupt erscheint.
+///
+/// Ist die Vorschau eingeschaltet, kommt der Zustand von [demoRideProvider].
+/// Der Rekorder bleibt davon unberuehrt: es wird nichts aufgezeichnet.
+final liveStateProvider = Provider<AsyncValue<RecorderState>>((ref) {
+  if (ref.watch(settingsControllerProvider).demoRide) {
+    return ref.watch(demoRideProvider);
+  }
+
+  return ref.watch(recorderStateProvider);
+});
 
 final recorderStateProvider = StreamProvider<RecorderState>(
   (ref) => ref.watch(recorderProvider).state,

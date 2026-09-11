@@ -300,6 +300,16 @@ class SettingsScreen extends ConsumerWidget {
             title: l.settingsSectionHelp,
             icon: Icons.help_outline,
             children: [
+          SwitchListTile(
+            key: const Key('demoRideSwitch'),
+            secondary: const Icon(Icons.speed),
+            title: Text(l.settingsDemoRide),
+            subtitle: Text(l.settingsDemoRideSubtitle),
+            value: settings.demoRide,
+            onChanged: ref
+                .read(settingsControllerProvider.notifier)
+                .setDemoRide,
+          ),
           ListTile(
             leading: const Icon(Icons.explore_outlined),
             title: Text(l.settingsTour),

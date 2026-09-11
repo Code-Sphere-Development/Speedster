@@ -181,6 +181,8 @@
   "settingsLocationWhileInUse": "Only while using — once iOS terminates the app, nothing is recorded.",
   "settingsLocationDenied": "Not allowed — nothing is recorded.",
   "settingsLocationFix": "Change",
+  "settingsDemoRide": "Speedometer preview",
+  "settingsDemoRideSubtitle": "Shows the live view with made-up values, no driving required. Nothing is recorded.",
   "settingsSectionRecording": "Recording",
   "settingsSectionAccount": "Account",
   "settingsSectionData": "Data",

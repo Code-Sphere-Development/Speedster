@@ -478,7 +478,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
   /// Fahrtende unterdrueckt: wer verbunden ist, sitzt im Auto.
   List<AppTab> _visibleTabs() {
     final driving =
-        ref.watch(recorderStateProvider).asData?.value.isDriving ?? false;
+        ref.watch(liveStateProvider).asData?.value.isDriving ?? false;
     final inCar = ref.watch(carConnectedProvider).asData?.value ?? false;
 
     final onTheRoad = driving || inCar;

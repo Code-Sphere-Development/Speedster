@@ -202,6 +202,8 @@
   "settingsLocationWhileInUse": "Nur beim Verwenden — sobald iOS die App beendet, wird nichts mehr aufgezeichnet.",
   "settingsLocationDenied": "Nicht erlaubt — es wird nichts aufgezeichnet.",
   "settingsLocationFix": "Ändern",
+  "settingsDemoRide": "Tacho-Vorschau",
+  "settingsDemoRideSubtitle": "Zeigt die Live-Ansicht mit erfundenen Werten, ohne dass du fahren musst. Es wird nichts aufgezeichnet.",
   "settingsSectionRecording": "Aufzeichnung",
   "settingsSectionAccount": "Konto",
   "settingsSectionData": "Daten",

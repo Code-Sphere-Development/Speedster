@@ -932,6 +932,18 @@ abstract class AppLocalizations {
   /// **'Ändern'**
   String get settingsLocationFix;
 
+  /// No description provided for @settingsDemoRide.
+  ///
+  /// In de, this message translates to:
+  /// **'Tacho-Vorschau'**
+  String get settingsDemoRide;
+
+  /// No description provided for @settingsDemoRideSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zeigt die Live-Ansicht mit erfundenen Werten, ohne dass du fahren musst. Es wird nichts aufgezeichnet.'**
+  String get settingsDemoRideSubtitle;
+
   /// No description provided for @settingsSectionRecording.
   ///
   /// In de, this message translates to:
