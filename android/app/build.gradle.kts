@@ -12,6 +12,11 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // flutter_local_notifications plant Mitteilungen ueber die
+        // java.time-API. Auf aelteren Android-Fassungen gibt es die nicht;
+        // das Desugaring uebersetzt sie zurueck. Ohne diese Zeile bricht
+        // schon `assembleRelease` ab -- checkReleaseAarMetadata prueft es.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -43,6 +48,10 @@ kotlin {
 }
 
 dependencies {
+    // Die Fassung, die flutter_local_notifications in seiner Anleitung
+    // nennt -- Desugaring und Plugin muessen zueinander passen.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
     // Liefert den Verbindungsstatus zu Android Auto, ohne dass die App
     // selbst eine Auto-App sein muss.
     implementation("androidx.car.app:app:1.7.0")
