@@ -50,7 +50,7 @@ kotlin {
 dependencies {
     // Die Fassung, die flutter_local_notifications in seiner Anleitung
     // nennt -- Desugaring und Plugin muessen zueinander passen.
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Liefert den Verbindungsstatus zu Android Auto, ohne dass die App
     // selbst eine Auto-App sein muss.
