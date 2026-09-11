@@ -9,6 +9,7 @@ import 'package:speedster/domain/trip.dart';
 import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
 import 'package:speedster/notifications/trip_notifier.dart';
+import 'package:speedster/sensors/location_wake.dart';
 import 'package:speedster/sensors/location_service.dart';
 import 'package:speedster/stats/stats_engine.dart';
 
@@ -51,6 +52,7 @@ class TripRecorder {
     this.carConnected,
     this.liveActivity,
     this.notifier,
+    this.locationWake,
     this.usualSpeed,
     this.comparison = const SpeedComparison(),
     this.defaultVehicleId,
@@ -90,6 +92,14 @@ class TripRecorder {
   /// aufgezeichnet. Ob ueberhaupt gemeldet wird, entscheidet der Melder
   /// selbst -- der Rekorder soll die Einstellungsschicht nicht kennen.
   final TripNotifier? notifier;
+
+  /// Laesst iOS die App wieder starten, wenn der Nutzer losfaehrt.
+  ///
+  /// Der Rekorder ist die einzige Stelle, die beide Zeitpunkte kennt: wo
+  /// geparkt wurde (Fahrtende) und dass es losgeht (Fahrtbeginn). Optional
+  /// und wie die uebrigen Beigaben fehlertolerant -- ohne sie wird
+  /// aufgezeichnet wie zuvor, nur ohne das Wecken.
+  final LocationWake? locationWake;
 
   /// Liefert die gewohnte Geschwindigkeit am aktuellen Ort, den Massstab
   /// fuer "schneller/langsamer als sonst".
@@ -190,6 +200,10 @@ class TripRecorder {
       // Der Verbindungsstand kommt vom Detektor: er fuehrt ihn ohnehin,
       // weil eine bestehende Verbindung das Fahrtende unterdrueckt.
       await notifier?.tripStarted(inCar: detector.carConnected);
+      // Der Parkplatz ist Geschichte: die Region darum hat ihren Zweck
+      // erfuellt und wuerde sonst beim naechsten Vorbeifahren erneut
+      // ausloesen.
+      await locationWake?.clearDeparture();
       _emit(isDriving: true, last: s);
       return;
     }
@@ -224,6 +238,10 @@ class TripRecorder {
       _savedCount = 0;
       await liveActivity?.end();
       await notifier?.tripEnded();
+      // Hier steht das Auto. Ein Kreis darum weckt die App, sobald es
+      // weitergeht -- nach rund 150 Metern statt der 500, die die grobe
+      // Ortsueberwachung braucht.
+      await locationWake?.watchDeparture(lat: s.lat, lng: s.lng);
       _emit(isDriving: false, last: s, endedTripId: endedTripId);
       _startTime = null;
       _distance = 0;

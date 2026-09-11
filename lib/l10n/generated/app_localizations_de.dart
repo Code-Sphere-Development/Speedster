@@ -459,6 +459,37 @@ class AppLocalizationsDe extends AppLocalizations {
       'Beim Start und nach dem Fahrtende, sobald ein Termin oder Kilometerstand näher rückt';
 
   @override
+  String get commonLater => 'Später';
+
+  @override
+  String get locationAlwaysTitle => 'Auch aufzeichnen, wenn die App zu ist';
+
+  @override
+  String get locationAlwaysBody =>
+      'iOS beendet Apps im Hintergrund — und das passiert gern genau dann, wenn du losfährst. Mit „Immer“ darf Speedster sich bei einer deutlichen Ortsänderung selbst wieder starten. Ohne das wird nur aufgezeichnet, solange die App zufällig noch läuft.\n\nIm nächsten Schritt fragt iOS danach.';
+
+  @override
+  String get locationAlwaysAction => 'Weiter';
+
+  @override
+  String get settingsLocation => 'Standort';
+
+  @override
+  String get settingsLocationAlways =>
+      'Immer erlaubt — Fahrten werden auch dann erfasst, wenn iOS die App zwischendurch beendet hat.';
+
+  @override
+  String get settingsLocationWhileInUse =>
+      'Nur beim Verwenden — sobald iOS die App beendet, wird nichts mehr aufgezeichnet.';
+
+  @override
+  String get settingsLocationDenied =>
+      'Nicht erlaubt — es wird nichts aufgezeichnet.';
+
+  @override
+  String get settingsLocationFix => 'Ändern';
+
+  @override
   String get settingsSectionRecording => 'Aufzeichnung';
 
   @override

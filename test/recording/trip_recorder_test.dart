@@ -6,6 +6,7 @@ import 'package:speedster/detection/trip_detector.dart';
 import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
 import 'package:speedster/notifications/trip_notifier.dart';
+import 'package:speedster/sensors/location_wake.dart';
 import 'package:speedster/domain/sample.dart';
 import 'package:speedster/recording/trip_recorder.dart';
 import 'package:speedster/sensors/location_service.dart';
@@ -221,6 +222,69 @@ void main() {
           s(20, 10),
           s(0, 20), s(0, 85),
         ]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+      );
+
+      await rec.start();
+
+      expect(await repo.keptTrips(), hasLength(1));
+      await rec.stop();
+      await db.close();
+    });
+  });
+
+  group('Wecken beim naechsten Losfahren', () {
+    test('setzt beim Fahrtende einen Kreis um den Parkplatz', () async {
+      // Damit iOS die App wieder startet, wenn es weitergeht -- nach rund
+      // 150 Metern statt der 500, die die grobe Ortsueberwachung braucht.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final wake = RecordingLocationWake();
+      final rec = TripRecorder(
+        source: FakeSampleSource([
+          s(10, 0), s(10, 6), // Fahrtbeginn
+          s(20, 10),
+          s(0, 20), s(0, 85), // Fahrtende
+        ]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        locationWake: wake,
+      );
+
+      await rec.start();
+
+      expect(wake.departures, hasLength(1));
+      expect(wake.departures.single.lat, 50);
+      await rec.stop();
+      await db.close();
+    });
+
+    test('raeumt den Kreis beim Fahrtbeginn wieder weg', () async {
+      // Sonst loeste er beim naechsten Vorbeifahren erneut aus.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final wake = RecordingLocationWake();
+      final rec = TripRecorder(
+        source: FakeSampleSource([s(10, 0), s(10, 6), s(20, 10)]),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        locationWake: wake,
+      );
+
+      await rec.start();
+
+      expect(wake.departureClears, 1);
+      expect(wake.departures, isEmpty, reason: 'noch kein Fahrtende');
+      await rec.stop();
+      await db.close();
+    });
+
+    test('zeichnet auch ohne Weckdienst auf', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final rec = TripRecorder(
+        source: FakeSampleSource([s(10, 0), s(10, 6), s(20, 10), s(0, 20), s(0, 85)]),
         detector: TripDetector(const DetectorConfig()),
         repo: repo,
       );

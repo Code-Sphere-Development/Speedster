@@ -455,6 +455,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'On start and after a drive, once a date or mileage target comes close';
 
   @override
+  String get commonLater => 'Later';
+
+  @override
+  String get locationAlwaysTitle => 'Record even when the app is closed';
+
+  @override
+  String get locationAlwaysBody =>
+      'iOS terminates apps in the background — often just as you set off. With “Always”, Speedster may relaunch itself on a significant location change. Without it, drives are only recorded while the app happens to still be running.\n\niOS will ask next.';
+
+  @override
+  String get locationAlwaysAction => 'Continue';
+
+  @override
+  String get settingsLocation => 'Location';
+
+  @override
+  String get settingsLocationAlways =>
+      'Always allowed — drives are recorded even if iOS terminated the app in between.';
+
+  @override
+  String get settingsLocationWhileInUse =>
+      'Only while using — once iOS terminates the app, nothing is recorded.';
+
+  @override
+  String get settingsLocationDenied => 'Not allowed — nothing is recorded.';
+
+  @override
+  String get settingsLocationFix => 'Change';
+
+  @override
   String get settingsSectionRecording => 'Recording';
 
   @override

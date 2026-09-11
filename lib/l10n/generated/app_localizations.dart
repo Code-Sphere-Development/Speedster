@@ -878,6 +878,60 @@ abstract class AppLocalizations {
   /// **'Beim Start und nach dem Fahrtende, sobald ein Termin oder Kilometerstand näher rückt'**
   String get settingsMaintenanceSubtitle;
 
+  /// No description provided for @commonLater.
+  ///
+  /// In de, this message translates to:
+  /// **'Später'**
+  String get commonLater;
+
+  /// No description provided for @locationAlwaysTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Auch aufzeichnen, wenn die App zu ist'**
+  String get locationAlwaysTitle;
+
+  /// No description provided for @locationAlwaysBody.
+  ///
+  /// In de, this message translates to:
+  /// **'iOS beendet Apps im Hintergrund — und das passiert gern genau dann, wenn du losfährst. Mit „Immer“ darf Speedster sich bei einer deutlichen Ortsänderung selbst wieder starten. Ohne das wird nur aufgezeichnet, solange die App zufällig noch läuft.\n\nIm nächsten Schritt fragt iOS danach.'**
+  String get locationAlwaysBody;
+
+  /// No description provided for @locationAlwaysAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiter'**
+  String get locationAlwaysAction;
+
+  /// No description provided for @settingsLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort'**
+  String get settingsLocation;
+
+  /// No description provided for @settingsLocationAlways.
+  ///
+  /// In de, this message translates to:
+  /// **'Immer erlaubt — Fahrten werden auch dann erfasst, wenn iOS die App zwischendurch beendet hat.'**
+  String get settingsLocationAlways;
+
+  /// No description provided for @settingsLocationWhileInUse.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur beim Verwenden — sobald iOS die App beendet, wird nichts mehr aufgezeichnet.'**
+  String get settingsLocationWhileInUse;
+
+  /// No description provided for @settingsLocationDenied.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht erlaubt — es wird nichts aufgezeichnet.'**
+  String get settingsLocationDenied;
+
+  /// No description provided for @settingsLocationFix.
+  ///
+  /// In de, this message translates to:
+  /// **'Ändern'**
+  String get settingsLocationFix;
+
   /// No description provided for @settingsSectionRecording.
   ///
   /// In de, this message translates to:

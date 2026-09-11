@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:speedster/app/providers.dart';
+import 'package:speedster/app/tracking_armer.dart';
+import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
@@ -143,6 +145,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
       // Mitteilungen braucht. Davor gefragt waere es eine Abfrage ohne
       // erkennbaren Anlass.
       await _ensureNotificationPermission();
+      await _ensureAlwaysAccess();
       _checkMaintenance();
       _askAboutFriendRequests();
     });
@@ -163,9 +166,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
   /// Tag Fahrten konnte so verlorengehen, ohne dass irgendwo etwas davon
   /// stand.
   ///
-  /// Das schliesst die Luecke nicht ganz: solange die App beendet ist,
-  /// zeichnet nichts auf. Dafuer braeuchte es "Significant Location
-  /// Changes", damit iOS sie von sich aus wieder startet.
+  /// Den Fall, dass iOS die App beendet hat, deckt das allein nicht ab --
+  /// dafuer laeuft die Ueberwachung deutlicher Ortsaenderungen (siehe
+  /// LocationWake). Sie startet die App von sich aus wieder; das
+  /// Scharfmachen passiert dann in main(), vor dem ersten Frame.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -260,22 +264,57 @@ class _HomeShellState extends ConsumerState<HomeShell>
     ref.invalidate(keptTripsProvider);
   }
 
+  /// Macht die Aufzeichnung scharf.
+  ///
+  /// Die Arbeit steckt in [TrackingArmer], weil sie auch **ohne Frame**
+  /// laufen koennen muss -- siehe main(). Hier bleibt nur der Anlass.
   Future<void> _maybeStartTracking() async {
-    if (ref.read(settingsControllerProvider).trackingPaused) return;
-    final granted = await ref.read(permissionGateProvider).ensure();
-    if (!granted) return;
+    final access = await ref.read(trackingArmerProvider).arm();
+    if (mounted) ref.invalidate(locationAccessProvider);
 
-    // Erst hier den Rekorder anfassen: er haengt an der Datenbank, und
-    // ohne Berechtigung soll gar nichts davon aufgebaut werden.
-    //
-    // Laeuft die Aufzeichnung schon, tut ein zweiter Aufruf nichts --
-    // sonst laege bei jedem Wechsel nach vorn ein weiterer Leser auf
-    // demselben Strom, und jede Position zaehlte doppelt.
-    final recorder = ref.read(recorderProvider);
-    if (recorder.isRunning) return;
+    _lastAccess = access;
+  }
 
-    // Fire-and-forget: the sample stream is long-lived.
-    unawaited(recorder.start());
+  /// Wie weit die Ortung zuletzt erlaubt war -- entscheidet, ob nach dem
+  /// Rundgang nach "Immer" gefragt wird.
+  LocationAccess? _lastAccess;
+
+  /// Bittet um "Immer", nachdem der Rundgang erklaert hat, wozu.
+  ///
+  /// Mit einer eigenen Erklaerung davor, weil iOS den Systemdialog dafuer
+  /// **nur einmal** zeigt: wer ihn ohne erkennbaren Anlass wegtippt,
+  /// bekommt ihn nie wieder und muesste den Weg ueber die
+  /// Systemeinstellungen finden.
+  ///
+  /// Nur bei "Beim Verwenden": ohne jede Erlaubnis waere es die zweite
+  /// Frage nach einem Nein, und mit "Immer" gibt es nichts zu fragen.
+  Future<void> _ensureAlwaysAccess() async {
+    if (_lastAccess != LocationAccess.whileInUse || !mounted) return;
+
+    final l = AppLocalizations.of(context);
+    final wants = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.locationAlwaysTitle),
+        content: Text(l.locationAlwaysBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.commonLater),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l.locationAlwaysAction),
+          ),
+        ],
+      ),
+    );
+
+    if (wants != true) return;
+
+    await ref.read(permissionGateProvider).requestAlways();
+    // Erneut scharf machen: mit "Immer" kommt die Ortsueberwachung dazu.
+    await _maybeStartTracking();
   }
 
   /// Legt die Werte fuer die Widgets ab.

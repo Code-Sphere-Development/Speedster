@@ -7,6 +7,8 @@ import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/recording/trip_repair.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
+import 'package:speedster/sensors/location_wake.dart';
+import 'package:speedster/app/tracking_armer.dart';
 import 'package:speedster/cloud/api_client.dart';
 import 'package:speedster/cloud/account_repository.dart';
 import 'package:speedster/cloud/auth_repository.dart';
@@ -94,6 +96,20 @@ final tripNotifierProvider = Provider<TripNotifier>(
   ),
 );
 
+/// Laesst iOS die App bei deutlichen Ortsaenderungen wieder starten.
+final locationWakeProvider = Provider<LocationWake>(
+  (ref) => const PlatformLocationWake(),
+);
+
+/// Macht Aufzeichnung und Ortsueberwachung scharf.
+final trackingArmerProvider = Provider<TrackingArmer>(TrackingArmer.new);
+
+/// Der Berechtigungsstand, ohne zu fragen -- fuer die Anzeige in den
+/// Einstellungen.
+final locationAccessProvider = FutureProvider<LocationAccess>(
+  (ref) => ref.watch(permissionGateProvider).current(),
+);
+
 /// Erinnert an faellige Wartungen -- beim Start und nach dem Fahrtende.
 final maintenanceReminderProvider = Provider<MaintenanceReminder>(
   (ref) => MaintenanceReminder(
@@ -113,6 +129,7 @@ final recorderProvider = Provider<TripRecorder>(
     carConnected: ref.watch(carConnectionProvider).connected,
     liveActivity: ref.watch(liveActivityProvider),
     notifier: ref.watch(tripNotifierProvider),
+    locationWake: ref.watch(locationWakeProvider),
     usualSpeed: UsualSpeedReader(ref.watch(databaseProvider)),
     // Erst am Fahrtende abgefragt, nicht beim Erzeugen: die Garage kann
     // sich waehrend der Fahrt aendern. Faellt die Abfrage aus -- kein

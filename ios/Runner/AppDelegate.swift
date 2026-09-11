@@ -8,6 +8,7 @@ import UserNotifications
   private var carSink: FlutterEventSink?
   private let liveActivity = LiveActivityBridge()
   private let widgetStore = WidgetStoreBridge()
+  private let locationWake = LocationWakeBridge()
 
   override func application(
     _ application: UIApplication,
@@ -19,6 +20,10 @@ import UserNotifications
     // ausprobiert: App offen, losgefahren, nichts passiert.
     UNUserNotificationCenter.current().delegate =
       self as? UNUserNotificationCenterDelegate
+
+    // Hier und nirgends sonst: nur an dieser Stelle steht in den
+    // Startoptionen, ob iOS die App wegen einer Ortsaenderung geweckt hat.
+    locationWake.noteLaunch(options: launchOptions)
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -34,6 +39,7 @@ import UserNotifications
     let messenger = engineBridge.applicationRegistrar.messenger()
     liveActivity.register(messenger: messenger)
     widgetStore.register(messenger: messenger)
+    locationWake.register(messenger: messenger)
   }
 
   /// CarPlay meldet sich als Audio-Ausgang vom Typ `carAudio`. Das laesst

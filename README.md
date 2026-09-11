@@ -10,7 +10,9 @@ Das Laravel-Backend liegt in einem eigenen Repository:
 ## Was die App kann
 
 - **Aufzeichnung ohne Knopfdruck.** Die Fahrterkennung startet bei Bewegung und
-  beendet erst, wenn wirklich Schluss ist. Eine bestehende CarPlay-Verbindung
+  beendet erst, wenn wirklich Schluss ist. Hat iOS die App zwischendurch
+  beendet, startet sie sich bei einer deutlichen Ortsänderung selbst wieder —
+  das setzt die Standortfreigabe **„Immer"** voraus. Eine bestehende CarPlay-Verbindung
   unterdrückt das Fahrtende — Ampel und Stau sind kein Fahrtende, und eine
   kurz abreißende Verbindung erst recht nicht.
 - **Sperrbildschirm und Dynamic Island** zeigen das Tempo während der Fahrt,
@@ -143,6 +145,39 @@ weiter: Rot markiert Zustand und genau eine Hauptaktion je Bildschirm.
   Live Activity die Werte, die die App hineinschreibt.
 - **CarPlay** meldet sich über den Kanal `de.codesphere.speedster/car_connection`
   an die Fahrterkennung.
+- **`LocationWakeBridge`** (`de.codesphere.speedster/location_wake`) lässt iOS
+  die App neu starten, wenn der Nutzer losfährt. Ohne sie zeichnet Speedster
+  nur auf, solange die App zufällig noch läuft. Zwei Dienste nebeneinander:
+
+  | Dienst | Auslöser | blinde Strecke |
+  |---|---|---|
+  | Region um den Parkplatz | Kreis mit 120 m Radius verlassen | ~150 m |
+  | Significant Location Changes | ~500 m oder Funkzellenwechsel | ~500 m |
+
+  Die Region deckt den Normalfall ab — dort losfahren, wo man geparkt hat.
+  Gesetzt wird sie beim Fahrtende, geräumt beim Fahrtbeginn; der `TripRecorder`
+  ist die einzige Stelle, die beide Zeitpunkte kennt. Unter rund hundert Metern
+  Radius häufen sich Fehlauslösungen: iOS wertet Regionen über Funkzellen und
+  WLAN aus, nicht über GPS.
+
+  Zwei Fallstricke: Die Startoptionen mit `UIApplicationLaunchOptionsKey.location`
+  gibt es **nur** in `didFinishLaunchingWithOptions`, und die Überwachung muss
+  dort sofort wieder anlaufen, sonst suspendiert iOS die App gleich erneut.
+  Und beim Start durch das System wird womöglich **nie ein Frame gezeichnet** —
+  deshalb macht `main()` die Aufzeichnung vor `runApp` scharf und nicht der
+  Rückruf nach dem ersten Frame.
+- **„Immer" muss über `permission_handler` angefragt werden**, nicht über
+  geolocator: dessen `requestAlwaysAuthorization`-Zweig ist ein `else` hinter
+  der Prüfung auf `NSLocationWhenInUseUsageDescription`, und der Schlüssel steht
+  in der `Info.plist`. Über geolocator allein bekäme die App nie mehr als
+  „Beim Verwenden".
+- **`UIFileSharingEnabled`** und **`LSSupportsOpeningDocumentsInPlace`** machen
+  den Dokumentenordner in der Dateien-App sichtbar. Ohne beides läge die
+  Sicherung an einer Stelle, an die niemand herankommt.
+- **`UNUserNotificationCenter.current().delegate`** wird im `AppDelegate`
+  gesetzt. Ohne das verwirft iOS eine Mitteilung stillschweigend, solange
+  die App im Vordergrund steht — also genau in dem Fall, in dem man die
+  Meldung zum Fahrtbeginn zuerst ausprobiert.
 - Die Widget-Erweiterung zieht Version und Build über `$(FLUTTER_BUILD_NAME)`
   und `$(FLUTTER_BUILD_NUMBER)` aus derselben Quelle wie die App — Apple weist
   Uploads sonst wegen abweichender Versionsnummern zurück.

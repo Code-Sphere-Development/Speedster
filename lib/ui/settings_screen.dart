@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:speedster/app/links.dart';
+import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/spacing.dart';
 import 'package:speedster/cloud/cloud_sync_service.dart';
@@ -202,6 +203,7 @@ class SettingsScreen extends ConsumerWidget {
             title: l.settingsSectionRecording,
             icon: Icons.fiber_manual_record_outlined,
             children: [
+          const _LocationAccessTile(),
           SwitchListTile(
             key: const Key('unitSwitch'),
             secondary: const Icon(Icons.straighten),
@@ -456,6 +458,65 @@ List<Widget> _legalRows(BuildContext context) {
     ),
     const _VersionTile(),
   ];
+}
+
+/// Wie weit die Ortung erlaubt ist -- und was das bedeutet.
+///
+/// Ohne diese Zeile merkte niemand, dass nur "Beim Verwenden" erteilt
+/// ist: die App zeichnete auf, solange sie lief, und schwieg dazu, dass
+/// sie nach einem Beenden durch iOS nichts mehr mitbekommt.
+class _LocationAccessTile extends ConsumerWidget {
+  const _LocationAccessTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final access = ref.watch(locationAccessProvider).asData?.value;
+    if (access == null) return const SizedBox.shrink();
+
+    final (icon, text, incomplete) = switch (access) {
+      LocationAccess.always => (
+          Icons.my_location,
+          l.settingsLocationAlways,
+          false,
+        ),
+      LocationAccess.whileInUse => (
+          Icons.location_searching,
+          l.settingsLocationWhileInUse,
+          true,
+        ),
+      LocationAccess.denied => (
+          Icons.location_disabled,
+          l.settingsLocationDenied,
+          true,
+        ),
+    };
+
+    return ListTile(
+      // Die Fehlerfarbe nur, wenn tatsaechlich etwas fehlt -- sonst waere
+      // sie Tapete.
+      leading: Icon(icon, color: incomplete ? scheme.error : null),
+      title: Text(l.settingsLocation),
+      subtitle: Text(text),
+      trailing: incomplete
+          ? TextButton(
+              onPressed: () async {
+                final gate = ref.read(permissionGateProvider);
+                // Erst der Systemdialog; iOS zeigt ihn nur einmal, danach
+                // fuehrt der Weg ueber die Einstellungen.
+                if (access == LocationAccess.whileInUse) {
+                  await gate.requestAlways();
+                } else {
+                  await gate.openSettings();
+                }
+                ref.invalidate(locationAccessProvider);
+              },
+              child: Text(l.settingsLocationFix),
+            )
+          : null,
+    );
+  }
 }
 
 /// Eine Zeile, die Daten unwiederbringlich loescht.

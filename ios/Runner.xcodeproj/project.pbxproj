@@ -22,6 +22,7 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		C7C388BAFFB572A34C252703 /* WidgetStoreBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E115464C626729E96C9CD2A2 /* WidgetStoreBridge.swift */; };
 		DD178421C7E1E4848F8323BC /* LiveActivityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D054D75302F0CA9EE775D508 /* LiveActivityBridge.swift */; };
+		E0CDAAE38DDE9198D2174171 /* LocationWakeBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865026D064F266EC6FA5BCD0 /* LocationWakeBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,7 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D054D75302F0CA9EE775D508 /* LiveActivityBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LiveActivityBridge.swift; sourceTree = "<group>"; };
+		865026D064F266EC6FA5BCD0 /* LocationWakeBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationWakeBridge.swift; sourceTree = "<group>"; };
 		E115464C626729E96C9CD2A2 /* WidgetStoreBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WidgetStoreBridge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -202,6 +204,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				E115464C626729E96C9CD2A2 /* WidgetStoreBridge.swift */,
 				D054D75302F0CA9EE775D508 /* LiveActivityBridge.swift */,
+				865026D064F266EC6FA5BCD0 /* LocationWakeBridge.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
@@ -406,6 +409,7 @@
 			files = (
 				C7C388BAFFB572A34C252703 /* WidgetStoreBridge.swift in Sources */,
 				DD178421C7E1E4848F8323BC /* LiveActivityBridge.swift in Sources */,
+				E0CDAAE38DDE9198D2174171 /* LocationWakeBridge.swift in Sources */,
 				28B3EF52F5DB09D1E8902377 /* SpeedsterActivityAttributes.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
