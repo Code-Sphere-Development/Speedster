@@ -49,4 +49,62 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  group('Farbbaender', () {
+    final ramp = SpeedGauge.rampFor(SpeedsterTheme.dark.colorScheme,
+        UnitSystem.kmh);
+
+    test('jedes Band hat seine eigene Farbe', () {
+      // Der Punkt der Uebung: der Bogen war vorher auf ganzer Laenge rot,
+      // ein Tempo war vom naechsten nicht zu unterscheiden.
+      final baender = [
+        ramp.colorAt(15),
+        ramp.colorAt(40),
+        ramp.colorAt(90),
+        ramp.colorAt(200),
+      ];
+
+      expect(baender.toSet(), hasLength(4));
+    });
+
+    test('innerhalb eines Bandes bleibt die Farbe gleich', () {
+      // Harte Kanten statt Verlauf: zwischen den Schwellen aendert sich
+      // nichts, sonst liest man wieder nur einen Farbton.
+      expect(ramp.colorAt(5), ramp.colorAt(29));
+      expect(ramp.colorAt(31), ramp.colorAt(49));
+      expect(ramp.colorAt(51), ramp.colorAt(119));
+      expect(ramp.colorAt(131), ramp.colorAt(300));
+    });
+
+    test('ueber 130 ist rot, darunter nicht', () {
+      expect(ramp.colorAt(140), SpeedsterTheme.dark.colorScheme.primary);
+      expect(ramp.colorAt(100),
+          isNot(SpeedsterTheme.dark.colorScheme.primary));
+    });
+
+    test('unterhalb und oberhalb der Skala bleibt es bei den Randfarben', () {
+      expect(ramp.colorAt(-10), ramp.colorAt(0));
+      expect(ramp.colorAt(9999), ramp.colorAt(320));
+    });
+
+    test('in Meilen liegen die Schwellen umgerechnet', () {
+      final mph =
+          SpeedGauge.rampFor(SpeedsterTheme.dark.colorScheme, UnitSystem.mph);
+
+      // 80 mph entsprechen rund 130 km/h -- dieselbe Farbe, andere Zahl.
+      expect(mph.colorAt(90), ramp.colorAt(140));
+      expect(mph.colorAt(15), ramp.colorAt(20));
+    });
+
+    test('der Verlauf wird ueber das Tempo abgetastet, nicht geklemmt', () {
+      // Bei kleiner Skala lagen frueher alle Schwellen zusammengedraengt
+      // am Ende: 120 sah dann so heiss aus wie 200.
+      final kleine = ramp.colorsFor(120);
+      final grosse = ramp.colorsFor(320);
+
+      expect(kleine.last, ramp.colorAt(120));
+      expect(grosse.last, ramp.colorAt(320));
+      expect(kleine.last, isNot(grosse.last));
+    });
+  });
 }

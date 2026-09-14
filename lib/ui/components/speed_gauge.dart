@@ -20,12 +20,16 @@ class SpeedGauge extends StatelessWidget {
     required this.speedMps,
     required this.unit,
     this.size = 260,
+    this.ramp,
     super.key,
   });
 
   final double speedMps;
   final UnitSystem unit;
   final double size;
+
+  /// Die Farbskala des Bogens. Ohne Angabe [rampFor].
+  final GaugeRamp? ramp;
 
   /// Der Bogen laeuft ueber 270 Grad, wie an einem Armaturenbrett: unten
   /// bleibt die Luecke, in der bei einem echten Tacho die Achse sitzt.
@@ -47,6 +51,49 @@ class SpeedGauge extends StatelessWidget {
     return steps.last;
   }
 
+  /// Baender statt eines Farbtons.
+  ///
+  /// Vorher lief der Bogen von gedaempftem Rot zu vollem Rot -- zwei
+  /// Toene derselben Farbe, die sich beim Fahren als "immer rot" lesen.
+  /// Jetzt steht jedes Band fuer einen Bereich, und die Grenzen sind
+  /// harte Kanten: man erkennt den Bereich, nicht nur einen Farbton.
+  ///
+  /// Zwischen dem orangen und dem roten Band liegt ein kurzer Uebergang
+  /// statt einer Kante -- sonst spraenge die Farbe bei jedem Schwanken um
+  /// die Grenze hin und her.
+  static GaugeRamp rampFor(ColorScheme scheme, UnitSystem unit) {
+    // In Meilen umgerechnet und auf glatte Werte gerundet: 30/50/120/130
+    // km/h sind rund 20/30/75/80 mph.
+    final bounds = unit == UnitSystem.kmh
+        ? const [30.0, 50.0, 120.0, 130.0, 320.0]
+        : const [20.0, 30.0, 75.0, 80.0, 200.0];
+
+    return GaugeRamp(
+      colors: [
+        _paleGreen, _paleGreen,
+        _green, _green,
+        _orange, _orange,
+        scheme.primary, scheme.primary,
+      ],
+      at: [
+        0, bounds[0],
+        bounds[0], bounds[1],
+        bounds[1], bounds[2],
+        bounds[3], bounds[4],
+      ],
+    );
+  }
+
+  /// Schritttempo und Stadtverkehr.
+  static const Color _paleGreen = Color(0xFF7CE7A2);
+  static const Color _green = Color(0xFF34C759);
+
+  /// Derselbe Bernstein, den die Heatmap fuer ihr oberes Ende verwendet
+  /// (HeatPalette.colorHigh). Nur dieser eine Ton: die Skala dort ist
+  /// fuer additives Zeichnen auf dunklem Kartengrund gebaut, und ihr
+  /// unteres Ende waere hier praktisch schwarz.
+  static const Color _orange = Color(0xFFFF9A3C);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -62,7 +109,7 @@ class SpeedGauge extends StatelessWidget {
           fraction: (value / scale).clamp(0.0, 1.0),
           scale: scale,
           track: theme.colorScheme.outlineVariant,
-          fill: theme.colorScheme.primary,
+          ramp: ramp ?? rampFor(theme.colorScheme, unit),
           ticks: theme.colorScheme.onSurfaceVariant,
           // Aus dem Textthema und nicht von Hand: eine TextStyle ohne
           // Schriftfamilie faellt auf die Standardschrift zurueck, und die
@@ -93,12 +140,88 @@ class SpeedGauge extends StatelessWidget {
   }
 }
 
+/// Die Farbskala des Bogens.
+///
+/// Die Farben haengen am **absoluten Tempo**, nicht am Anteil des Bogens.
+/// Der Grund ist die mitwachsende Skala: bei Tempo 45 reicht sie bis 60,
+/// bei 175 bis 200. Ueber den Anteil gefaerbt gluehte der Bogen in der
+/// Stadt genauso heiss wie auf der Autobahn -- und die Farbe hiesse
+/// nichts.
+class GaugeRamp {
+  const GaugeRamp({required this.colors, required this.at});
+
+  final List<Color> colors;
+
+  /// Bei welchem Tempo -- in der angezeigten Einheit -- die jeweilige
+  /// Farbe steht. Gleiche Werte hintereinander ergeben eine harte Kante
+  /// statt eines Uebergangs.
+  final List<double> at;
+
+  /// Wie viele Stuetzstellen der Verlauf auf dem Bogen bekommt.
+  ///
+  /// Abgetastet statt umgerechnet: die Stuetzstellen eines Verlaufs
+  /// muessen zwischen 0 und 1 liegen. Eine Schwelle jenseits der Skala
+  /// -- Bernstein bei 130, Skala bis 120 -- wuerde ans Ende geklemmt, und
+  /// 120 saehe dann so heiss aus wie 130. Beim Abtasten bleibt jede Farbe
+  /// an ihrem Tempo.
+  static const int _samples = 24;
+
+  List<Color> colorsFor(double scale) => [
+        for (var i = 0; i < _samples; i++)
+          colorAt(scale * i / (_samples - 1)),
+      ];
+
+  /// Die Farbe fuer ein Tempo, stueckweise zwischen den Schwellen
+  /// gemischt.
+  Color colorAt(double value) {
+    if (value <= at.first) return colors.first;
+    if (value >= at.last) return colors.last;
+
+    for (var i = 1; i < at.length; i++) {
+      if (value > at[i]) continue;
+
+      final from = colors[i - 1];
+      final to = colors[i];
+      // Innerhalb eines Bandes ohne Mischen: Color.lerp rechnet in
+      // Gleitkomma, und bei gleichen Endfarben faellt je nach t ein
+      // anderes letztes Bit heraus. Unsichtbar, aber die Farbe eines
+      // Bandes soll ein Wert sein und nicht fast derselbe.
+      if (from == to) return from;
+
+      final span = at[i] - at[i - 1];
+      // Zwei gleiche Schwellen sind eine harte Kante, kein Uebergang.
+      final t = span <= 0 ? 1.0 : (value - at[i - 1]) / span;
+
+      return Color.lerp(from, to, t)!;
+    }
+
+    return colors.last;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is GaugeRamp && _sameColors(other.colors) && _sameAt(other.at);
+
+  @override
+  int get hashCode => Object.hashAll([...colors, ...at]);
+
+  bool _sameAt(List<double> other) =>
+      at.length == other.length &&
+      [for (var i = 0; i < at.length; i++) at[i] == other[i]]
+          .every((same) => same);
+
+  bool _sameColors(List<Color> other) =>
+      colors.length == other.length &&
+      [for (var i = 0; i < colors.length; i++) colors[i] == other[i]]
+          .every((same) => same);
+}
+
 class _GaugePainter extends CustomPainter {
   const _GaugePainter({
     required this.fraction,
     required this.scale,
     required this.track,
-    required this.fill,
+    required this.ramp,
     required this.ticks,
     required this.labelStyle,
   });
@@ -106,7 +229,7 @@ class _GaugePainter extends CustomPainter {
   final double fraction;
   final double scale;
   final Color track;
-  final Color fill;
+  final GaugeRamp ramp;
   final Color ticks;
   final TextStyle labelStyle;
 
@@ -145,8 +268,11 @@ class _GaugePainter extends CustomPainter {
           ..shader = SweepGradient(
             startAngle: SpeedGauge._start,
             endAngle: SpeedGauge._start + SpeedGauge._sweep,
-            colors: [fill.withValues(alpha: 0.45), fill],
-            transform: const GradientRotation(SpeedGauge._start),
+            colors: ramp.colorsFor(scale),
+            // Ohne zusaetzliche Drehung: startAngle und endAngle liegen
+            // bereits auf dem Bogen. Beides zusammen drehte den Verlauf um
+            // volle 135 Grad weiter -- bei zwei aehnlichen Rottoenen faellt
+            // das nicht auf, bei einer echten Farbskala sofort.
           ).createShader(rect)
           ..strokeWidth = _stroke
           ..strokeCap = StrokeCap.round
@@ -204,7 +330,7 @@ class _GaugePainter extends CustomPainter {
   bool shouldRepaint(_GaugePainter old) =>
       old.fraction != fraction ||
       old.scale != scale ||
-      old.fill != fill ||
+      old.ramp != ramp ||
       old.track != track ||
       old.labelStyle != labelStyle;
 }
