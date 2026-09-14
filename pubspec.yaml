@@ -42,7 +42,7 @@ dependencies:
   permission_handler: ^13.0.2
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
-  drift: ^2.34.4
+  drift: ^2.35.0
   sqlite3_flutter_libs: ^0.6.0+eol
   path_provider: ^2.1.6
   path: ^1.9.1
