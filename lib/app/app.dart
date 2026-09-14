@@ -17,6 +17,7 @@ import 'package:speedster/ui/heatmap_screen.dart';
 import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/friend_requests_prompt.dart';
 import 'package:speedster/ui/live_screen.dart';
+import 'package:speedster/ui/location_access_prompt.dart';
 import 'package:speedster/ui/stats_screen.dart';
 import 'package:speedster/ui/settings_screen.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
@@ -269,15 +270,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
   /// Die Arbeit steckt in [TrackingArmer], weil sie auch **ohne Frame**
   /// laufen koennen muss -- siehe main(). Hier bleibt nur der Anlass.
   Future<void> _maybeStartTracking() async {
-    final access = await ref.read(trackingArmerProvider).arm();
+    await ref.read(trackingArmerProvider).arm();
     if (mounted) ref.invalidate(locationAccessProvider);
-
-    _lastAccess = access;
   }
-
-  /// Wie weit die Ortung zuletzt erlaubt war -- entscheidet, ob nach dem
-  /// Rundgang nach "Immer" gefragt wird.
-  LocationAccess? _lastAccess;
 
   /// Bittet um "Immer", nachdem der Rundgang erklaert hat, wozu.
   ///
@@ -289,7 +284,13 @@ class _HomeShellState extends ConsumerState<HomeShell>
   /// Nur bei "Beim Verwenden": ohne jede Erlaubnis waere es die zweite
   /// Frage nach einem Nein, und mit "Immer" gibt es nichts zu fragen.
   Future<void> _ensureAlwaysAccess() async {
-    if (_lastAccess != LocationAccess.whileInUse || !mounted) return;
+    // Den Stand selbst abfragen statt auf ein Feld zu bauen, das eine
+    // andere, nicht abgewartete Kette setzt: stand dort noch null, weil
+    // _maybeStartTracking den Wettlauf verlor, kam der Dialog nie -- und
+    // ohne "Immer" startet iOS die App nicht neu. Genau so sind Fahrten
+    // eines ganzen Tages verlorengegangen. current() fragt nicht nach.
+    final access = await ref.read(permissionGateProvider).current();
+    if (access != LocationAccess.whileInUse || !mounted) return;
 
     final l = AppLocalizations.of(context);
     final wants = await showDialog<bool>(
@@ -310,9 +311,12 @@ class _HomeShellState extends ConsumerState<HomeShell>
       ),
     );
 
-    if (wants != true) return;
+    if (wants != true || !mounted) return;
 
-    await ref.read(permissionGateProvider).requestAlways();
+    // Ueber die gemeinsame Stelle, weil iOS den Dialog hoechstens einmal
+    // je Installation zeigt: bleibt es danach bei "Beim Verwenden",
+    // fuehrt der Weg nur noch ueber die Systemeinstellungen.
+    await promptForAlwaysAccess(context, ref);
     // Erneut scharf machen: mit "Immer" kommt die Ortsueberwachung dazu.
     await _maybeStartTracking();
   }

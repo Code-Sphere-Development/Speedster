@@ -462,6 +462,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get commonLater => 'Später';
 
   @override
+  String get locationAlwaysManualTitle => 'iOS fragt nicht mehr';
+
+  @override
+  String get locationAlwaysManualBody =>
+      'Den Dialog dafür zeigt iOS nur ein einziges Mal je Installation — und der ist verbraucht. Stell den Standort in den Systemeinstellungen auf „Immer“, dann erfasst Speedster Fahrten auch, wenn iOS die App zwischendurch beendet hat.';
+
+  @override
+  String get locationAlwaysOpenSettings => 'Einstellungen öffnen';
+
+  @override
+  String get locationBannerWhileInUse =>
+      'Fahrten werden nur erfasst, solange die App läuft. Beendet iOS sie, geht die Fahrt verloren.';
+
+  @override
+  String get locationBannerDenied =>
+      'Ohne Standortfreigabe wird nichts aufgezeichnet.';
+
+  @override
+  String get locationBannerAction => 'Beheben';
+
+  @override
   String get locationAlwaysTitle => 'Auch aufzeichnen, wenn die App zu ist';
 
   @override

@@ -12,6 +12,7 @@ import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/ui/components/route_thumbnail.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/formatters.dart';
+import 'package:speedster/ui/location_access_prompt.dart';
 import 'package:speedster/ui/trip_detail_screen.dart';
 
 /// Fahrten eines Kalendermonats.
@@ -65,7 +66,12 @@ class TripListScreen extends ConsumerWidget {
       ),
       data: (trips) {
         if (trips.isEmpty) {
-          return EmptyState(icon: Icons.route_outlined, message: l.tripsEmpty);
+          return ListView(
+            children: const [
+              LocationAccessBanner(),
+              _EmptyTrips(),
+            ],
+          );
         }
 
         final locale = Localizations.localeOf(context).toLanguageTag();
@@ -73,9 +79,15 @@ class TripListScreen extends ConsumerWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.only(top: Insets.l, bottom: Insets.s),
-          itemCount: months.length,
+          // Der Hinweis steht ueber der Liste und nicht in den
+          // Einstellungen allein: der Fehlerfall ist stiller
+          // Datenverlust, und den bemerkt man sonst erst, wenn die
+          // Fahrten fehlen.
+          itemCount: months.length + 1,
           itemBuilder: (context, i) {
-            final month = months[i];
+            if (i == 0) return const LocationAccessBanner();
+
+            final month = months[i - 1];
 
             return CardSection(
               title: DateFormat.yMMMM(locale).format(month.first),
@@ -91,6 +103,18 @@ class TripListScreen extends ConsumerWidget {
       },
     );
   }
+}
+
+/// Noch keine Fahrten -- als eigenes Widget, damit der Hinweisstreifen
+/// darueber stehen kann.
+class _EmptyTrips extends StatelessWidget {
+  const _EmptyTrips();
+
+  @override
+  Widget build(BuildContext context) => EmptyState(
+        icon: Icons.route_outlined,
+        message: AppLocalizations.of(context).tripsEmpty,
+      );
 }
 
 /// Eine Fahrt: Streckenbild links, die Kennzahlen rechts.

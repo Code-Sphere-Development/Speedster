@@ -884,6 +884,42 @@ abstract class AppLocalizations {
   /// **'Später'**
   String get commonLater;
 
+  /// No description provided for @locationAlwaysManualTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'iOS fragt nicht mehr'**
+  String get locationAlwaysManualTitle;
+
+  /// No description provided for @locationAlwaysManualBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Den Dialog dafür zeigt iOS nur ein einziges Mal je Installation — und der ist verbraucht. Stell den Standort in den Systemeinstellungen auf „Immer“, dann erfasst Speedster Fahrten auch, wenn iOS die App zwischendurch beendet hat.'**
+  String get locationAlwaysManualBody;
+
+  /// No description provided for @locationAlwaysOpenSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen öffnen'**
+  String get locationAlwaysOpenSettings;
+
+  /// No description provided for @locationBannerWhileInUse.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrten werden nur erfasst, solange die App läuft. Beendet iOS sie, geht die Fahrt verloren.'**
+  String get locationBannerWhileInUse;
+
+  /// No description provided for @locationBannerDenied.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Standortfreigabe wird nichts aufgezeichnet.'**
+  String get locationBannerDenied;
+
+  /// No description provided for @locationBannerAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Beheben'**
+  String get locationBannerAction;
+
   /// No description provided for @locationAlwaysTitle.
   ///
   /// In de, this message translates to:

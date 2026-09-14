@@ -12,6 +12,7 @@ import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
 import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
+import 'package:speedster/ui/location_access_prompt.dart';
 import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/ui/tour_screen.dart';
 import 'package:speedster/ui/username_dialog.dart';
@@ -512,15 +513,16 @@ class _LocationAccessTile extends ConsumerWidget {
       trailing: incomplete
           ? TextButton(
               onPressed: () async {
-                final gate = ref.read(permissionGateProvider);
-                // Erst der Systemdialog; iOS zeigt ihn nur einmal, danach
-                // fuehrt der Weg ueber die Einstellungen.
-                if (access == LocationAccess.whileInUse) {
-                  await gate.requestAlways();
-                } else {
-                  await gate.openSettings();
+                // Ohne jede Freigabe fuehrt die Anfrage ins Leere -- dann
+                // gleich in die Systemeinstellungen. Sonst ueber die
+                // gemeinsame Stelle, die auch merkt, wenn iOS gar nicht
+                // mehr fragt.
+                if (access == LocationAccess.denied) {
+                  await ref.read(permissionGateProvider).openSettings();
+                  ref.invalidate(locationAccessProvider);
+                  return;
                 }
-                ref.invalidate(locationAccessProvider);
+                await promptForAlwaysAccess(context, ref);
               },
               child: Text(l.settingsLocationFix),
             )

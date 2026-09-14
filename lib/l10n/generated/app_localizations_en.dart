@@ -458,6 +458,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonLater => 'Later';
 
   @override
+  String get locationAlwaysManualTitle => 'iOS won’t ask again';
+
+  @override
+  String get locationAlwaysManualBody =>
+      'iOS shows that dialog only once per install — and it has been used. Set location to “Always” in system settings, and Speedster will record drives even after iOS has terminated the app.';
+
+  @override
+  String get locationAlwaysOpenSettings => 'Open settings';
+
+  @override
+  String get locationBannerWhileInUse =>
+      'Drives are only recorded while the app is running. If iOS terminates it, the drive is lost.';
+
+  @override
+  String get locationBannerDenied =>
+      'Without location access nothing is recorded.';
+
+  @override
+  String get locationBannerAction => 'Fix';
+
+  @override
   String get locationAlwaysTitle => 'Record even when the app is closed';
 
   @override
