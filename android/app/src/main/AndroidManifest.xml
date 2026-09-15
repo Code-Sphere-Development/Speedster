@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Nur im Debug- und Profile-Manifest deklariert, die Flutter selbst
+         anlegt: das Release-APK ging ohne Netzzugriff raus. Damit waren
+         Cloud-Abgleich, Kartenkacheln, Bestenliste und Ortsaufloesung
+         dort tot, waehrend im Debug-Build alles lief. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
