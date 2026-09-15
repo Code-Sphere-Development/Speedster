@@ -37,6 +37,9 @@ abstract class TripRepository {
   /// laengst auf der Platte (siehe TripRecorder.flushEvery), die
   /// Kennzahlen sind daraus nachrechenbar (siehe TripRepair).
   Future<List<domain.Trip>> openTrips();
+
+  /// Eine einzelne Fahrt, oder null.
+  Future<domain.Trip?> tripById(int id);
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
   Future<void> deleteAll();
   Future<List<domain.Trip>> unsyncedTrips();
@@ -178,6 +181,14 @@ class DriftTripRepository implements TripRepository {
           ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
     return rows.map(_toDomainTrip).toList();
+  }
+
+  @override
+  Future<domain.Trip?> tripById(int id) async {
+    final row = await (db.select(db.trips)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+
+    return row == null ? null : _toDomainTrip(row);
   }
 
   @override

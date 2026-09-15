@@ -185,6 +185,18 @@
   "notificationChannelNameAudible": "Fahrtaufzeichnung mit Ton",
   "notificationTripStartedTitle": "Aufzeichnung läuft",
   "notificationTripStartedBody": "Speedster zeichnet deine Fahrt auf.",
+  "notificationChannelNameSummary": "Fahrtübersicht",
+  "notificationTripEndedTitle": "Fahrt beendet",
+  "notificationTripEndedBody": "{distance} in {duration} · Höchstgeschwindigkeit {maxSpeed}",
+  "@notificationTripEndedBody": {
+    "placeholders": {
+      "distance": { "type": "String" },
+      "duration": { "type": "String" },
+      "maxSpeed": { "type": "String" }
+    }
+  },
+  "settingsNotifyEndTitle": "Fahrtende melden",
+  "settingsNotifyEndSubtitle": "Übersicht der gerade gefahrenen Strecke — tippen öffnet die Fahrt",
   "settingsNotifyTitle": "Fahrtbeginn melden",
   "settingsNotifySubtitle": "Kurze Mitteilung, auch auf der Apple Watch — im Auto mit Ton",
   "settingsNotifyDenied": "Dafür braucht Speedster die Erlaubnis für Mitteilungen. Du kannst sie in den Systemeinstellungen erteilen.",

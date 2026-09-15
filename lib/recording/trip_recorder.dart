@@ -237,7 +237,7 @@ class TripRecorder {
       _buffer.clear();
       _savedCount = 0;
       await liveActivity?.end();
-      await notifier?.tripEnded();
+      await notifier?.tripEnded(tripId: endedTripId, stats: stats);
       // Hier steht das Auto. Ein Kreis darum weckt die App, sobald es
       // weitergeht -- nach rund 150 Metern statt der 500, die die grobe
       // Ortsueberwachung braucht.

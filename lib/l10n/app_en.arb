@@ -164,6 +164,18 @@
   "notificationChannelNameAudible": "Trip recording with sound",
   "notificationTripStartedTitle": "Recording your drive",
   "notificationTripStartedBody": "Speedster has started recording.",
+  "notificationChannelNameSummary": "Trip summary",
+  "notificationTripEndedTitle": "Trip finished",
+  "notificationTripEndedBody": "{distance} in {duration} · top speed {maxSpeed}",
+  "@notificationTripEndedBody": {
+    "placeholders": {
+      "distance": { "type": "String" },
+      "duration": { "type": "String" },
+      "maxSpeed": { "type": "String" }
+    }
+  },
+  "settingsNotifyEndTitle": "Notify when a trip ends",
+  "settingsNotifyEndSubtitle": "A summary of the drive you just finished — tap to open it",
   "settingsNotifyTitle": "Notify on trip start",
   "settingsNotifySubtitle": "A brief notification, on your Apple Watch too — with sound in the car",
   "settingsNotifyDenied": "Speedster needs permission to send notifications. You can grant it in system settings.",

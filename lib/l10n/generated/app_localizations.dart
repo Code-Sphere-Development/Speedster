@@ -830,6 +830,40 @@ abstract class AppLocalizations {
   /// **'Speedster zeichnet deine Fahrt auf.'**
   String get notificationTripStartedBody;
 
+  /// No description provided for @notificationChannelNameSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrtübersicht'**
+  String get notificationChannelNameSummary;
+
+  /// No description provided for @notificationTripEndedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrt beendet'**
+  String get notificationTripEndedTitle;
+
+  /// No description provided for @notificationTripEndedBody.
+  ///
+  /// In de, this message translates to:
+  /// **'{distance} in {duration} · Höchstgeschwindigkeit {maxSpeed}'**
+  String notificationTripEndedBody(
+    String distance,
+    String duration,
+    String maxSpeed,
+  );
+
+  /// No description provided for @settingsNotifyEndTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrtende melden'**
+  String get settingsNotifyEndTitle;
+
+  /// No description provided for @settingsNotifyEndSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Übersicht der gerade gefahrenen Strecke — tippen öffnet die Fahrt'**
+  String get settingsNotifyEndSubtitle;
+
   /// No description provided for @settingsNotifyTitle.
   ///
   /// In de, this message translates to:

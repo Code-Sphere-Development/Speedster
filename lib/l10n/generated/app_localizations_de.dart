@@ -432,6 +432,28 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speedster zeichnet deine Fahrt auf.';
 
   @override
+  String get notificationChannelNameSummary => 'Fahrtübersicht';
+
+  @override
+  String get notificationTripEndedTitle => 'Fahrt beendet';
+
+  @override
+  String notificationTripEndedBody(
+    String distance,
+    String duration,
+    String maxSpeed,
+  ) {
+    return '$distance in $duration · Höchstgeschwindigkeit $maxSpeed';
+  }
+
+  @override
+  String get settingsNotifyEndTitle => 'Fahrtende melden';
+
+  @override
+  String get settingsNotifyEndSubtitle =>
+      'Übersicht der gerade gefahrenen Strecke — tippen öffnet die Fahrt';
+
+  @override
   String get settingsNotifyTitle => 'Fahrtbeginn melden';
 
   @override

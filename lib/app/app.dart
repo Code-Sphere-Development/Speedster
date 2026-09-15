@@ -8,6 +8,7 @@ import 'package:speedster/app/tracking_armer.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
+import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/components/gradient_header.dart';
@@ -20,6 +21,7 @@ import 'package:speedster/ui/live_screen.dart';
 import 'package:speedster/ui/location_access_prompt.dart';
 import 'package:speedster/ui/stats_screen.dart';
 import 'package:speedster/ui/settings_screen.dart';
+import 'package:speedster/ui/trip_detail_screen.dart';
 import 'package:speedster/ui/trip_list_screen.dart';
 
 class SpeedsterApp extends ConsumerWidget {
@@ -106,6 +108,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
   /// waehrend der Fahrt.
   bool _askedAboutFriends = false;
 
+  /// Getippte Mitteilungen. Wird in [dispose] geloest.
+  StreamSubscription<String>? _tapSubscription;
+
   /// Alle Ansichten, immer und in fester Reihenfolge.
   ///
   /// Der IndexedStack behaelt sie deshalb ueber das Ein- und Ausblenden
@@ -149,11 +154,42 @@ class _HomeShellState extends ConsumerState<HomeShell>
       await _ensureAlwaysAccess();
       _checkMaintenance();
       _askAboutFriendRequests();
+      // Ganz zuletzt: hat eine getippte Mitteilung die App gestartet,
+      // soll die Fahrt ueber allem liegen -- nicht unter dem Rundgang
+      // oder einem Berechtigungsdialog.
+      await _openTripFromLaunch();
     });
+
+    _tapSubscription =
+        ref.read(localNotificationsProvider).taps.listen(_openTripFromPayload);
+  }
+
+  /// Oeffnet die Fahrt, deren Mitteilung die App gestartet hat.
+  Future<void> _openTripFromLaunch() async {
+    final payload = await ref.read(localNotificationsProvider).launchPayload();
+    if (payload != null) await _openTripFromPayload(payload);
+  }
+
+  /// Zeigt die Fahrt hinter einer Mitteilungs-Nutzlast.
+  ///
+  /// Fremde Nutzlasten -- die Wartungserinnerung traegt keine -- fallen
+  /// still durch, ebenso eine Fahrt, die es nicht mehr gibt: sie kann
+  /// geloescht worden sein, waehrend die Mitteilung noch stand.
+  Future<void> _openTripFromPayload(String payload) async {
+    final id = LocalTripNotifier.tripIdFrom(payload);
+    if (id == null) return;
+
+    final trip = await ref.read(tripRepositoryProvider).tripById(id);
+    if (trip == null || !mounted) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => TripDetailScreen(trip: trip)),
+    );
   }
 
   @override
   void dispose() {
+    _tapSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

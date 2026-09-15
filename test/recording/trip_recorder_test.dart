@@ -183,6 +183,12 @@ void main() {
       expect(notifier.started, 1);
       expect(notifier.ended, 1);
       expect(notifier.startedInCar, [false]);
+
+      // Die Uebersicht danach braucht die Fahrt, sonst wuesste das
+      // Tippen nicht, was es oeffnen soll.
+      expect(notifier.endedTripIds, hasLength(1));
+      expect((await repo.keptTrips()).single.id, notifier.endedTripIds.single);
+
       await rec.stop();
       await db.close();
     });

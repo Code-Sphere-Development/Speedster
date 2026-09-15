@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -16,6 +17,16 @@ class LocalNotifications {
 
   bool _initialised = false;
 
+  /// Getippte Mitteilungen, als Nutzlast.
+  ///
+  /// Ein Strom und kein Rueckruf: die Mitteilungsschicht weiss nichts von
+  /// Navigation, und wer zuhoert, haengt am Widget-Baum. Broadcast, damit
+  /// mehrere Zuhoerer moeglich sind und ein spaeter hinzukommender die
+  /// Schicht nicht blockiert.
+  final _taps = StreamController<String>.broadcast();
+
+  Stream<String> get taps => _taps.stream;
+
   /// Zeigt eine Mitteilung. Fehler bleiben hier: keine Mitteilung ist
   /// hinnehmbar, eine abgebrochene Aufzeichnung nicht.
   Future<void> show({
@@ -23,6 +34,7 @@ class LocalNotifications {
     required String title,
     required String body,
     required NotificationDetails details,
+    String? payload,
   }) =>
       guard(() async {
         await _ensureInitialised();
@@ -31,8 +43,33 @@ class LocalNotifications {
           title: title,
           body: body,
           notificationDetails: details,
+          payload: payload,
         );
       });
+
+  /// Die Nutzlast der Mitteilung, die die App gestartet hat -- sonst null.
+  ///
+  /// Wurde die App durch das Tippen erst gestartet, gibt es kein Ereignis
+  /// auf [taps]: der Rueckruf wird eingerichtet, nachdem das System den
+  /// Start schon ausgeloest hat. Diese Abfrage schliesst die Luecke.
+  ///
+  /// Richtet nebenbei die Mitteilungsschicht ein. Beim Start einmal
+  /// aufgerufen steht der Rueckruf damit, auch wenn diese Sitzung selbst
+  /// noch nichts angezeigt hat -- etwa nachdem iOS die App beendet und
+  /// wegen einer Ortsaenderung neu gestartet hat.
+  Future<String?> launchPayload() async {
+    String? payload;
+
+    await guard(() async {
+      await _ensureInitialised();
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (details?.didNotificationLaunchApp ?? false) {
+        payload = details?.notificationResponse?.payload;
+      }
+    });
+
+    return payload;
+  }
 
   Future<void> cancel(int id) => guard(() async {
         await _ensureInitialised();
@@ -84,6 +121,10 @@ class LocalNotifications {
     if (_initialised) return;
 
     await _plugin.initialize(
+      onDidReceiveNotificationResponse: (response) {
+        final payload = response.payload;
+        if (payload != null && payload.isNotEmpty) _taps.add(payload);
+      },
       settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(
@@ -99,9 +140,15 @@ class LocalNotifications {
   Future<void> guard(Future<void> Function() action) async {
     try {
       await action();
-    } on Exception {
+    } on Object {
       // Eine Plattform ohne Mitteilungen -- oder eine, die sie gerade
       // verweigert -- darf nichts abbrechen.
+      //
+      // Bewusst alles und nicht nur Exception: ist die Plattformseite des
+      // Plugins nicht eingehaengt -- im Widget-Test, auf einer nicht
+      // unterstuetzten Plattform --, kommt ein LateError heraus, und der
+      // ist ein Error. Frueher riss der den Aufrufer mit; im Test war das
+      // der Aufbau der gesamten Oberflaeche.
     }
   }
 }

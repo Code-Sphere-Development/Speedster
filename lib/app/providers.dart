@@ -93,6 +93,9 @@ final localNotificationsProvider = Provider<LocalNotifications>(
 final tripNotifierProvider = Provider<TripNotifier>(
   (ref) => LocalTripNotifier(
     enabled: () => ref.read(settingsControllerProvider).notifyOnTripStart,
+    summaryEnabled: () =>
+        ref.read(settingsControllerProvider).notifyOnTripEnd,
+    unit: () => ref.read(settingsControllerProvider).unit,
     notifications: ref.watch(localNotificationsProvider),
   ),
 );

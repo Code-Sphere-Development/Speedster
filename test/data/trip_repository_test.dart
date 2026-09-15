@@ -232,6 +232,20 @@ void main() {
       expect(found.single.id, open);
     });
 
+    test('tripById findet die Fahrt, an der eine Mitteilung haengt',
+        () async {
+      // Die Uebersicht nach dem Parken traegt nur die Kennung; getippt
+      // wird sie moeglicherweise erst Stunden spaeter.
+      final id = await repo.createTrip(newTrip());
+
+      expect((await repo.tripById(id))?.id, id);
+    });
+
+    test('tripById gibt null fuer eine geloeschte Fahrt', () async {
+      // Die Mitteilung kann stehen bleiben, waehrend die Fahrt verschwindet.
+      expect(await repo.tripById(9999), isNull);
+    });
+
     test('finalizeTrip macht den Cloud-Stempel ungueltig', () async {
       // Sonst behielte die Cloud die Nullen: die Fahrt waere lokal
       // repariert, aber als bereits hochgeladen abgehakt.

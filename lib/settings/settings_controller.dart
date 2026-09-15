@@ -17,6 +17,7 @@ class SettingsState {
     this.consentAccepted = false,
     this.tourSeen = false,
     this.notifyOnTripStart = true,
+    this.notifyOnTripEnd = true,
     this.notifyMaintenance = true,
     this.demoRide = false,
   });
@@ -40,6 +41,14 @@ class SettingsState {
   /// Einstellungen ab.
   final bool notifyOnTripStart;
 
+  /// Die Uebersicht nach dem Parken.
+  ///
+  /// Eigener Schalter und nicht an [notifyOnTripStart] gehaengt: die
+  /// beiden Meldungen haben verschiedene Zwecke. Die eine ist die
+  /// Gegenprobe waehrend der Fahrt, die andere das Ergebnis danach --
+  /// wer die eine stumm stellt, meint damit nicht die andere.
+  final bool notifyOnTripEnd;
+
   /// Ob an faellige Wartungen erinnert wird.
   ///
   /// Getrennt vom Fahrtbeginn: das eine ist eine Gegenprobe waehrend der
@@ -60,6 +69,7 @@ class SettingsState {
     bool? consentAccepted,
     bool? tourSeen,
     bool? notifyOnTripStart,
+    bool? notifyOnTripEnd,
     bool? notifyMaintenance,
     bool? demoRide,
   }) {
@@ -69,6 +79,7 @@ class SettingsState {
       consentAccepted: consentAccepted ?? this.consentAccepted,
       tourSeen: tourSeen ?? this.tourSeen,
       notifyOnTripStart: notifyOnTripStart ?? this.notifyOnTripStart,
+      notifyOnTripEnd: notifyOnTripEnd ?? this.notifyOnTripEnd,
       notifyMaintenance: notifyMaintenance ?? this.notifyMaintenance,
       demoRide: demoRide ?? this.demoRide,
     );
@@ -89,6 +100,7 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kConsent = 'consentAccepted';
   static const _kTour = 'tourSeen';
   static const _kNotifyStart = 'notifyOnTripStart';
+  static const _kNotifyEnd = 'notifyOnTripEnd';
   static const _kNotifyMaintenance = 'notifyMaintenance';
   static const _kDemoRide = 'demoRide';
 
@@ -103,6 +115,7 @@ class SettingsController extends Notifier<SettingsState> {
       consentAccepted: p.getBool(_kConsent) ?? false,
       tourSeen: p.getBool(_kTour) ?? false,
       notifyOnTripStart: p.getBool(_kNotifyStart) ?? true,
+      notifyOnTripEnd: p.getBool(_kNotifyEnd) ?? true,
       notifyMaintenance: p.getBool(_kNotifyMaintenance) ?? true,
       demoRide: p.getBool(_kDemoRide) ?? false,
     );
@@ -134,6 +147,11 @@ class SettingsController extends Notifier<SettingsState> {
   Future<void> setNotifyOnTripStart(bool notify) async {
     state = state.copyWith(notifyOnTripStart: notify);
     await _prefs.setBool(_kNotifyStart, notify);
+  }
+
+  Future<void> setNotifyOnTripEnd(bool notify) async {
+    state = state.copyWith(notifyOnTripEnd: notify);
+    await _prefs.setBool(_kNotifyEnd, notify);
   }
 
   Future<void> setNotifyMaintenance(bool notify) async {

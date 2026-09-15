@@ -428,6 +428,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationTripStartedBody => 'Speedster has started recording.';
 
   @override
+  String get notificationChannelNameSummary => 'Trip summary';
+
+  @override
+  String get notificationTripEndedTitle => 'Trip finished';
+
+  @override
+  String notificationTripEndedBody(
+    String distance,
+    String duration,
+    String maxSpeed,
+  ) {
+    return '$distance in $duration · top speed $maxSpeed';
+  }
+
+  @override
+  String get settingsNotifyEndTitle => 'Notify when a trip ends';
+
+  @override
+  String get settingsNotifyEndSubtitle =>
+      'A summary of the drive you just finished — tap to open it';
+
+  @override
   String get settingsNotifyTitle => 'Notify on trip start';
 
   @override

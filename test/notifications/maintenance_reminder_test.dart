@@ -34,14 +34,20 @@ void main() {
     prefs = await SharedPreferences.getInstance();
 
     plugin = _MockPlugin();
-    when(() => plugin.initialize(settings: any(named: 'settings')))
-        .thenAnswer((_) async => true);
+    when(
+      () => plugin.initialize(
+        settings: any(named: 'settings'),
+        onDidReceiveNotificationResponse:
+            any(named: 'onDidReceiveNotificationResponse'),
+      ),
+    ).thenAnswer((_) async => true);
     when(
       () => plugin.show(
         id: any(named: 'id'),
         title: any(named: 'title'),
         body: any(named: 'body'),
         notificationDetails: any(named: 'notificationDetails'),
+        payload: any(named: 'payload'),
       ),
     ).thenAnswer((_) async {});
 
@@ -66,6 +72,7 @@ void main() {
         title: any(named: 'title'),
         body: 'HU',
         notificationDetails: any(named: 'notificationDetails'),
+        payload: any(named: 'payload'),
       ),
     ).called(1);
   });
@@ -82,6 +89,7 @@ void main() {
         title: any(named: 'title'),
         body: any(named: 'body'),
         notificationDetails: any(named: 'notificationDetails'),
+        payload: any(named: 'payload'),
       ),
     );
   });

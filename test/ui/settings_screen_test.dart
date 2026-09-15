@@ -56,6 +56,10 @@ void main() {
       ),
     );
 
+    // Erst heranscrollen: die Liste ist laenger als das Testfenster, und
+    // der Schalter fuer die Cloud steht im Abschnitt darunter.
+    await tester.ensureVisible(find.byKey(const Key('cloudSwitch')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('cloudSwitch')));
     await tester.pumpAndSettle();
 
@@ -85,6 +89,34 @@ void main() {
       find.byKey(const Key('notifySwitch')),
     );
     expect(tile.value, isTrue);
+  });
+
+  testWidgets('Fahrtende und Fahrtbeginn sind getrennt schaltbar',
+      (tester) async {
+    // Zwei Zwecke: die Gegenprobe waehrend der Fahrt und das Ergebnis
+    // danach. Wer die eine stumm stellt, meint damit nicht die andere.
+    SharedPreferences.setMockInitialValues({'notifyOnTripStart': false});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(),
+        ),
+      ),
+    );
+
+    SwitchListTile tile(String key) =>
+        tester.widget<SwitchListTile>(find.byKey(Key(key)));
+
+    expect(tile('notifySwitch').value, isFalse);
+    // Voreingestellt an: die Uebersicht ist der Grund, ueberhaupt
+    // hinzuschauen -- ausgeschaltet faende sie niemand.
+    expect(tile('notifyEndSwitch').value, isTrue);
   });
 
   testWidgets('bleibt aus, wenn die Erlaubnis verweigert wird',

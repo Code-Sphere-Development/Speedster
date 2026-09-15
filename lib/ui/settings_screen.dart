@@ -87,6 +87,30 @@ class SettingsScreen extends ConsumerWidget {
     messenger.showSnackBar(SnackBar(content: Text(denied)));
   }
 
+  /// Wie [_toggleNotify], nur fuer die Uebersicht nach dem Parken.
+  Future<void> _toggleNotifyEnd(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final controller = ref.read(settingsControllerProvider.notifier);
+
+    if (!enabled) {
+      await controller.setNotifyOnTripEnd(false);
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final denied = AppLocalizations.of(context).settingsNotifyDenied;
+
+    if (await ref.read(tripNotifierProvider).requestPermission()) {
+      await controller.setNotifyOnTripEnd(true);
+      return;
+    }
+
+    messenger.showSnackBar(SnackBar(content: Text(denied)));
+  }
+
   /// Wie [_toggleNotify], nur fuer die Wartungserinnerung.
   ///
   /// Dieselbe Erlaubnis, dieselbe Abfrage: iOS kennt nur eine je App.
@@ -235,6 +259,14 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: Text(l.settingsNotifySubtitle),
                 value: settings.notifyOnTripStart,
                 onChanged: (v) => _toggleNotify(context, ref, v),
+              ),
+              SwitchListTile(
+                key: const Key('notifyEndSwitch'),
+                secondary: const Icon(Icons.flag_outlined),
+                title: Text(l.settingsNotifyEndTitle),
+                subtitle: Text(l.settingsNotifyEndSubtitle),
+                value: settings.notifyOnTripEnd,
+                onChanged: (v) => _toggleNotifyEnd(context, ref, v),
               ),
               SwitchListTile(
                 key: const Key('maintenanceSwitch'),
