@@ -246,6 +246,21 @@ void main() {
       expect(await repo.tripById(9999), isNull);
     });
 
+    test('setPlaces laesst das unberuehrt, was es nicht kennt', () async {
+      // Faellt eine der beiden Abfragen aus, darf sie die andere nicht
+      // ueberschreiben -- und ein zweiter Lauf soll den fehlenden Namen
+      // nachtragen koennen, ohne den vorhandenen zu verlieren.
+      final id = await repo.createTrip(newTrip());
+
+      await repo.setPlaces(id, end: 'Düsseldorf');
+      expect((await repo.tripById(id))?.startPlace, isNull);
+      expect((await repo.tripById(id))?.endPlace, 'Düsseldorf');
+
+      await repo.setPlaces(id, start: 'Köln');
+      expect((await repo.tripById(id))?.startPlace, 'Köln');
+      expect((await repo.tripById(id))?.endPlace, 'Düsseldorf');
+    });
+
     test('finalizeTrip macht den Cloud-Stempel ungueltig', () async {
       // Sonst behielte die Cloud die Nullen: die Fahrt waere lokal
       // repariert, aber als bereits hochgeladen abgehakt.

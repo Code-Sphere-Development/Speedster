@@ -44,6 +44,19 @@ class Trips extends Table {
   /// der Fahrt bleibt stehen. Nur so hat auch eine alte Fahrt in der
   /// Liste noch ihr Streckenbild -- und zwar ohne Netzabfrage.
   TextColumn get routePreview => text().nullable()();
+
+  /// Wo die Fahrt begann und wo sie endete, als Ortsname.
+  ///
+  /// Einmal am Fahrtende aufgeloest und hier abgelegt (siehe PlaceNamer),
+  /// nicht bei jeder Anzeige neu: die Aufloesung geht ueber das Netz, und
+  /// eine Liste mit dreissig Zeilen loeste sonst dreissig Abfragen aus.
+  ///
+  /// `null` heisst "kein Name" -- unterwegs ohne Netz, mitten auf der
+  /// Autobahn, oder eine Fahrt aus der Zeit vor dieser Spalte. Die Liste
+  /// zeigt dann wie bisher das Datum.
+  TextColumn get startPlace => text().nullable()();
+
+  TextColumn get endPlace => text().nullable()();
 }
 
 class TrackPoints extends Table {
@@ -138,7 +151,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -185,6 +198,15 @@ class AppDatabase extends _$AppDatabase {
             // Rueckfuellung zeigte die Fahrtenliste unmittelbar nach der
             // Aktualisierung ueberall Platzhalter.
             await _backfillRoutePreviews();
+          }
+          if (from < 9) {
+            // Ohne Rueckfuellung: den Ort einer alten Fahrt nachtraeglich
+            // aufzuloesen hiesse, fuer jede Bestandsfahrt zwei
+            // Netzabfragen beim ersten Start nach der Aktualisierung
+            // abzusetzen -- und iOS drosselt genau das. Bestandsfahrten
+            // bleiben bei ihrem Datum.
+            await m.addColumn(trips, trips.startPlace);
+            await m.addColumn(trips, trips.endPlace);
           }
         },
       );

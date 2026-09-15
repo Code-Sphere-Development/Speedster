@@ -17,6 +17,8 @@ class Trip {
     this.purpose,
     this.note,
     this.routePreview,
+    this.startPlace,
+    this.endPlace,
   });
 
   final int? id;
@@ -66,6 +68,15 @@ class Trip {
   /// (etwa weil die Fahrt von einem anderen Geraet stammt).
   final String? routePreview;
 
+  /// Wo die Fahrt begann und endete, als Ortsname -- "Koeln".
+  ///
+  /// Am Fahrtende einmal aufgeloest (siehe PlaceNamer). `null` heisst
+  /// "kein Name": ohne Netz, mitten auf der Autobahn, oder eine Fahrt aus
+  /// der Zeit vor dieser Spalte.
+  final String? startPlace;
+
+  final String? endPlace;
+
   Trip copyWith({
     int? id,
     DateTime? startTime,
@@ -83,6 +94,8 @@ class Trip {
     String? purpose,
     String? note,
     String? routePreview,
+    String? startPlace,
+    String? endPlace,
   }) {
     return Trip(
       id: id ?? this.id,
@@ -98,6 +111,8 @@ class Trip {
       purpose: purpose ?? this.purpose,
       note: note ?? this.note,
       routePreview: routePreview ?? this.routePreview,
+      startPlace: startPlace ?? this.startPlace,
+      endPlace: endPlace ?? this.endPlace,
       kept: kept ?? this.kept,
       clientUuid: clientUuid ?? this.clientUuid,
       syncedAt: syncedAt ?? this.syncedAt,

@@ -203,6 +203,28 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _startPlaceMeta = const VerificationMeta(
+    'startPlace',
+  );
+  @override
+  late final GeneratedColumn<String> startPlace = GeneratedColumn<String>(
+    'start_place',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endPlaceMeta = const VerificationMeta(
+    'endPlace',
+  );
+  @override
+  late final GeneratedColumn<String> endPlace = GeneratedColumn<String>(
+    'end_place',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -222,6 +244,8 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
     purpose,
     note,
     routePreview,
+    startPlace,
+    endPlace,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -354,6 +378,18 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         ),
       );
     }
+    if (data.containsKey('start_place')) {
+      context.handle(
+        _startPlaceMeta,
+        startPlace.isAcceptableOrUnknown(data['start_place']!, _startPlaceMeta),
+      );
+    }
+    if (data.containsKey('end_place')) {
+      context.handle(
+        _endPlaceMeta,
+        endPlace.isAcceptableOrUnknown(data['end_place']!, _endPlaceMeta),
+      );
+    }
     return context;
   }
 
@@ -431,6 +467,14 @@ class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
         DriftSqlType.string,
         data['${effectivePrefix}route_preview'],
       ),
+      startPlace: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}start_place'],
+      ),
+      endPlace: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}end_place'],
+      ),
     );
   }
 
@@ -480,6 +524,18 @@ class Trip extends DataClass implements Insertable<Trip> {
   /// der Fahrt bleibt stehen. Nur so hat auch eine alte Fahrt in der
   /// Liste noch ihr Streckenbild -- und zwar ohne Netzabfrage.
   final String? routePreview;
+
+  /// Wo die Fahrt begann und wo sie endete, als Ortsname.
+  ///
+  /// Einmal am Fahrtende aufgeloest und hier abgelegt (siehe PlaceNamer),
+  /// nicht bei jeder Anzeige neu: die Aufloesung geht ueber das Netz, und
+  /// eine Liste mit dreissig Zeilen loeste sonst dreissig Abfragen aus.
+  ///
+  /// `null` heisst "kein Name" -- unterwegs ohne Netz, mitten auf der
+  /// Autobahn, oder eine Fahrt aus der Zeit vor dieser Spalte. Die Liste
+  /// zeigt dann wie bisher das Datum.
+  final String? startPlace;
+  final String? endPlace;
   const Trip({
     required this.id,
     required this.startTime,
@@ -498,6 +554,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     this.purpose,
     this.note,
     this.routePreview,
+    this.startPlace,
+    this.endPlace,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -535,6 +593,12 @@ class Trip extends DataClass implements Insertable<Trip> {
     if (!nullToAbsent || routePreview != null) {
       map['route_preview'] = Variable<String>(routePreview);
     }
+    if (!nullToAbsent || startPlace != null) {
+      map['start_place'] = Variable<String>(startPlace);
+    }
+    if (!nullToAbsent || endPlace != null) {
+      map['end_place'] = Variable<String>(endPlace);
+    }
     return map;
   }
 
@@ -571,6 +635,12 @@ class Trip extends DataClass implements Insertable<Trip> {
       routePreview: routePreview == null && nullToAbsent
           ? const Value.absent()
           : Value(routePreview),
+      startPlace: startPlace == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startPlace),
+      endPlace: endPlace == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endPlace),
     );
   }
 
@@ -599,6 +669,8 @@ class Trip extends DataClass implements Insertable<Trip> {
       purpose: serializer.fromJson<String?>(json['purpose']),
       note: serializer.fromJson<String?>(json['note']),
       routePreview: serializer.fromJson<String?>(json['routePreview']),
+      startPlace: serializer.fromJson<String?>(json['startPlace']),
+      endPlace: serializer.fromJson<String?>(json['endPlace']),
     );
   }
   @override
@@ -622,6 +694,8 @@ class Trip extends DataClass implements Insertable<Trip> {
       'purpose': serializer.toJson<String?>(purpose),
       'note': serializer.toJson<String?>(note),
       'routePreview': serializer.toJson<String?>(routePreview),
+      'startPlace': serializer.toJson<String?>(startPlace),
+      'endPlace': serializer.toJson<String?>(endPlace),
     };
   }
 
@@ -643,6 +717,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     Value<String?> purpose = const Value.absent(),
     Value<String?> note = const Value.absent(),
     Value<String?> routePreview = const Value.absent(),
+    Value<String?> startPlace = const Value.absent(),
+    Value<String?> endPlace = const Value.absent(),
   }) => Trip(
     id: id ?? this.id,
     startTime: startTime ?? this.startTime,
@@ -665,6 +741,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     purpose: purpose.present ? purpose.value : this.purpose,
     note: note.present ? note.value : this.note,
     routePreview: routePreview.present ? routePreview.value : this.routePreview,
+    startPlace: startPlace.present ? startPlace.value : this.startPlace,
+    endPlace: endPlace.present ? endPlace.value : this.endPlace,
   );
   Trip copyWithCompanion(TripsCompanion data) {
     return Trip(
@@ -699,6 +777,10 @@ class Trip extends DataClass implements Insertable<Trip> {
       routePreview: data.routePreview.present
           ? data.routePreview.value
           : this.routePreview,
+      startPlace: data.startPlace.present
+          ? data.startPlace.value
+          : this.startPlace,
+      endPlace: data.endPlace.present ? data.endPlace.value : this.endPlace,
     );
   }
 
@@ -721,7 +803,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           ..write('cloudVehicleId: $cloudVehicleId, ')
           ..write('purpose: $purpose, ')
           ..write('note: $note, ')
-          ..write('routePreview: $routePreview')
+          ..write('routePreview: $routePreview, ')
+          ..write('startPlace: $startPlace, ')
+          ..write('endPlace: $endPlace')
           ..write(')'))
         .toString();
   }
@@ -745,6 +829,8 @@ class Trip extends DataClass implements Insertable<Trip> {
     purpose,
     note,
     routePreview,
+    startPlace,
+    endPlace,
   );
   @override
   bool operator ==(Object other) =>
@@ -766,7 +852,9 @@ class Trip extends DataClass implements Insertable<Trip> {
           other.cloudVehicleId == this.cloudVehicleId &&
           other.purpose == this.purpose &&
           other.note == this.note &&
-          other.routePreview == this.routePreview);
+          other.routePreview == this.routePreview &&
+          other.startPlace == this.startPlace &&
+          other.endPlace == this.endPlace);
 }
 
 class TripsCompanion extends UpdateCompanion<Trip> {
@@ -787,6 +875,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<String?> purpose;
   final Value<String?> note;
   final Value<String?> routePreview;
+  final Value<String?> startPlace;
+  final Value<String?> endPlace;
   const TripsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -805,6 +895,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.purpose = const Value.absent(),
     this.note = const Value.absent(),
     this.routePreview = const Value.absent(),
+    this.startPlace = const Value.absent(),
+    this.endPlace = const Value.absent(),
   });
   TripsCompanion.insert({
     this.id = const Value.absent(),
@@ -824,6 +916,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     this.purpose = const Value.absent(),
     this.note = const Value.absent(),
     this.routePreview = const Value.absent(),
+    this.startPlace = const Value.absent(),
+    this.endPlace = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<Trip> custom({
     Expression<int>? id,
@@ -843,6 +937,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Expression<String>? purpose,
     Expression<String>? note,
     Expression<String>? routePreview,
+    Expression<String>? startPlace,
+    Expression<String>? endPlace,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -863,6 +959,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       if (purpose != null) 'purpose': purpose,
       if (note != null) 'note': note,
       if (routePreview != null) 'route_preview': routePreview,
+      if (startPlace != null) 'start_place': startPlace,
+      if (endPlace != null) 'end_place': endPlace,
     });
   }
 
@@ -884,6 +982,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     Value<String?>? purpose,
     Value<String?>? note,
     Value<String?>? routePreview,
+    Value<String?>? startPlace,
+    Value<String?>? endPlace,
   }) {
     return TripsCompanion(
       id: id ?? this.id,
@@ -903,6 +1003,8 @@ class TripsCompanion extends UpdateCompanion<Trip> {
       purpose: purpose ?? this.purpose,
       note: note ?? this.note,
       routePreview: routePreview ?? this.routePreview,
+      startPlace: startPlace ?? this.startPlace,
+      endPlace: endPlace ?? this.endPlace,
     );
   }
 
@@ -962,6 +1064,12 @@ class TripsCompanion extends UpdateCompanion<Trip> {
     if (routePreview.present) {
       map['route_preview'] = Variable<String>(routePreview.value);
     }
+    if (startPlace.present) {
+      map['start_place'] = Variable<String>(startPlace.value);
+    }
+    if (endPlace.present) {
+      map['end_place'] = Variable<String>(endPlace.value);
+    }
     return map;
   }
 
@@ -984,7 +1092,9 @@ class TripsCompanion extends UpdateCompanion<Trip> {
           ..write('cloudVehicleId: $cloudVehicleId, ')
           ..write('purpose: $purpose, ')
           ..write('note: $note, ')
-          ..write('routePreview: $routePreview')
+          ..write('routePreview: $routePreview, ')
+          ..write('startPlace: $startPlace, ')
+          ..write('endPlace: $endPlace')
           ..write(')'))
         .toString();
   }
@@ -2693,6 +2803,8 @@ typedef $$TripsTableCreateCompanionBuilder =
       Value<String?> purpose,
       Value<String?> note,
       Value<String?> routePreview,
+      Value<String?> startPlace,
+      Value<String?> endPlace,
     });
 typedef $$TripsTableUpdateCompanionBuilder =
     TripsCompanion Function({
@@ -2713,6 +2825,8 @@ typedef $$TripsTableUpdateCompanionBuilder =
       Value<String?> purpose,
       Value<String?> note,
       Value<String?> routePreview,
+      Value<String?> startPlace,
+      Value<String?> endPlace,
     });
 
 final class $$TripsTableReferences
@@ -2828,6 +2942,16 @@ class $$TripsTableFilterComposer extends Composer<_$AppDatabase, $TripsTable> {
 
   ColumnFilters<String> get routePreview => $composableBuilder(
     column: $table.routePreview,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get startPlace => $composableBuilder(
+    column: $table.startPlace,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endPlace => $composableBuilder(
+    column: $table.endPlace,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2950,6 +3074,16 @@ class $$TripsTableOrderingComposer
     column: $table.routePreview,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get startPlace => $composableBuilder(
+    column: $table.startPlace,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endPlace => $composableBuilder(
+    column: $table.endPlace,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TripsTableAnnotationComposer
@@ -3026,6 +3160,14 @@ class $$TripsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get startPlace => $composableBuilder(
+    column: $table.startPlace,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get endPlace =>
+      $composableBuilder(column: $table.endPlace, builder: (column) => column);
+
   Expression<T> trackPointsRefs<T extends Object>(
     Expression<T> Function($$TrackPointsTableAnnotationComposer a) f,
   ) {
@@ -3097,6 +3239,8 @@ class $$TripsTableTableManager
                 Value<String?> purpose = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String?> routePreview = const Value.absent(),
+                Value<String?> startPlace = const Value.absent(),
+                Value<String?> endPlace = const Value.absent(),
               }) => TripsCompanion(
                 id: id,
                 startTime: startTime,
@@ -3115,6 +3259,8 @@ class $$TripsTableTableManager
                 purpose: purpose,
                 note: note,
                 routePreview: routePreview,
+                startPlace: startPlace,
+                endPlace: endPlace,
               ),
           createCompanionCallback:
               ({
@@ -3135,6 +3281,8 @@ class $$TripsTableTableManager
                 Value<String?> purpose = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String?> routePreview = const Value.absent(),
+                Value<String?> startPlace = const Value.absent(),
+                Value<String?> endPlace = const Value.absent(),
               }) => TripsCompanion.insert(
                 id: id,
                 startTime: startTime,
@@ -3153,6 +3301,8 @@ class $$TripsTableTableManager
                 purpose: purpose,
                 note: note,
                 routePreview: routePreview,
+                startPlace: startPlace,
+                endPlace: endPlace,
               ),
           withReferenceMapper: (p0) => p0
               .map(

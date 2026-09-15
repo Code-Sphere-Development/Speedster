@@ -50,10 +50,21 @@ class TripDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: Column(
         children: [
-          GradientHeader(
-            title: Formatters.dateTime(trip.startTime),
-            showBack: true,
-          ),
+          // Steht ein Ort fest, traegt er den Titel und das Datum rueckt
+          // darunter: die Strecke sagt, welche Fahrt das ist, das Datum
+          // nur, wann sie war.
+          if (Formatters.route(trip.startPlace, trip.endPlace)
+              case final route?)
+            GradientHeader(
+              title: route,
+              subtitle: Formatters.dateTime(trip.startTime),
+              showBack: true,
+            )
+          else
+            GradientHeader(
+              title: Formatters.dateTime(trip.startTime),
+              showBack: true,
+            ),
           Expanded(
             child: ListView(
         children: [

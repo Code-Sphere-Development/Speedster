@@ -68,6 +68,8 @@ class BackupService {
             'purpose': trip.purpose,
             'note': trip.note,
             'cloud_vehicle_id': trip.cloudVehicleId,
+            'start_place': trip.startPlace,
+            'end_place': trip.endPlace,
             'points': [
               for (final p in byTrip[trip.id] ?? const <TrackPoint>[])
                 {
@@ -145,6 +147,10 @@ class BackupService {
                 purpose: Value(trip['purpose'] as String?),
                 note: Value(trip['note'] as String?),
                 cloudVehicleId: Value((trip['cloud_vehicle_id'] as num?)?.toInt()),
+                // Aelteren Sicherungen fehlen die Orte; sie bleiben
+                // leer, statt den Einlesevorgang scheitern zu lassen.
+                startPlace: Value(trip['start_place'] as String?),
+                endPlace: Value(trip['end_place'] as String?),
               ),
             );
 

@@ -40,6 +40,14 @@ abstract class TripRepository {
 
   /// Eine einzelne Fahrt, oder null.
   Future<domain.Trip?> tripById(int id);
+
+  /// Traegt die Ortsnamen nach.
+  ///
+  /// Eigene Methode und kein Teil von [finalizeTrip]: die Aufloesung
+  /// geht ueber das Netz und darf das Schreiben der fertigen Fahrt
+  /// nicht aufhalten. Sie laeuft danach und traegt nach, was sie
+  /// findet.
+  Future<void> setPlaces(int tripId, {String? start, String? end});
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
   Future<void> deleteAll();
   Future<List<domain.Trip>> unsyncedTrips();
@@ -192,6 +200,20 @@ class DriftTripRepository implements TripRepository {
   }
 
   @override
+  Future<void> setPlaces(int tripId, {String? start, String? end}) async {
+    // Kein Schreiben ohne Ergebnis: sonst zaehlte die Fahrt als geaendert,
+    // obwohl sich nichts geaendert hat.
+    if (start == null && end == null) return;
+
+    await (db.update(db.trips)..where((t) => t.id.equals(tripId))).write(
+      TripsCompanion(
+        startPlace: start == null ? const Value.absent() : Value(start),
+        endPlace: end == null ? const Value.absent() : Value(end),
+      ),
+    );
+  }
+
+  @override
   Future<List<domain.TrackPoint>> pointsFor(int tripId) async {
     final rows = await (db.select(db.trackPoints)
           ..where((p) => p.tripId.equals(tripId))
@@ -302,5 +324,7 @@ class DriftTripRepository implements TripRepository {
         purpose: r.purpose,
         note: r.note,
         routePreview: r.routePreview,
+        startPlace: r.startPlace,
+        endPlace: r.endPlace,
       );
 }

@@ -10,6 +10,7 @@ import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
 import 'package:speedster/notifications/trip_notifier.dart';
 import 'package:speedster/sensors/location_wake.dart';
+import 'package:speedster/sensors/place_namer.dart';
 import 'package:speedster/sensors/location_service.dart';
 import 'package:speedster/stats/stats_engine.dart';
 
@@ -53,6 +54,7 @@ class TripRecorder {
     this.liveActivity,
     this.notifier,
     this.locationWake,
+    this.placeNamer,
     this.usualSpeed,
     this.comparison = const SpeedComparison(),
     this.defaultVehicleId,
@@ -100,6 +102,10 @@ class TripRecorder {
   /// und wie die uebrigen Beigaben fehlertolerant -- ohne sie wird
   /// aufgezeichnet wie zuvor, nur ohne das Wecken.
   final LocationWake? locationWake;
+
+  /// Loest Start und Ziel in Ortsnamen auf. Ohne ihn bleibt die Fahrt bei
+  /// ihrem Datum.
+  final PlaceNamer? placeNamer;
 
   /// Liefert die gewohnte Geschwindigkeit am aktuellen Ort, den Massstab
   /// fuer "schneller/langsamer als sonst".
@@ -224,6 +230,9 @@ class TripRecorder {
       await _flush();
       final stats = StatsEngine.compute(_buffer);
       final endedTripId = _tripId!;
+      // Vor dem Leeren des Puffers festhalten: der erste Punkt ist der
+      // Ort, an dem die Fahrt begann.
+      final start = _buffer.first;
       await repo.finalizeTrip(
         endedTripId,
         stats,
@@ -243,6 +252,10 @@ class TripRecorder {
       // Ortsueberwachung braucht.
       await locationWake?.watchDeparture(lat: s.lat, lng: s.lng);
       _emit(isDriving: false, last: s, endedTripId: endedTripId);
+      // Erst nach dem Melden: die Aufloesung geht ueber das Netz. Die
+      // Fahrt steht zu diesem Zeitpunkt vollstaendig in der Datenbank,
+      // ein Fehlschlag kostet nur den Namen.
+      await _resolvePlaces(endedTripId, from: start, to: s);
       _startTime = null;
       _distance = 0;
       return;
@@ -253,6 +266,29 @@ class TripRecorder {
     }
     await _pushActivity(s, start: false);
     _emit(isDriving: true, activeTripId: _tripId, last: s);
+  }
+
+  /// Traegt die Ortsnamen von Start und Ziel nach.
+  ///
+  /// Zwei Abfragen und nicht eine: derselbe Ort an beiden Enden ist der
+  /// Normalfall (Einkaufen, Arbeitsweg zurueck), und wer das abkuerzen
+  /// wollte, muesste vorher raten, wie nah "derselbe Ort" ist.
+  ///
+  /// Faellt eine aus, bleibt die andere: eine Fahrt mit bekanntem Ziel und
+  /// unbekanntem Start sagt mehr als gar nichts.
+  Future<void> _resolvePlaces(
+    int tripId, {
+    required TrackPoint from,
+    required Sample to,
+  }) async {
+    final namer = placeNamer;
+    if (namer == null) return;
+
+    await repo.setPlaces(
+      tripId,
+      start: await namer.nameFor(from.lat, from.lng),
+      end: await namer.nameFor(to.lat, to.lng),
+    );
   }
 
   /// Schickt den aktuellen Stand an den Sperrbildschirm.

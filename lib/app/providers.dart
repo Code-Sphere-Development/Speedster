@@ -8,6 +8,7 @@ import 'package:speedster/recording/trip_repair.dart';
 import 'package:speedster/app/car_connection.dart';
 import 'package:speedster/app/permissions.dart';
 import 'package:speedster/sensors/location_wake.dart';
+import 'package:speedster/sensors/place_namer.dart';
 import 'package:speedster/app/tracking_armer.dart';
 import 'package:speedster/cloud/api_client.dart';
 import 'package:speedster/cloud/account_repository.dart';
@@ -100,6 +101,9 @@ final tripNotifierProvider = Provider<TripNotifier>(
   ),
 );
 
+/// Loest Start und Ziel einer Fahrt in Ortsnamen auf.
+final placeNamerProvider = Provider<PlaceNamer>((ref) => PlatformPlaceNamer());
+
 /// Laesst iOS die App bei deutlichen Ortsaenderungen wieder starten.
 final locationWakeProvider = Provider<LocationWake>(
   (ref) => const PlatformLocationWake(),
@@ -134,6 +138,7 @@ final recorderProvider = Provider<TripRecorder>(
     liveActivity: ref.watch(liveActivityProvider),
     notifier: ref.watch(tripNotifierProvider),
     locationWake: ref.watch(locationWakeProvider),
+    placeNamer: ref.watch(placeNamerProvider),
     usualSpeed: UsualSpeedReader(ref.watch(databaseProvider)),
     // Erst am Fahrtende abgefragt, nicht beim Erzeugen: die Garage kann
     // sich waehrend der Fahrt aendern. Faellt die Abfrage aus -- kein

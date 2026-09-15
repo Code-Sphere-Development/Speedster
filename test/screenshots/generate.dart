@@ -247,6 +247,8 @@ Trip demoTrip({
   required int seconds,
   String? purpose,
   bool synced = true,
+  String? from,
+  String? to,
 }) => Trip(
   id: id,
   startTime: DateTime(2026, 8, day, 17, 42),
@@ -263,6 +265,8 @@ Trip demoTrip({
   // ueberhaupt kennzeichnet.
   syncedAt: synced ? DateTime(2026, 8, day, 18, 20) : null,
   routePreview: demoRoute(id),
+  startPlace: from,
+  endPlace: to,
 );
 
 /// Dieselben Fahrten fuer alle Bilder: die Statistik rechnet daraus,
@@ -276,6 +280,8 @@ final demoTrips = [
                     seconds: 2410,
                     purpose: 'commute',
                     synced: false,
+                    from: 'Köln',
+                    to: 'Düsseldorf',
                   ),
                   demoTrip(
                     id: 2,
@@ -283,6 +289,10 @@ final demoTrips = [
                     maxSpeed: 25.0,
                     distance: 12800,
                     seconds: 1180,
+                    // Start und Ziel derselbe Ort -- die Zeile zeigt ihn
+                    // dann nur einmal.
+                    from: 'Köln',
+                    to: 'Köln',
                   ),
                   demoTrip(
                     id: 3,
@@ -291,6 +301,8 @@ final demoTrips = [
                     distance: 86200,
                     seconds: 4020,
                     purpose: 'private',
+                    from: 'Köln',
+                    to: 'Koblenz',
                   ),
                   demoTrip(
                     id: 4,
@@ -298,6 +310,8 @@ final demoTrips = [
                     maxSpeed: 16.7,
                     distance: 5600,
                     seconds: 720,
+                    from: 'Bonn',
+                    to: 'Köln',
                   ),
                   demoTrip(
                     id: 5,
@@ -305,6 +319,8 @@ final demoTrips = [
                     maxSpeed: 33.3,
                     distance: 27400,
                     seconds: 1640,
+                    from: 'Köln',
+                    to: 'Aachen',
                   ),
                   demoTrip(
                     id: 6,

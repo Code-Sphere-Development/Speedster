@@ -138,6 +138,11 @@ class _TripRow extends StatelessWidget {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
     final locale = Localizations.localeOf(context).toLanguageTag();
+    final when = Formatters.dayAndTime(trip.startTime, locale);
+    // Wo die Fahrt hinging, beantwortet "welche Fahrt war das?" -- das
+    // Datum tut das nach drei Tagen nicht mehr. Steht kein Ort fest,
+    // traegt das Datum die Zeile wie bisher allein.
+    final route = Formatters.route(trip.startPlace, trip.endPlace);
 
     return InkWell(
       onTap: () => Navigator.of(context).push(
@@ -157,9 +162,13 @@ class _TripRow extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          Formatters.dayAndTime(trip.startTime, locale),
-                          style:
-                              theme.textTheme.bodySmall?.copyWith(color: muted),
+                          route ?? when,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: route == null
+                              ? theme.textTheme.bodySmall
+                                  ?.copyWith(color: muted)
+                              : theme.textTheme.bodyMedium,
                         ),
                       ),
                       if (trip.purpose != null) ...[
@@ -180,6 +189,11 @@ class _TripRow extends StatelessWidget {
                         ),
                     ],
                   ),
+                  if (route != null)
+                    Text(
+                      when,
+                      style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                    ),
                   const SizedBox(height: 2),
                   Row(
                     children: [

@@ -75,7 +75,12 @@ void main() {
     // Aktualisierung ueberall nur Platzhalter -- und das sieht aus wie
     // ein Fehler, nicht wie eine neue Funktion.
     final trips = await db.select(db.trips).get();
-    expect(db.schemaVersion, 8);
+
+    // Dieselbe Migration hebt das Schema ueber 9 hinweg: die Ortsspalten
+    // kommen dazu und bleiben leer. Einen Ort nachtraeglich aufzuloesen
+    // hiesse, fuer jede Bestandsfahrt zwei Netzabfragen abzusetzen.
+    expect(trips.every((t) => t.startPlace == null), isTrue);
+    expect(trips.every((t) => t.endPlace == null), isTrue);
 
     final migrated = trips.firstWhere((t) => t.id == 1);
     expect(migrated.routePreview, isNotNull);

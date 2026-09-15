@@ -6,6 +6,7 @@ import 'package:speedster/detection/trip_detector.dart';
 import 'package:speedster/heat/usual_speed.dart';
 import 'package:speedster/live/live_activity.dart';
 import 'package:speedster/notifications/trip_notifier.dart';
+import 'package:speedster/sensors/place_namer.dart';
 import 'package:speedster/sensors/location_wake.dart';
 import 'package:speedster/domain/sample.dart';
 import 'package:speedster/recording/trip_recorder.dart';
@@ -157,6 +158,98 @@ void main() {
     expect((await repo.keptTrips()).single.endTime, isNotNull);
     await rec.stop();
     await db.close();
+  });
+
+  group('Orte von Start und Ziel', () {
+    // Wie s(), aber mit eigenem Breitengrad: Start und Ziel muessen
+    // auseinanderliegen, sonst gaebe es nur einen Ort aufzuloesen.
+    Sample at(double lat, double speed, int sec) => Sample(
+          lat: lat,
+          lng: 6,
+          speed: speed,
+          altitude: 100,
+          accuracy: 3,
+          timestamp: DateTime(2026, 1, 1, 12, 0, sec),
+        );
+
+    List<Sample> drive() => [
+          at(50, 10, 0), at(50, 10, 6), // Fahrtbeginn bei 50
+          at(51, 20, 10),
+          at(52, 0, 20), at(52, 0, 85), // Fahrtende bei 52
+        ];
+
+    test('traegt sie am Fahrtende nach', () async {
+      // Das Datum sagt nach drei Tagen nicht mehr, welche Fahrt das war.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final namer = FakePlaceNamer({
+        '50.0,6.0': 'Köln',
+        '52.0,6.0': 'Düsseldorf',
+      });
+      final rec = TripRecorder(
+        source: FakeSampleSource(drive()),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        placeNamer: namer,
+      );
+
+      await rec.start();
+
+      final trip = (await repo.keptTrips()).single;
+      expect(trip.startPlace, 'Köln');
+      expect(trip.endPlace, 'Düsseldorf');
+      // Zwei Abfragen, nicht mehr: einmal je Ende.
+      expect(namer.asked, hasLength(2));
+
+      await rec.stop();
+      await db.close();
+    });
+
+    test('ohne Ergebnis bleibt die Fahrt bei ihrem Datum', () async {
+      // Ohne Netz oder mitten auf der Autobahn gibt es keinen Namen. Das
+      // ist ein regulaerer Ausgang und kein Fehler.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final rec = TripRecorder(
+        source: FakeSampleSource(drive()),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        placeNamer: FakePlaceNamer(),
+      );
+
+      await rec.start();
+
+      final trip = (await repo.keptTrips()).single;
+      expect(trip.startPlace, isNull);
+      expect(trip.endPlace, isNull);
+      // Die Fahrt selbst steht vollstaendig da -- der Name ist Beiwerk.
+      expect(trip.distance, greaterThan(0));
+
+      await rec.stop();
+      await db.close();
+    });
+
+    test('nur ein bekanntes Ende genuegt', () async {
+      // Eine Fahrt mit bekanntem Ziel und unbekanntem Start sagt mehr als
+      // gar nichts.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final rec = TripRecorder(
+        source: FakeSampleSource(drive()),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        placeNamer: FakePlaceNamer({'52.0,6.0': 'Düsseldorf'}),
+      );
+
+      await rec.start();
+
+      final trip = (await repo.keptTrips()).single;
+      expect(trip.startPlace, isNull);
+      expect(trip.endPlace, 'Düsseldorf');
+
+      await rec.stop();
+      await db.close();
+    });
   });
 
   group('Mitteilung zum Fahrtbeginn', () {

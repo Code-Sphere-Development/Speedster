@@ -15,6 +15,7 @@ import 'package:speedster/app/theme.dart';
 class GradientHeader extends StatelessWidget {
   const GradientHeader({
     required this.title,
+    this.subtitle,
     this.stats = const [],
     this.leading,
     this.trailing,
@@ -23,6 +24,12 @@ class GradientHeader extends StatelessWidget {
   });
 
   final String title;
+
+  /// Zweite Zeile unter dem Titel, kleiner und gedaempft.
+  ///
+  /// Fuer das, was den Titel einordnet, ohne ihn zu verdraengen --
+  /// etwa das Datum unter der gefahrenen Strecke.
+  final String? subtitle;
 
   /// Hoechstens zwei -- mehr wird auf einem Telefon zu schmal, um die
   /// Zahlen noch gross zu setzen.
@@ -89,15 +96,33 @@ class GradientHeader extends StatelessWidget {
                         : leading,
                   ),
                   Expanded(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        if (subtitle != null)
+                          Text(
+                            subtitle!,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              // Gedaempftes Weiss statt einer Themenfarbe:
+                              // der Kopf traegt seinen eigenen Verlauf, die
+                              // Farben des Themas gelten dort nicht.
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   SizedBox(width: _slot, child: trailing),
