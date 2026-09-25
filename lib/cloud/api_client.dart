@@ -15,7 +15,18 @@ class ApiClient {
         dio = dio ?? Dio() {
     this.dio.options
       ..baseUrl = '$kApiBaseUrl/api'
-      ..headers['Accept'] = 'application/json';
+      ..headers['Accept'] = 'application/json'
+      // Ohne Zeitlimit wartet dio unbegrenzt: nimmt der Server die
+      // Verbindung an und antwortet nicht, kehrt der Aufruf nie zurueck.
+      // Das hat die Aufzeichnung zum Stillstand gebracht -- das Fahrtende
+      // hing an einer Abfrage der Garage (siehe TripRecorder).
+      //
+      // Grosszuegig bemessen: im Auto ist das Netz oft schlecht, und ein
+      // Abbruch nach drei Sekunden verwuerfe einen Upload, der sonst
+      // durchgegangen waere. Es geht um die Obergrenze, nicht um Tempo.
+      ..connectTimeout = const Duration(seconds: 15)
+      ..receiveTimeout = const Duration(seconds: 30)
+      ..sendTimeout = const Duration(seconds: 30);
     this.dio.interceptors.add(
           InterceptorsWrapper(
             onRequest: (options, handler) async {

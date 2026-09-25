@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:speedster/data/database.dart' show AppDatabase;
@@ -158,6 +159,92 @@ void main() {
     expect((await repo.keptTrips()).single.endTime, isNotNull);
     await rec.stop();
     await db.close();
+  });
+
+  group('Das Fahrtende haengt an nichts', () {
+    List<Sample> drive() => [
+          s(10, 0), s(10, 6), // Fahrtbeginn
+          s(20, 10),
+          s(0, 20), s(0, 85), // Fahrtende
+        ];
+
+    test('eine haengende Garage-Abfrage haelt die Fahrt nicht auf', () async {
+      // Der Fehler, der die Aufzeichnung zum Stillstand gebracht hat: die
+      // Fahrzeug-Kennung stand als Argument in finalizeTrip, Argumente
+      // werden vor dem Aufruf ausgewertet -- also wurde die Fahrt nie
+      // geschrieben. Und weil _process im await for abgewartet wird,
+      // verarbeitete der Rekorder danach keine Messung mehr.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+      final nieFertig = Completer<int?>();
+      addTearDown(() => nieFertig.complete(null));
+
+      final rec = TripRecorder(
+        source: FakeSampleSource(drive()),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        defaultVehicleId: () => nieFertig.future,
+      );
+
+      await rec.start().timeout(const Duration(seconds: 20));
+
+      final fertig = await repo.keptTrips();
+      expect(fertig, hasLength(1), reason: 'die Fahrt muss geschrieben sein');
+      // Die Messungen liegen alle auf demselben Punkt, die Strecke ist
+      // also 0. Die Dauer kommt aus den Zeitstempeln und belegt, dass die
+      // Kennzahlen gerechnet und geschrieben wurden.
+      expect(fertig.single.durationSeconds, greaterThan(0));
+      expect(fertig.single.endTime, isNotNull);
+      // Nur die Zuordnung zum Auto fehlt -- nachtragen laesst sie sich im
+      // Web.
+      expect(fertig.single.cloudVehicleId, isNull);
+      expect(await repo.openTrips(), isEmpty);
+
+      await rec.stop();
+      await db.close();
+    });
+
+    test('mit Antwort haengt das Fahrzeug an der Fahrt', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+
+      final rec = TripRecorder(
+        source: FakeSampleSource(drive()),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+        defaultVehicleId: () async => 7,
+      );
+
+      await rec.start();
+
+      expect((await repo.keptTrips()).single.cloudVehicleId, 7);
+
+      await rec.stop();
+      await db.close();
+    });
+
+    test('ein Fehler im Positionsstrom beendet nicht die Aufzeichnung',
+        () async {
+      // Der Strom reicht Fehler der Plattform durch. Frueher flog einer
+      // davon aus start() heraus; wieder angelaufen ist die Aufzeichnung
+      // erst nach einem Neustart der App.
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final repo = DriftTripRepository(db);
+
+      final rec = TripRecorder(
+        source: _FailingSource(drive()),
+        detector: TripDetector(const DetectorConfig()),
+        repo: repo,
+      );
+
+      await expectLater(rec.start(), completes);
+
+      // Die Fahrt kam vor dem Fehler noch zustande.
+      expect(await repo.keptTrips(), hasLength(1));
+
+      await rec.stop();
+      await db.close();
+    });
   });
 
   group('Orte von Start und Ziel', () {
@@ -538,4 +625,20 @@ void main() {
     await rec.start();
     expect(rec.isRunning, isFalse);
   });
+}
+
+/// Liefert Messungen und danach einen Fehler -- so wie geolocator ihn
+/// ueber seinen Strom durchreicht.
+class _FailingSource extends SampleSource {
+  _FailingSource(this._samples);
+
+  final List<Sample> _samples;
+
+  @override
+  Stream<Sample> samples() async* {
+    for (final sample in _samples) {
+      yield sample;
+    }
+    throw Exception('Ortung ausgefallen');
+  }
 }

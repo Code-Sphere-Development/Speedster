@@ -170,6 +170,15 @@ class TripRecorder {
         if (_stopped) break;
         await _process(s);
       }
+    } on Object {
+      // Der Positionsstrom reicht Fehler der Plattform durch (siehe
+      // GeolocatorSampleSource). Ohne dieses catch flog ein einziger
+      // davon aus start() heraus und riss die Aufzeichnung mit; wieder
+      // angelaufen ist sie erst nach einem Neustart der App.
+      //
+      // Verschluckt wird nichts: _running faellt gleich darauf, und der
+      // naechste Wechsel nach vorn ruft start() erneut auf. Eine offene
+      // Fahrt rechnet TripRepair beim naechsten Start nach.
     } finally {
       // Auch bei einem Fehler im Strom: sonst gaelte die Aufzeichnung als
       // laufend, waehrend niemand mehr liest -- und ein erneuter Aufruf
@@ -233,15 +242,25 @@ class TripRecorder {
       // Vor dem Leeren des Puffers festhalten: der erste Punkt ist der
       // Ort, an dem die Fahrt begann.
       final start = _buffer.first;
+      // Ohne jeden Netzaufruf: hier stand `cloudVehicleId: await
+      // defaultVehicleId?.call()`, und weil Argumente vor dem Aufruf
+      // ausgewertet werden, hing das Schreiben der Fahrt an einer Abfrage
+      // der Garage. Antwortete die nicht, wurde die Fahrt nie
+      // geschrieben -- und weil _process im await for abgewartet wird,
+      // stand danach die ganze Aufzeichnung.
       await repo.finalizeTrip(
         endedTripId,
         stats,
         s.timestamp,
-        cloudVehicleId: await defaultVehicleId?.call(),
         // Der Puffer haelt die ganze Fahrt -- die Strecke laesst sich hier
         // ohne eine weitere Abfrage eindampfen.
         routePreview: RoutePreview.encode(_buffer),
       );
+      // Erst jetzt, und mit Obergrenze: die Fahrt steht bereits
+      // vollstaendig in der Datenbank, ein Fehlschlag kostet nur die
+      // Zuordnung zum Auto. Vor dem Melden, damit der unmittelbar
+      // folgende Upload sie mitnimmt.
+      await _attachVehicle(endedTripId);
       _tripId = null;
       _buffer.clear();
       _savedCount = 0;
@@ -266,6 +285,32 @@ class TripRecorder {
     }
     await _pushActivity(s, start: false);
     _emit(isDriving: true, activeTripId: _tripId, last: s);
+  }
+
+  /// Wie lange das Fahrtende hoechstens auf die Garage wartet.
+  ///
+  /// Die Garage steht in der Cloud. Ohne Grenze wartete das Fahrtende,
+  /// bis das Betriebssystem die Verbindung aufgibt -- und bis dahin
+  /// verarbeitet der Rekorder keine einzige Messung mehr.
+  static const _vehicleTimeout = Duration(seconds: 5);
+
+  /// Traegt das Fahrzeug nach, in dem die Fahrt zurueckgelegt wurde.
+  ///
+  /// Erst am Fahrtende abgefragt und nicht beim Anlegen: die Garage kann
+  /// sich waehrend der Fahrt aendern.
+  Future<void> _attachVehicle(int tripId) async {
+    final lookup = defaultVehicleId;
+    if (lookup == null) return;
+
+    try {
+      await repo.setCloudVehicle(
+        tripId,
+        await lookup().timeout(_vehicleTimeout),
+      );
+    } on Object {
+      // Kein Netz, keine Cloud, keine Antwort: die Fahrt bleibt ohne
+      // Fahrzeug. Nachtragen laesst sie sich im Web.
+    }
   }
 
   /// Traegt die Ortsnamen von Start und Ziel nach.

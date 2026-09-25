@@ -48,6 +48,13 @@ abstract class TripRepository {
   /// nicht aufhalten. Sie laeuft danach und traegt nach, was sie
   /// findet.
   Future<void> setPlaces(int tripId, {String? start, String? end});
+
+  /// Traegt das Fahrzeug nach.
+  ///
+  /// Eigene Methode und kein Teil von [finalizeTrip]: die Garage wird
+  /// in der Cloud gefuehrt, die Abfrage geht also ueber das Netz und
+  /// darf das Schreiben der fertigen Fahrt nicht aufhalten.
+  Future<void> setCloudVehicle(int tripId, int? vehicleId);
   Future<List<domain.TrackPoint>> pointsFor(int tripId);
   Future<void> deleteAll();
   Future<List<domain.Trip>> unsyncedTrips();
@@ -211,6 +218,16 @@ class DriftTripRepository implements TripRepository {
         endPlace: end == null ? const Value.absent() : Value(end),
       ),
     );
+  }
+
+  @override
+  Future<void> setCloudVehicle(int tripId, int? vehicleId) async {
+    // Kein Schreiben ohne Ergebnis: eine fehlgeschlagene Abfrage darf ein
+    // bereits gesetztes Fahrzeug nicht auf null zuruecksetzen.
+    if (vehicleId == null) return;
+
+    await (db.update(db.trips)..where((t) => t.id.equals(tripId)))
+        .write(TripsCompanion(cloudVehicleId: Value(vehicleId)));
   }
 
   @override
