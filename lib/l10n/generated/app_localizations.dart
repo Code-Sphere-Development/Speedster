@@ -146,11 +146,11 @@ abstract class AppLocalizations {
   /// **'Bestenliste'**
   String get statsLeaderboard;
 
-  /// No description provided for @statsRecords.
+  /// No description provided for @statsHighestValues.
   ///
   /// In de, this message translates to:
-  /// **'Rekorde'**
-  String get statsRecords;
+  /// **'Höchstwerte'**
+  String get statsHighestValues;
 
   /// No description provided for @statsSpanDetail.
   ///
@@ -193,12 +193,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Höchstes Tempo'**
   String get statsFastest;
-
-  /// No description provided for @statsQuickestSprint.
-  ///
-  /// In de, this message translates to:
-  /// **'Beste 0–100'**
-  String get statsQuickestSprint;
 
   /// No description provided for @statsBusiestDay.
   ///

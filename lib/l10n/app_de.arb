@@ -8,7 +8,7 @@
   "tabStats": "Statistik",
   "statsMine": "Meine Zahlen",
   "statsLeaderboard": "Bestenliste",
-  "statsRecords": "Rekorde",
+  "statsHighestValues": "Höchstwerte",
   "statsSpanDetail": "{count, plural, =0{Keine Fahrt} =1{Eine Fahrt} other{{count} Fahrten}} · {duration}",
   "@statsSpanDetail": {
     "placeholders": {
@@ -22,7 +22,6 @@
   "statsAllTime": "Insgesamt",
   "statsLongest": "Längste Fahrt",
   "statsFastest": "Höchstes Tempo",
-  "statsQuickestSprint": "Beste 0–100",
   "statsBusiestDay": "Meiste Kilometer an einem Tag",
   "statsTime": "Zeit am Steuer",
   "statsEmpty": "Sobald du gefahren bist, steht hier, wie viel und wann.",

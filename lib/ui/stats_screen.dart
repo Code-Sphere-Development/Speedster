@@ -101,9 +101,14 @@ class _MyNumbers extends ConsumerWidget {
                 _SpanRow(label: l.statsAllTime, span: stats.total, unit: unit),
               ],
             ),
+            // Frueher "Rekorde" mit Pokal. Eine Bestmarke laedt dazu ein,
+            // sie zu brechen -- bei Tempo auf oeffentlichen Strassen ist
+            // das genau der Anreiz, wegen dem Apple die App abgelehnt hat
+            // (Guideline 5). Die Zahlen selbst bleiben: es ist die eigene
+            // Historie, und das Tempo einer Fahrt wird weiter erfasst.
             CardSection(
-              title: l.statsRecords,
-              icon: Icons.emoji_events_outlined,
+              title: l.statsHighestValues,
+              icon: Icons.straighten_outlined,
               children: [
                 if (stats.longest case final r?)
                   _RecordRow(
@@ -115,12 +120,6 @@ class _MyNumbers extends ConsumerWidget {
                   _RecordRow(
                     label: l.statsFastest,
                     measure: SpeedFormat.speedParts(r.value, unit),
-                    trip: r.trip,
-                  ),
-                if (stats.quickestSprint case final r?)
-                  _RecordRow(
-                    label: l.statsQuickestSprint,
-                    measure: Formatters.secondsParts(r.value),
                     trip: r.trip,
                   ),
                 if (stats.busiestDay case final day?)

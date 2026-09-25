@@ -8,7 +8,7 @@
   "tabStats": "Stats",
   "statsMine": "My numbers",
   "statsLeaderboard": "Leaderboard",
-  "statsRecords": "Records",
+  "statsHighestValues": "Highest values",
   "statsSpanDetail": "{count, plural, =0{No drives} =1{One drive} other{{count} drives}} · {duration}",
   "@statsSpanDetail": {
     "placeholders": {
@@ -22,7 +22,6 @@
   "statsAllTime": "All time",
   "statsLongest": "Longest drive",
   "statsFastest": "Top speed",
-  "statsQuickestSprint": "Best 0–100",
   "statsBusiestDay": "Most kilometres in a day",
   "statsTime": "Time behind the wheel",
   "statsEmpty": "Once you have driven, this shows how much and when.",

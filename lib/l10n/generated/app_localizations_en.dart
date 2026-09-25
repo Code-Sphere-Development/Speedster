@@ -33,7 +33,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsLeaderboard => 'Leaderboard';
 
   @override
-  String get statsRecords => 'Records';
+  String get statsHighestValues => 'Highest values';
 
   @override
   String statsSpanDetail(int count, String duration) {
@@ -64,9 +64,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsFastest => 'Top speed';
-
-  @override
-  String get statsQuickestSprint => 'Best 0–100';
 
   @override
   String get statsBusiestDay => 'Most kilometres in a day';
