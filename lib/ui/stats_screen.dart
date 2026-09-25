@@ -119,7 +119,7 @@ class _MyNumbers extends ConsumerWidget {
                   ),
                 if (stats.quickestSprint case final r?)
                   _RecordRow(
-                    label: l.rankingMetricZeroToHundred,
+                    label: l.statsQuickestSprint,
                     measure: Formatters.secondsParts(r.value),
                     trip: r.trip,
                   ),

@@ -7,6 +7,7 @@ import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/components/empty_state.dart';
 import 'package:speedster/ui/components/metric_value.dart';
+import 'package:speedster/ui/formatters.dart';
 import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/settings/unit_system.dart';
 import 'package:speedster/ui/auth_screen.dart';
@@ -29,10 +30,11 @@ String periodLabel(AppLocalizations l, RankPeriod period) => switch (period) {
     };
 
 String metricLabel(AppLocalizations l, RankMetric metric) => switch (metric) {
-      RankMetric.maxSpeed => l.rankingMetricMaxSpeed,
       RankMetric.totalDistance => l.rankingMetricDistance,
+      RankMetric.totalDuration => l.rankingMetricDuration,
       RankMetric.tripCount => l.rankingMetricTrips,
-      RankMetric.bestZeroToHundred => l.rankingMetricZeroToHundred,
+      RankMetric.longestTrip => l.rankingMetricLongestTrip,
+      RankMetric.longestDuration => l.rankingMetricLongestDuration,
     };
 
 String formatValue(RankMetric metric, double value, UnitSystem unit) {
@@ -47,14 +49,14 @@ String formatValue(RankMetric metric, double value, UnitSystem unit) {
 /// Rangliste, in der jede Zeile dasselbe Wort traegt, viermal umsonst.
 Measure valueParts(RankMetric metric, double value, UnitSystem unit) {
   switch (metric) {
-    case RankMetric.maxSpeed:
-      return SpeedFormat.speedParts(value, unit);
     case RankMetric.totalDistance:
+    case RankMetric.longestTrip:
       return SpeedFormat.distanceParts(value, unit);
+    case RankMetric.totalDuration:
+    case RankMetric.longestDuration:
+      return Formatters.hoursParts(value);
     case RankMetric.tripCount:
       return (value: '${value.toInt()}', unit: '');
-    case RankMetric.bestZeroToHundred:
-      return (value: value.toStringAsFixed(1), unit: 's');
   }
 }
 
@@ -68,7 +70,7 @@ class RankingScreen extends ConsumerStatefulWidget {
 class _RankingScreenState extends ConsumerState<RankingScreen> {
   RankScope _scope = RankScope.world;
   RankPeriod _period = RankPeriod.all;
-  RankMetric _metric = RankMetric.maxSpeed;
+  RankMetric _metric = RankMetric.totalDistance;
 
   @override
   Widget build(BuildContext context) {
@@ -171,12 +173,6 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             ],
           ),
         ),
-        // Nur bei den beiden Tempo-Wertungen: bei Distanz und Fahrtenzahl
-        // gibt es nichts zu relativieren, und ein Hinweis, der ueberall
-        // steht, wird zur Tapete, die niemand mehr liest.
-        if (_metric == RankMetric.maxSpeed ||
-            _metric == RankMetric.bestZeroToHundred)
-          _SpeedNotice(text: l.rankingSpeedNotice),
         Expanded(
           child: board.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -253,40 +249,6 @@ class _PeriodButton extends StatelessWidget {
   }
 }
 
-/// Die Mahnung zur StVO, als Zeile statt als Absatz.
-class _SpeedNotice extends StatelessWidget {
-  const _SpeedNotice({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurfaceVariant;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Insets.screen,
-        0,
-        Insets.screen,
-        Insets.s,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.info_outline, size: 16, color: muted),
-          const SizedBox(width: Insets.s),
-          Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodySmall?.copyWith(color: muted),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// Hinweis statt Fehler, wenn die Voraussetzung fuer das Ranking fehlt.
 class _CloudRequired extends StatelessWidget {

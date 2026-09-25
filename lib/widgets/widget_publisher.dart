@@ -92,14 +92,17 @@ class WidgetPublisher {
     if (repository == null) return const {};
 
     try {
-      final board = await repository.fetch(RankScope.world, RankMetric.maxSpeed);
+      // Nach Kilometern, nicht nach Tempo: das Widget trug denselben
+      // Wettbewerb wie die Bestenliste auf den Startbildschirm.
+      final board =
+          await repository.fetch(RankScope.world, RankMetric.totalDistance);
       final me = board.me;
       if (me == null) return const {};
 
       return {
         WidgetKeys.rank: me.rank,
-        WidgetKeys.rankScope: 'Weltweit · Höchstgeschw.',
-        WidgetKeys.rankValue: '${(me.value * 3.6).round()} km/h',
+        WidgetKeys.rankScope: 'Weltweit · Kilometer',
+        WidgetKeys.rankValue: '${(me.value / 1000).round()} km',
       };
     } catch (_) {
       // Nicht angemeldet oder kein Netz: der bisherige Rang bleibt stehen.

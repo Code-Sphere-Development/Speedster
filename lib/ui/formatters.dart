@@ -30,6 +30,16 @@ class Formatters {
 
   static String meters(double m) => '${m.round()} m';
 
+  /// Sekunden als Stunden mit einer Nachkommastelle -- "312,7 h".
+  ///
+  /// Fuer Ranglisten, nicht fuer eine einzelne Fahrt: dort steht
+  /// "40m 10s" (siehe [duration]). Eine Rangliste wird ueberflogen, und
+  /// "312,7" vergleicht sich schneller als "312h 42m".
+  static Measure hoursParts(double seconds) =>
+      (value: _oneDecimal.format(seconds / 3600), unit: 'h');
+
+  static final _oneDecimal = NumberFormat('#,##0.0');
+
   /// Wie [seconds], aber mit getrennter Einheit.
   ///
   /// Ohne Wert bleibt der Gedankenstrich allein stehen -- "– s" laese

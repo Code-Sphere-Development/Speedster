@@ -29,11 +29,22 @@ enum RankPeriod {
   final String wire;
 }
 
+/// Wonach verglichen wird.
+///
+/// Bewusst keine Kennzahl, die Tempo belohnt. Eine Wertung nach
+/// Hoechstgeschwindigkeit und beste 0-100 stand hier bis zur Ablehnung
+/// durch Apple (Guideline 5, "encourages reckless activity") -- und das zu
+/// Recht: sie verglich Fremde danach, wie schnell sie auf oeffentlichen
+/// Strassen gefahren sind. Was bleibt, belohnt, **mehr** zu fahren.
+///
+/// Die Reihenfolge ist die der Umschalter: erst die drei Summen, dann die
+/// beiden Bestwerte einer einzelnen Fahrt.
 enum RankMetric {
-  maxSpeed('max_speed'),
   totalDistance('total_distance'),
+  totalDuration('total_duration'),
   tripCount('trip_count'),
-  bestZeroToHundred('best_zero_to_hundred');
+  longestTrip('longest_trip'),
+  longestDuration('longest_duration');
 
   const RankMetric(this.wire);
   final String wire;

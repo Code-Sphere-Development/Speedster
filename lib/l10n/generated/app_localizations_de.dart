@@ -66,6 +66,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statsFastest => 'Höchstes Tempo';
 
   @override
+  String get statsQuickestSprint => 'Beste 0–100';
+
+  @override
   String get statsBusiestDay => 'Meiste Kilometer an einem Tag';
 
   @override
@@ -262,6 +265,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rankingScopeVehicle => 'Fahrzeug';
 
   @override
+  String get rankingMetricDistance => 'Kilometer';
+
+  @override
+  String get rankingMetricDuration => 'Stunden';
+
+  @override
+  String get rankingMetricTrips => 'Fahrtanzahl';
+
+  @override
+  String get rankingMetricLongestTrip => 'Längste Fahrt';
+
+  @override
+  String get rankingMetricLongestDuration => 'Dauer';
+
+  @override
   String get rankingPeriodWeek => 'Woche';
 
   @override
@@ -273,22 +291,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get rankingNoVehicle =>
       'Für diese Wertung fehlt dein Standardfahrzeug. Lege es in der Garage an und wähle ein Modell — verglichen wird mit allen, die dasselbe Modell fahren.';
-
-  @override
-  String get rankingMetricMaxSpeed => 'Max Speed';
-
-  @override
-  String get rankingMetricDistance => 'Distanz';
-
-  @override
-  String get rankingMetricTrips => 'Fahrten';
-
-  @override
-  String get rankingMetricZeroToHundred => 'Beste 0–100';
-
-  @override
-  String get rankingSpeedNotice =>
-      'Es gilt immer die StVO. Diese Wertung ist kein Grund, eine Geschwindigkeitsbegrenzung zu überschreiten.';
 
   @override
   String get rankingYourRank => 'Dein Rang';

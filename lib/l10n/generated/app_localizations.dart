@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Höchstes Tempo'**
   String get statsFastest;
 
+  /// No description provided for @statsQuickestSprint.
+  ///
+  /// In de, this message translates to:
+  /// **'Beste 0–100'**
+  String get statsQuickestSprint;
+
   /// No description provided for @statsBusiestDay.
   ///
   /// In de, this message translates to:
@@ -512,6 +518,36 @@ abstract class AppLocalizations {
   /// **'Fahrzeug'**
   String get rankingScopeVehicle;
 
+  /// No description provided for @rankingMetricDistance.
+  ///
+  /// In de, this message translates to:
+  /// **'Kilometer'**
+  String get rankingMetricDistance;
+
+  /// No description provided for @rankingMetricDuration.
+  ///
+  /// In de, this message translates to:
+  /// **'Stunden'**
+  String get rankingMetricDuration;
+
+  /// No description provided for @rankingMetricTrips.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrtanzahl'**
+  String get rankingMetricTrips;
+
+  /// No description provided for @rankingMetricLongestTrip.
+  ///
+  /// In de, this message translates to:
+  /// **'Längste Fahrt'**
+  String get rankingMetricLongestTrip;
+
+  /// No description provided for @rankingMetricLongestDuration.
+  ///
+  /// In de, this message translates to:
+  /// **'Dauer'**
+  String get rankingMetricLongestDuration;
+
   /// No description provided for @rankingPeriodWeek.
   ///
   /// In de, this message translates to:
@@ -535,36 +571,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Für diese Wertung fehlt dein Standardfahrzeug. Lege es in der Garage an und wähle ein Modell — verglichen wird mit allen, die dasselbe Modell fahren.'**
   String get rankingNoVehicle;
-
-  /// No description provided for @rankingMetricMaxSpeed.
-  ///
-  /// In de, this message translates to:
-  /// **'Max Speed'**
-  String get rankingMetricMaxSpeed;
-
-  /// No description provided for @rankingMetricDistance.
-  ///
-  /// In de, this message translates to:
-  /// **'Distanz'**
-  String get rankingMetricDistance;
-
-  /// No description provided for @rankingMetricTrips.
-  ///
-  /// In de, this message translates to:
-  /// **'Fahrten'**
-  String get rankingMetricTrips;
-
-  /// No description provided for @rankingMetricZeroToHundred.
-  ///
-  /// In de, this message translates to:
-  /// **'Beste 0–100'**
-  String get rankingMetricZeroToHundred;
-
-  /// No description provided for @rankingSpeedNotice.
-  ///
-  /// In de, this message translates to:
-  /// **'Es gilt immer die StVO. Diese Wertung ist kein Grund, eine Geschwindigkeitsbegrenzung zu überschreiten.'**
-  String get rankingSpeedNotice;
 
   /// No description provided for @rankingYourRank.
   ///

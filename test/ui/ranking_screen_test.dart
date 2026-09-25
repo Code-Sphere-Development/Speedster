@@ -158,19 +158,22 @@ void main() {
     expect((box.decoration as BoxDecoration).color, scheme.primaryContainer);
   });
 
-  testWidgets('mahnt bei der Tempo-Wertung, nicht bei der Distanz',
-      (tester) async {
-    // Der Hinweis steht dort, wo die App selbst einen Anreiz setzt.
-    // Ueberall gezeigt wuerde er zur Tapete -- und entwertete damit auch
-    // den im Onboarding.
-    // Der Schalter gibt es nicht mehr -- der Token entscheidet, und den
-    // setzt jeder Test ueber cloudActiveProvider.
+  testWidgets('bietet keine Wertung nach Tempo an', (tester) async {
+    // Der Grund der Ablehnung durch Apple (Guideline 5): die Bestenliste
+    // verglich Fremde danach, wie schnell sie auf oeffentlichen Strassen
+    // gefahren sind. Der Hinweis auf die StVO stand daneben und half
+    // nicht -- er belegte nur, dass das Problem bekannt war.
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
     const board = RankingBoard(
       entries: [
-        RankingEntry(rank: 1, displayName: 'Fast', country: 'DE', value: 54.2),
+        RankingEntry(
+          rank: 1,
+          displayName: 'Vielfahrer',
+          country: 'DE',
+          value: 42300,
+        ),
       ],
       me: null,
     );
@@ -193,21 +196,64 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.textContaining('kein Grund'), findsOneWidget);
+    expect(
+      RankMetric.values.map((m) => m.wire),
+      ['total_distance', 'total_duration', 'trip_count', 'longest_trip',
+        'longest_duration'],
+    );
 
-    await tester.tap(find.text('Distanz'));
+    for (final weg in ['Max Speed', 'Beste 0–100', 'kein Grund']) {
+      expect(find.textContaining(weg), findsNothing, reason: weg);
+    }
+
+    // Die fuenf Umschalter stehen da.
+    for (final da in [
+      'Kilometer', 'Stunden', 'Fahrtanzahl', 'Längste Fahrt', 'Dauer',
+    ]) {
+      expect(find.text(da), findsOneWidget, reason: da);
+    }
+  });
+
+  testWidgets('zeigt Strecken in Kilometern und Zeiten in Stunden',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    // 42,3 km als Strecke, 7200 s als Dauer.
+    const board = RankingBoard(
+      entries: [
+        RankingEntry(rank: 1, displayName: 'A', country: 'DE', value: 42300),
+      ],
+      me: null,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudActiveProvider.overrideWith((ref) async => true),
+          rankingBoardProvider.overrideWith((ref, arg) async => board),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: RankingScreen()),
+        ),
+      ),
+    );
     await tester.pump();
     await tester.pump();
 
-    expect(find.textContaining('kein Grund'), findsNothing);
+    expect(find.text('42,3'), findsWidgets);
 
-    // Die 0-100-Wertung laedt zum Beschleunigen im oeffentlichen Raum
-    // ein und bekommt denselben Hinweis, nicht weniger.
-    await tester.tap(find.text('Beste 0–100'));
+    await tester.tap(find.text('Stunden'));
     await tester.pump();
     await tester.pump();
 
-    expect(find.textContaining('kein Grund'), findsOneWidget);
+    // 42300 Sekunden sind 11,75 Stunden.
+    expect(find.text('11,8'), findsWidgets);
+    expect(find.text('h'), findsWidgets);
   });
 
   testWidgets('fragt das gewaehlte Zeitfenster ab', (tester) async {

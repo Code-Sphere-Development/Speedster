@@ -26,7 +26,7 @@ void main() {
     );
 
     final board = await RankingRepository(dio)
-        .fetch(RankScope.world, RankMetric.maxSpeed);
+        .fetch(RankScope.world, RankMetric.totalDistance);
 
     expect(board.entries, hasLength(2));
     expect(board.entries.first.displayName, 'Fast');

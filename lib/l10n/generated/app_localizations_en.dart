@@ -66,6 +66,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsFastest => 'Top speed';
 
   @override
+  String get statsQuickestSprint => 'Best 0–100';
+
+  @override
   String get statsBusiestDay => 'Most kilometres in a day';
 
   @override
@@ -261,6 +264,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankingScopeVehicle => 'Vehicle';
 
   @override
+  String get rankingMetricDistance => 'Distance';
+
+  @override
+  String get rankingMetricDuration => 'Hours';
+
+  @override
+  String get rankingMetricTrips => 'Drives';
+
+  @override
+  String get rankingMetricLongestTrip => 'Longest drive';
+
+  @override
+  String get rankingMetricLongestDuration => 'Time';
+
+  @override
   String get rankingPeriodWeek => 'Week';
 
   @override
@@ -272,22 +290,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get rankingNoVehicle =>
       'This ranking needs your default vehicle. Add it in the garage and pick a model — you are compared with everyone driving the same model.';
-
-  @override
-  String get rankingMetricMaxSpeed => 'Top speed';
-
-  @override
-  String get rankingMetricDistance => 'Distance';
-
-  @override
-  String get rankingMetricTrips => 'Drives';
-
-  @override
-  String get rankingMetricZeroToHundred => 'Best 0–100';
-
-  @override
-  String get rankingSpeedNotice =>
-      'Road traffic law always applies. This ranking is no reason to exceed a speed limit.';
 
   @override
   String get rankingYourRank => 'Your rank';
