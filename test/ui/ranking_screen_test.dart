@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/theme.dart';
 import 'package:speedster/cloud/ranking_repository.dart';
+import 'package:speedster/cloud/token_store.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/ui/ranking_screen.dart';
@@ -330,5 +331,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Garage'), findsOneWidget);
+  });
+
+  testWidgets('nach der Anmeldung steht die Bestenliste da', (tester) async {
+    // Der Grund der Ablehnung (Guideline 2.1(a), "remained logged out
+    // after we entered the demo credentials"): der Knopf schob den
+    // Anmeldebildschirm auf den Stapel und verwarf sein Ergebnis.
+    // cloudActiveProvider liest den Token genau einmal und haelt ihn --
+    // also stand hinterher dieselbe Seite mit demselben Knopf da.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final store = InMemoryTokenStore();
+
+    const board = RankingBoard(
+      entries: [
+        RankingEntry(rank: 1, displayName: 'Vielfahrer', country: 'DE',
+            value: 42300),
+      ],
+      me: null,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          tokenStoreProvider.overrideWithValue(store),
+          rankingBoardProvider.overrideWith((ref, arg) async => board),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: RankingScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Abgemeldet: der Hinweis mit dem Anmelden-Knopf.
+    expect(find.text('Anmelden'), findsOneWidget);
+    expect(find.text('Vielfahrer'), findsNothing);
+
+    // Die Anmeldung selbst steht hier nicht zur Pruefung -- geprueft wird,
+    // dass die Oberflaeche den neuen Stand danach ueberhaupt liest.
+    await store.write('token');
+    await tester.tap(find.text('Anmelden'));
+    await tester.pumpAndSettle();
+
+    // Der Anmeldebildschirm liegt jetzt oben; zurueck, als haette der
+    // Nutzer sich angemeldet.
+    final context = tester.element(find.byType(Scaffold).first);
+    Navigator.of(context, rootNavigator: true).pop(true);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Vielfahrer'), findsOneWidget);
+    expect(find.text('Anmelden'), findsNothing);
   });
 }

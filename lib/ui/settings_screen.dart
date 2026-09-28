@@ -9,7 +9,7 @@ import 'package:speedster/cloud/cloud_sync_service.dart';
 import 'package:speedster/l10n/generated/app_localizations.dart';
 import 'package:speedster/settings/settings_controller.dart';
 import 'package:speedster/settings/unit_system.dart';
-import 'package:speedster/ui/auth_screen.dart';
+import 'package:speedster/ui/cloud_sign_in.dart';
 import 'package:speedster/ui/backup_screen.dart';
 import 'package:speedster/ui/friends_screen.dart';
 import 'package:speedster/ui/location_access_prompt.dart';
@@ -161,12 +161,13 @@ class SettingsScreen extends ConsumerWidget {
     final token = await ref.read(tokenStoreProvider).read();
     if (token == null) {
       if (!context.mounted) return;
-      final loggedIn = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-      );
-      if (loggedIn != true) return; // user cancelled → stay disabled
+      // Gemeinsame Stelle mit der Bestenliste: dort fehlte das
+      // Ungueltigmachen, und die App blieb nach der Anmeldung auf
+      // "abgemeldet" stehen.
+      if (!await signInToCloud(context, ref)) return;
+    } else {
+      ref.invalidate(cloudActiveProvider);
     }
-    ref.invalidate(cloudActiveProvider);
     // Reihenfolge zaehlt: erst hochladen, dann den Vorrat aufbauen. Der
     // Cache-Lauf raeumt nur bestaetigt hochgeladene Fahrten weg -- lief er
     // zuerst, blieben die eben erst lokal aufgezeichneten Fahrten liegen

@@ -10,7 +10,7 @@ import 'package:speedster/ui/components/metric_value.dart';
 import 'package:speedster/ui/formatters.dart';
 import 'package:speedster/ui/components/card_section.dart';
 import 'package:speedster/settings/unit_system.dart';
-import 'package:speedster/ui/auth_screen.dart';
+import 'package:speedster/ui/cloud_sign_in.dart';
 
 /// Beschriftung einer Kennzahl.
 ///
@@ -251,22 +251,28 @@ class _PeriodButton extends StatelessWidget {
 
 
 /// Hinweis statt Fehler, wenn die Voraussetzung fuer das Ranking fehlt.
-class _CloudRequired extends StatelessWidget {
+/// Hinweis, dass fuer die Bestenliste ein Konto noetig ist.
+///
+/// Ein ConsumerWidget und kein StatelessWidget: nach der Anmeldung muss
+/// der Stand der Cloud neu gelesen werden. Vorher wurde das Ergebnis des
+/// Anmeldebildschirms verworfen -- cloudActiveProvider liest den Token
+/// genau einmal und haelt ihn fest, also stand hinterher dieselbe Seite
+/// mit demselben Knopf da, als haette die Anmeldung nichts bewirkt.
+/// Genau daran ist die App im Review gescheitert.
+class _CloudRequired extends ConsumerWidget {
   const _CloudRequired({required this.message, this.showLogin = false});
 
   final String message;
   final bool showLogin;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return EmptyState(
       icon: Icons.cloud_off,
       message: message,
       action: showLogin
           ? FilledButton(
-              onPressed: () => Navigator.of(context).push<bool>(
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-              ),
+              onPressed: () => signInToCloud(context, ref),
               child: Text(AppLocalizations.of(context).authSignIn),
             )
           : null,
