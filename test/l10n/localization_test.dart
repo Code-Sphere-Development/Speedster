@@ -104,7 +104,6 @@ void main() {
       final en = await load(tester, const Locale('en'));
 
       expect(en.commonError('boom'), contains('boom'));
-      expect(en.authSocialSoon('Apple'), contains('Apple'));
     });
 
     testWidgets('faellt bei einer fremden Sprache auf Deutsch zurueck',

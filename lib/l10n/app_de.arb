@@ -150,16 +150,6 @@
   "authUsernameFormat": "Benutzername: 3 bis 30 Zeichen, nur Kleinbuchstaben, Ziffern und Unterstrich (_).",
   "authHaveAccount": "Schon ein Konto? Anmelden",
   "authNoAccount": "Neu hier? Konto erstellen",
-  "authWithApple": "Mit Apple anmelden",
-  "authWithGoogle": "Mit Google anmelden",
-  "authSocialSoon": "{provider}-Login folgt in Kürze.",
-  "@authSocialSoon": {
-    "placeholders": {
-      "provider": {
-        "type": "String"
-      }
-    }
-  },
   "friendsTitle": "Freunde",
   "friendsLead": "Freunde sehen voneinander nur Kennzahlen — keine einzelnen Fahrten und keine Strecken.",
   "friendsUsernameLabel": "Benutzername",
@@ -220,8 +210,6 @@
   "settingsLocationWhileInUse": "Nur beim Verwenden — sobald iOS die App beendet, wird nichts mehr aufgezeichnet.",
   "settingsLocationDenied": "Nicht erlaubt — es wird nichts aufgezeichnet.",
   "settingsLocationFix": "Ändern",
-  "settingsDemoRide": "Tacho-Vorschau",
-  "settingsDemoRideSubtitle": "Zeigt die Live-Ansicht mit erfundenen Werten, ohne dass du fahren musst. Es wird nichts aufgezeichnet.",
   "settingsSectionRecording": "Aufzeichnung",
   "settingsSectionAccount": "Konto",
   "settingsSectionData": "Daten",

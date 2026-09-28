@@ -325,8 +325,18 @@ class _HomeShellState extends ConsumerState<HomeShell>
     // _maybeStartTracking den Wettlauf verlor, kam der Dialog nie -- und
     // ohne "Immer" startet iOS die App nicht neu. Genau so sind Fahrten
     // eines ganzen Tages verlorengegangen. current() fragt nicht nach.
+    // Einmal je Installation. Vorher lief das bei jedem Kaltstart: wer
+    // abgelehnt hatte, bekam die Erklaerung beim naechsten Start wieder --
+    // und weil iOS seinen Dialog nur ein einziges Mal zeigt, danach jedes
+    // Mal den Hinweis auf die Systemeinstellungen. Was danach bleibt,
+    // traegt der Streifen ueber der Fahrtenliste.
+    if (ref.read(settingsControllerProvider).alwaysAsked) return;
+
     final access = await ref.read(permissionGateProvider).current();
     if (access != LocationAccess.whileInUse || !mounted) return;
+
+    await ref.read(settingsControllerProvider.notifier).markAlwaysAsked();
+    if (!mounted) return;
 
     final l = AppLocalizations.of(context);
     // Genau ein Knopf, und der Dialog laesst sich nicht wegtippen: nach

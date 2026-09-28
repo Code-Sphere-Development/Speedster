@@ -73,14 +73,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
-  void _socialSoon(String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context).authSocialSoon(provider)),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -145,18 +137,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           TextButton(
             onPressed: _busy ? null : () => setState(() => _register = !_register),
             child: Text(_register ? l.authHaveAccount : l.authNoAccount),
-          ),
-          const Divider(height: Insets.xxl),
-          OutlinedButton.icon(
-            onPressed: () => _socialSoon('Apple'),
-            icon: const Icon(Icons.apple),
-            label: Text(l.authWithApple),
-          ),
-          const SizedBox(height: Insets.s),
-          OutlinedButton.icon(
-            onPressed: () => _socialSoon('Google'),
-            icon: const Icon(Icons.g_mobiledata),
-            label: Text(l.authWithGoogle),
           ),
         ],
       ),

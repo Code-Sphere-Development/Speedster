@@ -662,24 +662,6 @@ abstract class AppLocalizations {
   /// **'Neu hier? Konto erstellen'**
   String get authNoAccount;
 
-  /// No description provided for @authWithApple.
-  ///
-  /// In de, this message translates to:
-  /// **'Mit Apple anmelden'**
-  String get authWithApple;
-
-  /// No description provided for @authWithGoogle.
-  ///
-  /// In de, this message translates to:
-  /// **'Mit Google anmelden'**
-  String get authWithGoogle;
-
-  /// No description provided for @authSocialSoon.
-  ///
-  /// In de, this message translates to:
-  /// **'{provider}-Login folgt in Kürze.'**
-  String authSocialSoon(String provider);
-
   /// No description provided for @friendsTitle.
   ///
   /// In de, this message translates to:
@@ -1001,18 +983,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ändern'**
   String get settingsLocationFix;
-
-  /// No description provided for @settingsDemoRide.
-  ///
-  /// In de, this message translates to:
-  /// **'Tacho-Vorschau'**
-  String get settingsDemoRide;
-
-  /// No description provided for @settingsDemoRideSubtitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Zeigt die Live-Ansicht mit erfundenen Werten, ohne dass du fahren musst. Es wird nichts aufgezeichnet.'**
-  String get settingsDemoRideSubtitle;
 
   /// No description provided for @settingsSectionRecording.
   ///

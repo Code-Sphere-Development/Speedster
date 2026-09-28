@@ -18,8 +18,8 @@ class SettingsState {
     this.tourSeen = false,
     this.notifyOnTripStart = true,
     this.notifyOnTripEnd = true,
+    this.alwaysAsked = false,
     this.notifyMaintenance = true,
-    this.demoRide = false,
   });
 
   final UnitSystem unit;
@@ -49,6 +49,16 @@ class SettingsState {
   /// wer die eine stumm stellt, meint damit nicht die andere.
   final bool notifyOnTripEnd;
 
+  /// Ob schon einmal nach "Immer" gefragt wurde.
+  ///
+  /// Die Frage lief bisher bei jedem Kaltstart. Wer sie einmal
+  /// abgelehnt hat, bekam sie beim naechsten Start wieder -- und weil
+  /// iOS den Systemdialog nur einmal je Installation zeigt, danach
+  /// jedes Mal den Hinweis auf die Systemeinstellungen. Gefragt wird
+  /// jetzt einmal; den Rest traegt der Streifen ueber der
+  /// Fahrtenliste, der ohnehin bleibt, solange die Erlaubnis fehlt.
+  final bool alwaysAsked;
+
   /// Ob an faellige Wartungen erinnert wird.
   ///
   /// Getrennt vom Fahrtbeginn: das eine ist eine Gegenprobe waehrend der
@@ -61,7 +71,6 @@ class SettingsState {
   /// Damit sich der Tacho ansehen laesst, ohne dafuer loszufahren. Sie
   /// speist **nur die Anzeige**: es wird nichts aufgezeichnet, keine Fahrt
   /// angelegt und nichts hochgeladen.
-  final bool demoRide;
 
   SettingsState copyWith({
     UnitSystem? unit,
@@ -70,8 +79,8 @@ class SettingsState {
     bool? tourSeen,
     bool? notifyOnTripStart,
     bool? notifyOnTripEnd,
+    bool? alwaysAsked,
     bool? notifyMaintenance,
-    bool? demoRide,
   }) {
     return SettingsState(
       unit: unit ?? this.unit,
@@ -80,8 +89,8 @@ class SettingsState {
       tourSeen: tourSeen ?? this.tourSeen,
       notifyOnTripStart: notifyOnTripStart ?? this.notifyOnTripStart,
       notifyOnTripEnd: notifyOnTripEnd ?? this.notifyOnTripEnd,
+      alwaysAsked: alwaysAsked ?? this.alwaysAsked,
       notifyMaintenance: notifyMaintenance ?? this.notifyMaintenance,
-      demoRide: demoRide ?? this.demoRide,
     );
   }
 }
@@ -101,8 +110,8 @@ class SettingsController extends Notifier<SettingsState> {
   static const _kTour = 'tourSeen';
   static const _kNotifyStart = 'notifyOnTripStart';
   static const _kNotifyEnd = 'notifyOnTripEnd';
+  static const _kAlwaysAsked = 'alwaysAsked';
   static const _kNotifyMaintenance = 'notifyMaintenance';
-  static const _kDemoRide = 'demoRide';
 
   SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
 
@@ -116,8 +125,8 @@ class SettingsController extends Notifier<SettingsState> {
       tourSeen: p.getBool(_kTour) ?? false,
       notifyOnTripStart: p.getBool(_kNotifyStart) ?? true,
       notifyOnTripEnd: p.getBool(_kNotifyEnd) ?? true,
+      alwaysAsked: p.getBool(_kAlwaysAsked) ?? false,
       notifyMaintenance: p.getBool(_kNotifyMaintenance) ?? true,
-      demoRide: p.getBool(_kDemoRide) ?? false,
     );
   }
 
@@ -154,14 +163,14 @@ class SettingsController extends Notifier<SettingsState> {
     await _prefs.setBool(_kNotifyEnd, notify);
   }
 
+  Future<void> markAlwaysAsked() async {
+    state = state.copyWith(alwaysAsked: true);
+    await _prefs.setBool(_kAlwaysAsked, true);
+  }
+
   Future<void> setNotifyMaintenance(bool notify) async {
     state = state.copyWith(notifyMaintenance: notify);
     await _prefs.setBool(_kNotifyMaintenance, notify);
-  }
-
-  Future<void> setDemoRide(bool demo) async {
-    state = state.copyWith(demoRide: demo);
-    await _prefs.setBool(_kDemoRide, demo);
   }
 
 }

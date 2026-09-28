@@ -339,17 +339,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authNoAccount => 'New here? Create an account';
 
   @override
-  String get authWithApple => 'Sign in with Apple';
-
-  @override
-  String get authWithGoogle => 'Sign in with Google';
-
-  @override
-  String authSocialSoon(String provider) {
-    return '$provider sign-in is coming soon.';
-  }
-
-  @override
   String get friendsTitle => 'Friends';
 
   @override
@@ -525,13 +514,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLocationFix => 'Change';
-
-  @override
-  String get settingsDemoRide => 'Speedometer preview';
-
-  @override
-  String get settingsDemoRideSubtitle =>
-      'Shows the live view with made-up values, no driving required. Nothing is recorded.';
 
   @override
   String get settingsSectionRecording => 'Recording';

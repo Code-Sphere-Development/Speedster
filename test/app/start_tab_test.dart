@@ -78,6 +78,46 @@ class _NoCache implements TripCache {
 }
 
 void main() {
+  testWidgets('fragt nur einmal je Installation nach "Immer"', (tester) async {
+    // Die Frage lief bei jedem Kaltstart. Wer sie abgelehnt hatte, bekam
+    // sie beim naechsten Start wieder -- und weil iOS seinen Dialog nur
+    // einmal je Installation zeigt, danach jedes Mal den Hinweis auf die
+    // Systemeinstellungen.
+    SharedPreferences.setMockInitialValues({
+      'consentAccepted': true,
+      'tourSeen': true,
+      'alwaysAsked': true,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final gate = FakePermissionGate(access: LocationAccess.whileInUse);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          permissionGateProvider.overrideWithValue(gate),
+          tripNotifierProvider.overrideWithValue(RecordingTripNotifier()),
+          heatSourceProvider.overrideWithValue(_EmptySource()),
+          cloudActiveProvider.overrideWith((ref) async => false),
+          keptTripsProvider.overrideWith((ref) => []),
+          recorderStateProvider.overrideWith((ref) => const Stream.empty()),
+          tripCacheServiceProvider.overrideWithValue(_NoCache()),
+        ],
+        child: const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: HomeShell(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Trotz "Beim Verwenden" keine Erklaerung: es wurde schon gefragt.
+    expect(find.text('Weiter'), findsNothing);
+    expect(gate.alwaysRequests, 0);
+  });
+
   testWidgets('startet auf der Heatmap, wenn nicht gefahren wird',
       (tester) async {
     await tester.pumpWidget(wrap(await prefs(), Stream.value(const RecorderState())));

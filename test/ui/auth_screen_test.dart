@@ -28,7 +28,7 @@ class _RecordingAuthRepository extends AuthRepository {
 }
 
 void main() {
-  testWidgets('renders login form with email and social buttons', (tester) async {
+  testWidgets('renders login form', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(
         locale: Locale('de'),
@@ -38,8 +38,12 @@ void main() {
 
     expect(find.widgetWithText(TextField, 'E-Mail'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Passwort'), findsOneWidget);
-    expect(find.text('Mit Apple anmelden'), findsOneWidget);
-    expect(find.text('Mit Google anmelden'), findsOneWidget);
+    // Knoepfe fuer Apple und Google standen hier, taten aber nichts:
+    // kein Paket, das ein Token beschaffen koennte, keine Verdrahtung auf
+    // AuthRepository.loginSocial. Ein Knopf, der nur "folgt in Kuerze"
+    // meldet, sieht aus wie ein Fehler.
+    expect(find.textContaining('Apple'), findsNothing);
+    expect(find.textContaining('Google'), findsNothing);
   });
 
   testWidgets('toggles to register mode', (tester) async {
