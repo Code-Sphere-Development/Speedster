@@ -59,6 +59,7 @@ class TripRecorder {
     this.comparison = const SpeedComparison(),
     this.defaultVehicleId,
     this.flushEvery = 10,
+    this.awakeWindow = const Duration(minutes: 5),
   });
 
   final SampleSource source;
@@ -115,6 +116,24 @@ class TripRecorder {
 
   final int flushEvery;
 
+  /// Wie lange die Ortung nach dem Aufwachen laeuft, ohne dass eine Fahrt
+  /// beginnt.
+  ///
+  /// Ein Kreis um den Parkplatz loest auch aus, wenn man zu Fuss daran
+  /// vorbeigeht. Ohne diese Grenze liefe die Ortung danach weiter, und
+  /// der Weckweg haette den Dauerbetrieb nur verschoben.
+  final Duration awakeWindow;
+
+  /// Ob im Stand abgeschaltet werden darf.
+  ///
+  /// Nur mit "Immer": ohne die Erlaubnis wecken weder Region noch grobe
+  /// Ortsueberwachung, und die Aufzeichnung waere nach dem ersten
+  /// Einschlafen tot. Setzt [TrackingArmer].
+  bool _sleepAllowed = false;
+  bool _asleep = false;
+  Timer? _sleepTimer;
+  StreamSubscription<LocationWakeReason>? _wakeSub;
+
   final _stateController = StreamController<RecorderState>.broadcast();
   Stream<RecorderState> get state => _stateController.stream;
 
@@ -146,10 +165,68 @@ class TripRecorder {
 
   bool get isRunning => _running;
 
+  /// Erlaubt oder verbietet das Abschalten der Ortung im Stand.
+  ///
+  /// Faellt die Erlaubnis weg -- der Nutzer nimmt "Immer" zurueck --,
+  /// muss sofort geweckt werden: sonst bliebe die Aufzeichnung schlafen,
+  /// ohne dass sie je wieder jemand weckt.
+  void allowSleep(bool allowed) {
+    _sleepAllowed = allowed;
+    if (allowed) {
+      _scheduleSleep();
+    } else {
+      wake();
+    }
+  }
+
+  /// Schaltet die Ortung ein und laesst sie mindestens [awakeWindow]
+  /// laufen.
+  void wake() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+
+    if (_asleep) {
+      _asleep = false;
+      source.setActive(true);
+    }
+    _scheduleSleep();
+  }
+
+  /// Legt die Ortung schlafen, sofern das erlaubt ist und nicht gerade
+  /// gefahren wird.
+  void _sleep() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+
+    if (!_sleepAllowed || _asleep || _tripId != null) return;
+
+    _asleep = true;
+    source.setActive(false);
+  }
+
+  void _scheduleSleep() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+
+    // Waehrend der Fahrt wird nicht eingeschlafen -- das Fahrtende legt
+    // die Ortung selbst hin.
+    if (!_sleepAllowed || _tripId != null) return;
+
+    _sleepTimer = Timer(awakeWindow, _sleep);
+  }
+
   Future<void> start() async {
     if (_running) return;
     _running = true;
     _stopped = false;
+
+    // Der einzige Weg, ein Losfahren zu bemerken, solange die Ortung
+    // schlaeft. Fuer eine beendete App uebernimmt das der Start selbst
+    // (siehe LocationWake.launchedByLocation).
+    _wakeSub ??= locationWake?.wakes.listen(
+      (_) => wake(),
+      onError: (Object _) {},
+    );
     // Faellt der Plattformkanal aus, meldet er nichts, und der Detektor
     // bleibt bei `false` -- die Erkennung verhaelt sich dann wie vor
     // dieser Aenderung, statt haengen zu bleiben.
@@ -189,6 +266,10 @@ class TripRecorder {
 
   Future<void> stop() async {
     _stopped = true;
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    await _wakeSub?.cancel();
+    _wakeSub = null;
     await _carSubscription?.cancel();
     _carSubscription = null;
     await _stateController.close();
@@ -202,6 +283,9 @@ class TripRecorder {
     // Umschalten steht vor dem Anlegen der Fahrt, damit schon der zweite
     // Fix in voller Genauigkeit kommt.
     if (event == TripEvent.started) {
+      // Waehrend der Fahrt wird nicht eingeschlafen.
+      _sleepTimer?.cancel();
+      _sleepTimer = null;
       source.setPrecise(true);
       _tripId = await repo.createTrip(_placeholderTrip(s.timestamp));
       _startTime = s.timestamp;
@@ -271,6 +355,10 @@ class TripRecorder {
       // Ortsueberwachung braucht.
       await locationWake?.watchDeparture(lat: s.lat, lng: s.lng);
       _emit(isDriving: false, last: s, endedTripId: endedTripId);
+      // Der Kreis steht, also darf die Ortung sofort aus -- nicht erst
+      // nach dem Wachfenster. Hier wird am meisten gespart: nach einer
+      // Fahrt steht das Auto in der Regel stundenlang.
+      _sleep();
       // Erst nach dem Melden: die Aufloesung geht ueber das Netz. Die
       // Fahrt steht zu diesem Zeitpunkt vollstaendig in der Datenbank,
       // ein Fehlschlag kostet nur den Namen.

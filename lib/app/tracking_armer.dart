@@ -49,6 +49,13 @@ class TrackingArmer {
     // sonst laege bei jedem Wechsel nach vorn ein weiterer Leser auf
     // demselben Strom, und jede Position zaehlte doppelt.
     final recorder = _ref.read(recorderProvider);
+    // Im Stand abschalten darf die Aufzeichnung nur, wenn es einen Weg
+    // zurueck gibt -- und den gibt es nur mit "Immer".
+    recorder.allowSleep(access.survivesTermination);
+    // Jeder Wechsel nach vorn weckt: der Nutzer hat die App in der Hand,
+    // gleich faehrt er vielleicht los, und die Live-Ansicht soll etwas
+    // zeigen.
+    recorder.wake();
     if (!recorder.isRunning) {
       // Fire-and-forget: der Strom ist langlebig.
       unawaited(recorder.start());

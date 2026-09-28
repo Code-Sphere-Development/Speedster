@@ -1,5 +1,15 @@
 import 'package:flutter/services.dart';
 
+/// Warum die App aufwachen soll.
+enum LocationWakeReason {
+  /// Der Kreis um den Parkplatz wurde verlassen -- es geht los.
+  departure,
+
+  /// Eine grobe Ortsaenderung. Weniger genau, faengt aber ab, wenn
+  /// woanders losgefahren wird.
+  coarse,
+}
+
 /// Laesst iOS die App wieder starten, wenn der Nutzer losfaehrt.
 ///
 /// Die Gegenmassnahme gegen den Fall, dass iOS die App beendet und
@@ -16,6 +26,14 @@ import 'package:flutter/services.dart';
 /// Beides setzt **"Immer"** voraus (siehe LocationAccess). Auf Android
 /// und ueberall sonst tut die Gegenseite nichts.
 abstract class LocationWake {
+  /// Meldet, dass es sich lohnt, die feine Ortung einzuschalten.
+  ///
+  /// Fuer die App, die **noch laeuft**: eine beendete startet iOS von
+  /// selbst, und das merkt [launchedByLocation]. Laeuft sie aber noch und
+  /// hat die Ortung im Stand abgeschaltet, ist dieser Strom der einzige
+  /// Weg, das Losfahren ueberhaupt zu bemerken.
+  Stream<LocationWakeReason> get wakes;
+
   Future<void> startCoarse();
 
   Future<void> stopCoarse();
@@ -34,6 +52,21 @@ class PlatformLocationWake implements LocationWake {
 
   static const _channel =
       MethodChannel('de.codesphere.speedster/location_wake');
+
+  static const _events =
+      EventChannel('de.codesphere.speedster/location_wake_events');
+
+  @override
+  Stream<LocationWakeReason> get wakes => _events
+      .receiveBroadcastStream()
+      // Eine Plattform ohne diesen Kanal -- etwa Android -- darf die
+      // Aufzeichnung nicht abbrechen.
+      .handleError((Object _) {})
+      .map(
+        (event) => event == 'departure'
+            ? LocationWakeReason.departure
+            : LocationWakeReason.coarse,
+      );
 
   @override
   Future<void> startCoarse() => _invoke('startCoarse');
@@ -74,9 +107,13 @@ class PlatformLocationWake implements LocationWake {
 
 /// Fuer Tests: merkt sich, was verlangt wurde.
 class RecordingLocationWake implements LocationWake {
-  RecordingLocationWake({this.launched = false});
+  RecordingLocationWake({this.launched = false, Stream<LocationWakeReason>? wakes})
+      : wakes = wakes ?? const Stream.empty();
 
   final bool launched;
+
+  @override
+  final Stream<LocationWakeReason> wakes;
 
   int coarseStarts = 0;
   int coarseStops = 0;

@@ -92,7 +92,7 @@ void _platformSettings() {
       }
     });
 
-    test('behaelt die Hintergrund-Optionen in beiden Staerken', () {
+    test('behaelt die Hintergrund-Lieferung in beiden Staerken', () {
       // Ohne sie stellt iOS die Lieferung beim Sperren des Displays ein --
       // unabhaengig davon, wie fein geortet wird.
       for (final precise in [true, false]) {
@@ -102,8 +102,23 @@ void _platformSettings() {
         ) as AppleSettings;
 
         expect(settings.allowBackgroundLocationUpdates, isTrue);
-        expect(settings.pauseLocationUpdatesAutomatically, isFalse);
       }
+    });
+
+    test('nur waehrend der Fahrt darf iOS nicht pausieren', () {
+      // Waehrend der Fahrt wuerde eine laengere Ampel reichen, und iOS
+      // nimmt nicht zuverlaessig von selbst wieder auf. Im Stand ist die
+      // Pause dagegen erwuenscht: dort wird die Ortung ohnehin
+      // abgeschaltet, und wo das nicht geht -- ohne "Immer" --, ist iOS'
+      // eigene Schonung besser als keine.
+      AppleSettings ios({required bool precise}) =>
+          GeolocatorSampleSource.settingsFor(
+            SamplePlatform.ios,
+            precise: precise,
+          ) as AppleSettings;
+
+      expect(ios(precise: true).pauseLocationUpdatesAutomatically, isFalse);
+      expect(ios(precise: false).pauseLocationUpdatesAutomatically, isTrue);
     });
 
   });

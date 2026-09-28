@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'dart:math' as math;
 
 import 'package:geolocator/geolocator.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 import 'package:speedster/domain/sample.dart';
 
 /// Emits a stream of normalized [Sample]s from device sensors.
@@ -21,6 +19,18 @@ abstract class SampleSource {
   /// Vorbelegt als leere Umsetzung: die meisten Quellen -- Testdoubles,
   /// Wiedergaben -- haben keine Ortung, die sich drosseln liesse.
   void setPrecise(bool precise) {}
+
+  /// Schaltet die Ortung ganz ab bzw. wieder an.
+  ///
+  /// Der Unterschied zu [setPrecise] ist der entscheidende: sparsam
+  /// geortet wird immer noch mit rund zehn Metern, und das ist GPS. Der
+  /// Empfaenger lief damit rund um die Uhr, auch auf dem Sofa -- und die
+  /// Ortungsanzeige stand dauerhaft in der Statusleiste.
+  ///
+  /// Abgeschaltet werden darf nur, wenn es einen Weg zurueck gibt: Region
+  /// und grobe Ortsueberwachung wecken die App wieder, und beide setzen
+  /// "Immer" voraus (siehe LocationWake).
+  void setActive(bool active) {}
 }
 
 /// Replays a fixed list of samples. Used in tests and widget previews.
@@ -37,15 +47,18 @@ class FakeSampleSource extends SampleSource {
 /// Einstellungen ohne echtes Geraet pruefbar sind.
 enum SamplePlatform { ios, android, other }
 
-/// Real source: merges GPS position (geolocator) with the latest
-/// accelerometer magnitude (sensors_plus).
+/// Der echte Positionsstrom.
+///
+/// Fuehrte bis hierher zusaetzlich den Beschleunigungssensor mit und
+/// schrieb dessen Betrag in jede Messung. Gelesen hat den niemand -- das
+/// Feld wurde im ganzen Projekt an keiner Stelle ausgewertet. Ein Sensor,
+/// der durchgehend lief, fuer nichts.
 class GeolocatorSampleSource extends SampleSource {
   GeolocatorSampleSource();
 
-  double? _lastAccelMagnitude;
-  StreamSubscription<UserAccelerometerEvent>? _accelSub;
   StreamSubscription<Position>? _positionSub;
   bool _precise = false;
+  bool _active = true;
 
   /// Nach aussen ein durchgehender Strom, obwohl die Quelle darunter beim
   /// Umschalten neu aufgesetzt wird -- geolocator kennt keine Aenderung
@@ -54,10 +67,6 @@ class GeolocatorSampleSource extends SampleSource {
 
   @override
   Stream<Sample> samples() {
-    _accelSub ??= userAccelerometerEventStream().listen((e) {
-      _lastAccelMagnitude = math.sqrt(e.x * e.x + e.y * e.y + e.z * e.z);
-    });
-
     _subscribe();
 
     return _out.stream;
@@ -71,8 +80,22 @@ class GeolocatorSampleSource extends SampleSource {
     _subscribe();
   }
 
+  @override
+  void setActive(bool active) {
+    if (active == _active) return;
+
+    _active = active;
+    _subscribe();
+  }
+
   void _subscribe() {
     _positionSub?.cancel();
+    _positionSub = null;
+
+    // Abgeschaltet heisst abgeschaltet: kein Abonnement, kein Empfaenger,
+    // keine Anzeige in der Statusleiste.
+    if (!_active) return;
+
     _positionSub = Geolocator.getPositionStream(
       locationSettings: settingsFor(currentPlatform(), precise: _precise),
     ).listen(
@@ -84,7 +107,6 @@ class GeolocatorSampleSource extends SampleSource {
           altitude: p.altitude,
           accuracy: p.accuracy,
           timestamp: p.timestamp,
-          accelMagnitude: _lastAccelMagnitude,
         ),
       ),
       onError: _out.addError,
@@ -93,7 +115,6 @@ class GeolocatorSampleSource extends SampleSource {
 
   Future<void> dispose() async {
     await _positionSub?.cancel();
-    await _accelSub?.cancel();
     await _out.close();
   }
 
@@ -148,9 +169,12 @@ class GeolocatorSampleSource extends SampleSource {
           // Blaue Statusleiste: der Nutzer soll sehen, dass aufgezeichnet
           // wird, solange die App im Hintergrund liegt.
           showBackgroundLocationIndicator: true,
-          // iOS pausiert sonst bei laengerem Stillstand und nimmt nicht
-          // zuverlaessig von selbst wieder auf -- eine Ampel wuerde reichen.
-          pauseLocationUpdatesAutomatically: false,
+          // Nur waehrend der Fahrt: iOS pausiert sonst an einer laengeren
+          // Ampel und nimmt nicht zuverlaessig von selbst wieder auf. Im
+          // Stand ist die Pause dagegen genau das, was wir wollen -- dort
+          // wird die Ortung ohnehin abgeschaltet (siehe setActive), und
+          // wo das nicht geht, ist iOS' eigene Schonung besser als keine.
+          pauseLocationUpdatesAutomatically: !precise,
         );
       case SamplePlatform.android:
         return AndroidSettings(

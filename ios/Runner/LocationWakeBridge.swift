@@ -24,6 +24,15 @@ import UIKit
 final class LocationWakeBridge: NSObject {
   static let channelName = "de.codesphere.speedster/location_wake"
 
+  /// Meldet Aufwachgruende an Flutter.
+  ///
+  /// Gebraucht fuer die App, die **noch laeuft**: fuer eine beendete
+  /// genuegt es, dass iOS sie startet, den Rest macht `launchedByLocation`.
+  /// Laeuft sie aber noch und hat die feine Ortung im Stand abgeschaltet,
+  /// bemerkt sie das Losfahren sonst ueberhaupt nicht -- hier wurden die
+  /// Ereignisse frueher verworfen, und die Ortung lief deshalb durch.
+  static let eventChannelName = "de.codesphere.speedster/location_wake_events"
+
   /// Der Kreis um den Parkplatz. Kleiner waere nicht besser: iOS wertet
   /// Regionen ueber Funkzellen und WLAN aus, nicht ueber GPS -- unter rund
   /// hundert Metern haeufen sich Fehlausloesungen.
@@ -35,6 +44,7 @@ final class LocationWakeBridge: NSObject {
 
   private let manager = CLLocationManager()
   private var launchedByLocation = false
+  private var sink: FlutterEventSink?
 
   override init() {
     super.init()
@@ -59,6 +69,9 @@ final class LocationWakeBridge: NSObject {
   }
 
   func register(messenger: FlutterBinaryMessenger) {
+    FlutterEventChannel(name: Self.eventChannelName, binaryMessenger: messenger)
+      .setStreamHandler(self)
+
     FlutterMethodChannel(name: Self.channelName, binaryMessenger: messenger)
       .setMethodCallHandler { [weak self] call, result in
         guard let self else {
@@ -129,16 +142,38 @@ final class LocationWakeBridge: NSObject {
   }
 }
 
+extension LocationWakeBridge: FlutterStreamHandler {
+  func onListen(
+    withArguments arguments: Any?,
+    eventSink events: @escaping FlutterEventSink
+  ) -> FlutterError? {
+    sink = events
+    return nil
+  }
+
+  func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    sink = nil
+    return nil
+  }
+}
+
 extension LocationWakeBridge: CLLocationManagerDelegate {
-  /// Bewusst leer: der Empfang allein haelt die App wach. Aufgezeichnet
-  /// wird ueber die feine Ortung, die Flutter aufsetzt -- zwei Quellen
-  /// nebeneinander ergaeben doppelte Punkte.
+  /// Eine grobe Ortsaenderung. Hier wird **nicht** aufgezeichnet -- die
+  /// Punkte kommen aus der feinen Ortung, die Flutter aufsetzt; zwei
+  /// Quellen nebeneinander ergaeben doppelte Punkte. Gemeldet wird nur,
+  /// dass es sich lohnt, sie einzuschalten.
   func locationManager(
     _ manager: CLLocationManager,
     didUpdateLocations locations: [CLLocation]
-  ) {}
+  ) {
+    sink?("coarse")
+  }
 
-  func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {}
+  /// Der Parkplatz wurde verlassen: es geht los.
+  func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+    guard region.identifier == Self.departureIdentifier else { return }
+    sink?("departure")
+  }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
 
