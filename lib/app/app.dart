@@ -329,25 +329,31 @@ class _HomeShellState extends ConsumerState<HomeShell>
     if (access != LocationAccess.whileInUse || !mounted) return;
 
     final l = AppLocalizations.of(context);
-    final wants = await showDialog<bool>(
+    // Genau ein Knopf, und der Dialog laesst sich nicht wegtippen: nach
+    // der Erklaerung folgt immer die Systemabfrage.
+    //
+    // Vorher stand hier ein "Spaeter" daneben, mit dem man die Erklaerung
+    // schliessen konnte, ohne dass die Systemabfrage je kam. Genau das
+    // hat Apple beanstandet (Guideline 5.1.1(iv)): eine eigene Nachricht
+    // vor der Abfrage darf diese nicht ersetzen oder aufschieben. Nein
+    // sagen kann der Nutzer weiterhin -- im Systemdialog, wo die
+    // Entscheidung hingehoert.
+    await showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: Text(l.locationAlwaysTitle),
         content: Text(l.locationAlwaysBody),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.commonLater),
-          ),
           FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
+            onPressed: () => Navigator.of(ctx).pop(),
             child: Text(l.locationAlwaysAction),
           ),
         ],
       ),
     );
 
-    if (wants != true || !mounted) return;
+    if (!mounted) return;
 
     // Ueber die gemeinsame Stelle, weil iOS den Dialog hoechstens einmal
     // je Installation zeigt: bleibt es danach bei "Beim Verwenden",
