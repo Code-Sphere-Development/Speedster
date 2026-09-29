@@ -63,9 +63,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsLongest => 'Longest drive';
 
   @override
-  String get statsFastest => 'Top speed';
-
-  @override
   String get statsBusiestDay => 'Most kilometres in a day';
 
   @override

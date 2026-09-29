@@ -89,8 +89,7 @@ void main() {
 
     expect(store.values[WidgetKeys.tripCount], 2);
     expect(store.values[WidgetKeys.totalDistance], 20000);
-    expect(store.values[WidgetKeys.maxSpeed], 40);
-    expect(store.values[WidgetKeys.bestZeroToHundred], 7.5);
+    expect(store.values[WidgetKeys.totalDuration], isNotNull);
     // keptTrips liefert absteigend -- die letzte gefahrene steht vorn.
     expect(store.values[WidgetKeys.lastTripDistance], 15000);
     expect(store.values[WidgetKeys.lastTripAt],
@@ -106,12 +105,22 @@ void main() {
     expect(store.values.containsKey(WidgetKeys.lastTripAt), isFalse);
   });
 
-  test('laesst die beste 0-100 weg, wenn sie nie erreicht wurde', () async {
-    await repo.createTrip(trip(start: DateTime(2026)));
+  test('traegt kein Tempo und keine 0-100 auf den Startbildschirm',
+      () async {
+    // Der Grund der zweiten Ablehnung (Guideline 5): "your app still
+    // includes widgets for top speed and best 0-100 for drives on public
+    // roads". Eine Bestmarke auf dem Startbildschirm laedt dazu ein, sie
+    // zu brechen.
+    await repo.createTrip(
+      trip(start: DateTime(2026), maxSpeed: 60, zeroToHundred: 5.0),
+    );
 
     await publisher().publish();
 
-    expect(store.values[WidgetKeys.bestZeroToHundred], isNull);
+    for (final key in ['max_speed', 'best_zero_to_hundred',
+      'last_trip_max_speed']) {
+      expect(store.values.containsKey(key), isFalse, reason: key);
+    }
   });
 
   test('legt das Heatmap-Bild als Base64 ab', () async {

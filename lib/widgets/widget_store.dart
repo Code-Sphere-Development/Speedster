@@ -10,14 +10,21 @@ import 'package:flutter/services.dart';
 class WidgetKeys {
   const WidgetKeys._();
 
+  // Kein Tempo und keine 0-100 mehr. Die Widgets trugen "Max" und
+  // "0-100" auf den Startbildschirm, und Apple hat die App genau dafuer
+  // abgelehnt (Guideline 5): "your app still includes widgets for top
+  // speed and best 0-100 for drives on public roads". Eine Bestmarke auf
+  // dem Startbildschirm laedt dazu ein, sie zu brechen.
+  //
+  // An ihre Stelle tritt die Dauer -- dieselbe Kennzahl, nach der auch
+  // die Bestenliste wertet.
   static const tripCount = 'trip_count';
   static const totalDistance = 'total_distance';
-  static const maxSpeed = 'max_speed';
-  static const bestZeroToHundred = 'best_zero_to_hundred';
+  static const totalDuration = 'total_duration';
 
   static const lastTripAt = 'last_trip_at';
   static const lastTripDistance = 'last_trip_distance';
-  static const lastTripMaxSpeed = 'last_trip_max_speed';
+  static const lastTripDuration = 'last_trip_duration';
 
   static const rank = 'rank';
   static const rankScope = 'rank_scope';

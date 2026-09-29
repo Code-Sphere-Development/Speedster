@@ -24,8 +24,6 @@ class TripStatistics {
     required this.year,
     required this.total,
     required this.longest,
-    required this.fastest,
-    required this.quickestSprint,
     required this.busiestDay,
     required this.byWeekday,
     required this.byPurpose,
@@ -35,9 +33,14 @@ class TripStatistics {
   final TripSpan year;
   final TripSpan total;
 
+  /// Die laengste Fahrt nach Strecke.
+  ///
+  /// Hier standen daneben einmal das hoechste Tempo und die beste 0-100.
+  /// Beide sind weg, und zwar samt Berechnung: eine Bestmarke fuer Tempo
+  /// auf oeffentlichen Strassen laedt dazu ein, sie zu brechen -- der
+  /// Grund, aus dem Apple die App zweimal abgelehnt hat (Guideline 5).
+  /// Was eine einzelne Fahrt erreicht hat, steht weiterhin bei ihr.
   final TripRecord? longest;
-  final TripRecord? fastest;
-  final TripRecord? quickestSprint;
 
   /// Der Tag mit den meisten Kilometern, samt dieser Summe in Metern.
   final ({DateTime day, double distance})? busiestDay;
@@ -54,8 +57,6 @@ class TripStatistics {
     year: TripSpan.empty,
     total: TripSpan.empty,
     longest: null,
-    fastest: null,
-    quickestSprint: null,
     busiestDay: null,
     byWeekday: [0, 0, 0, 0, 0, 0, 0],
     byPurpose: {},
@@ -71,8 +72,6 @@ class TripStatistics {
     var total = TripSpan.empty;
 
     TripRecord? longest;
-    TripRecord? fastest;
-    TripRecord? quickestSprint;
 
     final byWeekday = List<double>.filled(7, 0);
     final byPurpose = <String?, double>{};
@@ -99,17 +98,6 @@ class TripStatistics {
       if (longest == null || trip.distance > longest.value) {
         longest = TripRecord(trip: trip, value: trip.distance);
       }
-      if (fastest == null || trip.maxSpeed > fastest.value) {
-        fastest = TripRecord(trip: trip, value: trip.maxSpeed);
-      }
-
-      // Beim Sprint gewinnt der *kleinste* Wert -- und nur Fahrten, die
-      // die Marke ueberhaupt erreicht haben, zaehlen mit.
-      final sprint = trip.zeroToHundredSeconds;
-      if (sprint != null &&
-          (quickestSprint == null || sprint < quickestSprint.value)) {
-        quickestSprint = TripRecord(trip: trip, value: sprint);
-      }
     }
 
     ({DateTime day, double distance})? busiest;
@@ -124,8 +112,6 @@ class TripStatistics {
       year: year,
       total: total,
       longest: longest,
-      fastest: fastest,
-      quickestSprint: quickestSprint,
       busiestDay: busiest,
       byWeekday: byWeekday,
       byPurpose: byPurpose,

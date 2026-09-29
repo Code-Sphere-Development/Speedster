@@ -51,25 +51,19 @@ class WidgetPublisher {
     // letzte gefahrene.
     final last = kept.first;
     var distance = 0.0;
-    var maxSpeed = 0.0;
-    double? bestZeroToHundred;
+    var seconds = 0;
     for (final t in kept) {
       distance += t.distance;
-      if (t.maxSpeed > maxSpeed) maxSpeed = t.maxSpeed;
-      final zero = t.zeroToHundredSeconds;
-      if (zero != null && (bestZeroToHundred == null || zero < bestZeroToHundred)) {
-        bestZeroToHundred = zero;
-      }
+      seconds += t.durationSeconds;
     }
 
     return {
       WidgetKeys.tripCount: kept.length,
       WidgetKeys.totalDistance: distance,
-      WidgetKeys.maxSpeed: maxSpeed,
-      WidgetKeys.bestZeroToHundred: bestZeroToHundred,
+      WidgetKeys.totalDuration: seconds,
       WidgetKeys.lastTripAt: last.startTime.toIso8601String(),
       WidgetKeys.lastTripDistance: last.distance,
-      WidgetKeys.lastTripMaxSpeed: last.maxSpeed,
+      WidgetKeys.lastTripDuration: last.durationSeconds,
     };
   }
 

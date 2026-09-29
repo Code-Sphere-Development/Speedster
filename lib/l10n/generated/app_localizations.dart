@@ -188,12 +188,6 @@ abstract class AppLocalizations {
   /// **'Längste Fahrt'**
   String get statsLongest;
 
-  /// No description provided for @statsFastest.
-  ///
-  /// In de, this message translates to:
-  /// **'Höchstes Tempo'**
-  String get statsFastest;
-
   /// No description provided for @statsBusiestDay.
   ///
   /// In de, this message translates to:

@@ -50,32 +50,31 @@ void main() {
     expect(stats.total.trips, 3);
   });
 
-  test('findet die laengste und die schnellste Fahrt', () {
+  test('findet die laengste Fahrt', () {
     final long = trip(start: DateTime(2026, 8, 1), distance: 90000);
-    final fast = trip(start: DateTime(2026, 8, 2), maxSpeed: 60);
+    final other = trip(start: DateTime(2026, 8, 2), distance: 10000);
 
-    final stats = TripStatistics.of([long, fast], now);
+    final stats = TripStatistics.of([long, other], now);
 
     expect(stats.longest?.value, 90000);
     expect(stats.longest?.trip.startTime, long.startTime);
-    expect(stats.fastest?.value, 60);
-    expect(stats.fastest?.trip.startTime, fast.startTime);
   });
 
-  test('beim Sprint gewinnt der kleinste Wert', () {
+  test('fuehrt keine Bestmarke fuer Tempo oder Beschleunigung', () {
+    // Der Grund, aus dem Apple die App zweimal abgelehnt hat
+    // (Guideline 5): erst die Bestenliste, dann die Widgets. Eine
+    // Bestmarke fuer Tempo auf oeffentlichen Strassen laedt dazu ein, sie
+    // zu brechen. Berechnet wird sie deshalb gar nicht mehr -- nicht nur
+    // nicht angezeigt.
     final stats = TripStatistics.of([
-      trip(start: DateTime(2026, 8, 1), sprint: 8.2),
-      trip(start: DateTime(2026, 8, 2), sprint: 6.4),
-      trip(start: DateTime(2026, 8, 3)),
+      trip(start: DateTime(2026, 8, 1), maxSpeed: 60, sprint: 6.4),
     ], now);
 
-    expect(stats.quickestSprint?.value, 6.4);
-  });
-
-  test('ohne erreichte Marke gibt es keinen Sprintrekord', () {
-    final stats = TripStatistics.of([trip(start: DateTime(2026, 8, 1))], now);
-
-    expect(stats.quickestSprint, isNull);
+    expect(
+      stats.toString(),
+      isNot(anyOf(contains('fastest'), contains('quickestSprint'))),
+    );
+    expect(stats.longest, isNotNull, reason: 'Strecke bleibt');
   });
 
   test('zaehlt Fahrten desselben Tages zusammen', () {

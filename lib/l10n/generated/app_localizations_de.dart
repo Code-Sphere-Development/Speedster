@@ -63,9 +63,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statsLongest => 'Längste Fahrt';
 
   @override
-  String get statsFastest => 'Höchstes Tempo';
-
-  @override
   String get statsBusiestDay => 'Meiste Kilometer an einem Tag';
 
   @override

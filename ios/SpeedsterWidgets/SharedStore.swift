@@ -10,12 +10,11 @@ import SwiftUI
 enum WidgetKeys {
   static let tripCount = "trip_count"
   static let totalDistance = "total_distance"
-  static let maxSpeed = "max_speed"
-  static let bestZeroToHundred = "best_zero_to_hundred"
+  static let totalDuration = "total_duration"
 
   static let lastTripAt = "last_trip_at"
   static let lastTripDistance = "last_trip_distance"
-  static let lastTripMaxSpeed = "last_trip_max_speed"
+  static let lastTripDuration = "last_trip_duration"
 
   static let rank = "rank"
   static let rankScope = "rank_scope"
@@ -75,14 +74,18 @@ enum WidgetFormat {
     String(format: "%.1f km", meters / 1000).replacingOccurrences(of: ".", with: ",")
   }
 
-  static func speed(_ metersPerSecond: Double) -> String {
-    "\(Int((metersPerSecond * 3.6).rounded())) km/h"
-  }
+  /// Sekunden als "1h 05m" bzw. "12m 03s" -- gespiegelt aus
+  /// Formatters.duration.
+  static func duration(_ seconds: Int?) -> String {
+    guard let seconds else { return "—" }
 
-  static func seconds(_ value: Double?) -> String {
-    guard let value else { return "—" }
+    let h = seconds / 3600
+    let m = (seconds % 3600) / 60
+    if h > 0 {
+      return String(format: "%dh %02dm", h, m)
+    }
 
-    return String(format: "%.1f s", value).replacingOccurrences(of: ".", with: ",")
+    return String(format: "%dm %02ds", m, seconds % 60)
   }
 
   static func date(_ iso: String?) -> String {

@@ -81,7 +81,7 @@ struct LastTripWidget: Widget {
       LastTripView(store: entry.store).widgetPadding()
     }
     .configurationDisplayName("Letzte Fahrt")
-    .description("Datum, Distanz und Höchstgeschwindigkeit deiner letzten Fahrt.")
+    .description("Datum, Distanz und Dauer deiner letzten Fahrt.")
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }
@@ -97,8 +97,8 @@ private struct LastTripView: View {
           .foregroundStyle(.secondary)
         Metric(label: "Distanz", value: WidgetFormat.distance(distance))
         Metric(
-          label: "Höchstgeschwindigkeit",
-          value: WidgetFormat.speed(store.double(WidgetKeys.lastTripMaxSpeed) ?? 0)
+          label: "Dauer",
+          value: WidgetFormat.duration(store.int(WidgetKeys.lastTripDuration))
         )
         Spacer(minLength: 0)
       }
@@ -117,7 +117,7 @@ struct TotalsWidget: Widget {
       TotalsView(store: entry.store).widgetPadding()
     }
     .configurationDisplayName("Gesamtzahlen")
-    .description("Fahrten, Distanz, Höchstgeschwindigkeit und beste 0–100.")
+    .description("Fahrten, Distanz und Dauer.")
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }
@@ -136,17 +136,13 @@ private struct TotalsView: View {
             value: WidgetFormat.distance(store.double(WidgetKeys.totalDistance) ?? 0)
           )
         }
-        HStack(alignment: .top) {
-          Metric(
-            label: "Max",
-            value: WidgetFormat.speed(store.double(WidgetKeys.maxSpeed) ?? 0)
-          )
-          Spacer()
-          Metric(
-            label: "0–100",
-            value: WidgetFormat.seconds(store.double(WidgetKeys.bestZeroToHundred))
-          )
-        }
+        // Frueher "Max" und "0–100". Eine Bestmarke auf dem
+        // Startbildschirm laedt dazu ein, sie zu brechen -- Apple hat die
+        // App genau dafuer abgelehnt (Guideline 5).
+        Metric(
+          label: "Dauer",
+          value: WidgetFormat.duration(store.int(WidgetKeys.totalDuration))
+        )
         Spacer(minLength: 0)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
