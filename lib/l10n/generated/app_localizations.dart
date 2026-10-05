@@ -1662,18 +1662,6 @@ abstract class AppLocalizations {
   /// **'Im App Store'**
   String get settingsFeedbackSubtitle;
 
-  /// No description provided for @settingsTip.
-  ///
-  /// In de, this message translates to:
-  /// **'Trinkgeld'**
-  String get settingsTip;
-
-  /// No description provided for @settingsTipSubtitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Die Entwicklung unterstützen'**
-  String get settingsTipSubtitle;
-
   /// No description provided for @settingsImprint.
   ///
   /// In de, this message translates to:

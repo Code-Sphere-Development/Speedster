@@ -17,7 +17,13 @@ class AppLinks {
   static const String help =
       'https://github.com/Code-Sphere-Development/Speedster';
 
-  static const String tip = 'https://paypal.com/coho04';
+  // Hier stand ein Link zu einem Bezahldienst, "Die Entwicklung
+  // unterstuetzen".
+  // Apple hat die App dafuer abgelehnt (Guideline 3.1.1): Spenden
+  // gelten als Bezahlung fuer digitale Inhalte und muessen ueber
+  // In-App-Kauf laufen. Der Verweis auf den Browser ist nur auf dem
+  // US-Storefront erlaubt, und auch dort nur mit eigener
+  // Berechtigung.
 
   /// Basis der Speedster Cloud; der Einladungslink haengt den eigenen
   /// Benutzernamen an.

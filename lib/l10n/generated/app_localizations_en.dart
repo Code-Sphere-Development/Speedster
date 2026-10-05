@@ -926,12 +926,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsFeedbackSubtitle => 'In the App Store';
 
   @override
-  String get settingsTip => 'Tip jar';
-
-  @override
-  String get settingsTipSubtitle => 'Support the development';
-
-  @override
   String get settingsImprint => 'Legal notice';
 
   @override

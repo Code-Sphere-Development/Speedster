@@ -464,12 +464,6 @@ List<Widget> _helpRows(BuildContext context) {
       subtitle: Text(l.settingsContactSubtitle),
       onTap: () => _openLink(context, AppLinks.contact),
     ),
-    ListTile(
-      leading: const Icon(Icons.volunteer_activism_outlined),
-      title: Text(l.settingsTip),
-      subtitle: Text(l.settingsTipSubtitle),
-      onTap: () => _openLink(context, AppLinks.tip),
-    ),
   ];
 }
 

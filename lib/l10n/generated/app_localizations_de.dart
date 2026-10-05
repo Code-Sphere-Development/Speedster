@@ -934,12 +934,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsFeedbackSubtitle => 'Im App Store';
 
   @override
-  String get settingsTip => 'Trinkgeld';
-
-  @override
-  String get settingsTipSubtitle => 'Die Entwicklung unterstützen';
-
-  @override
   String get settingsImprint => 'Impressum';
 
   @override
