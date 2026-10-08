@@ -64,17 +64,20 @@ const targets = [
   /// dem Geraet ist das hinnehmbar, auf einem Werbebild nicht.
   Target('build/screenshots', Size(430, 932), 2),
 
-  /// Fuer App Store Connect. Verlangt wird der 6,9-Zoll-Satz mit
-  /// 1320 x 2868 Punkten -- das sind 440 x 956 Punkt bei dreifacher
-  /// Aufloesung, also genau ein iPhone 16 Pro Max. Die App ist
-  /// iPhone-only (TARGETED_DEVICE_FAMILY = 1), ein iPad-Satz entfaellt.
+  /// Fuer App Store Connect, 6,9 Zoll: 1320 x 2868 Pixel, also 440 x 956
+  /// Punkt bei dreifacher Aufloesung -- ein iPhone 16 Pro Max.
   ///
-  /// Vor dem Hochladen muss der Alphakanal weg -- Flutter schreibt RGBA,
-  /// und App Store Connect weist Bilder damit zurueck, auch wenn sie
-  /// vollstaendig deckend sind:
+  /// Die App ist iPhone-only (TARGETED_DEVICE_FAMILY = 1), ein iPad-Satz
+  /// entfaellt.
+  Target('build/appstore/6.9', Size(440, 956), 3),
+
+  /// Fuer App Store Connect, 6,1 und 6,3 Zoll: 1206 x 2622 Pixel, also
+  /// 402 x 874 Punkt bei dreifacher Aufloesung -- ein iPhone 16 Pro.
   ///
-  ///     magick bild.png -background black -alpha remove -alpha off bild.png
-  Target('build/appstore', Size(440, 956), 3),
+  /// Beide Plaetze gibt es nebeneinander, und welchen App Store Connect
+  /// verlangt, haengt am Eintrag. Zwei Saetze zu erzeugen kostet drei
+  /// Sekunden; den falschen hochzuladen kostet eine Pruefrunde.
+  Target('build/appstore/6.3', Size(402, 874), 3),
 ];
 
 /// Die Bilder entstehen in jeder Sprache, die die Oberflaeche spricht.
@@ -275,7 +278,7 @@ final demoTrips = [
                   demoTrip(
                     id: 1,
                     day: 17,
-                    maxSpeed: 44.4,
+                    maxSpeed: 27.8, // 100 km/h
                     distance: 42300,
                     seconds: 2410,
                     purpose: 'commute',
@@ -286,7 +289,7 @@ final demoTrips = [
                   demoTrip(
                     id: 2,
                     day: 15,
-                    maxSpeed: 25.0,
+                    maxSpeed: 13.9, // 50 km/h
                     distance: 12800,
                     seconds: 1180,
                     // Start und Ziel derselbe Ort -- die Zeile zeigt ihn
@@ -297,7 +300,7 @@ final demoTrips = [
                   demoTrip(
                     id: 3,
                     day: 12,
-                    maxSpeed: 38.9,
+                    maxSpeed: 25.0, // 90 km/h
                     distance: 86200,
                     seconds: 4020,
                     purpose: 'private',
@@ -307,7 +310,7 @@ final demoTrips = [
                   demoTrip(
                     id: 4,
                     day: 9,
-                    maxSpeed: 16.7,
+                    maxSpeed: 13.9, // 50 km/h
                     distance: 5600,
                     seconds: 720,
                     from: 'Bonn',
@@ -316,7 +319,7 @@ final demoTrips = [
                   demoTrip(
                     id: 5,
                     day: 6,
-                    maxSpeed: 33.3,
+                    maxSpeed: 19.4, // 70 km/h
                     distance: 27400,
                     seconds: 1640,
                     from: 'Köln',
@@ -325,14 +328,14 @@ final demoTrips = [
                   demoTrip(
                     id: 6,
                     day: 4,
-                    maxSpeed: 22.2,
+                    maxSpeed: 22.2, // 80 km/h
                     distance: 9100,
                     seconds: 880,
                   ),
                   demoTrip(
                     id: 7,
                     day: 2,
-                    maxSpeed: 41.7,
+                    maxSpeed: 26.4, // 95 km/h
                     distance: 61500,
                     seconds: 3200,
                   ),
@@ -363,7 +366,12 @@ void main() {
                     last: Sample(
                       lat: 51.09,
                       lng: 6.89,
-                      speed: 35.6,
+                      // 48 km/h. Hier standen 128 -- und Apple hat die App
+                      // dafuer abgelehnt (Guideline 5): "your screenshots
+                      // continues to promote driving in high speed". Ein
+                      // Werbebild ist eine Aussage darueber, wofuer die App
+                      // gedacht ist.
+                      speed: 13.3,
                       altitude: 42,
                       accuracy: 3,
                       timestamp: DateTime(2026, 8, 17, 18, 4),
