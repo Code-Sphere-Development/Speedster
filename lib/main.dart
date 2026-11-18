@@ -38,6 +38,9 @@ Future<void> main() async {
           ? _sentryEnvironment
           : (kReleaseMode ? 'production' : 'debug');
       options.tracesSampleRate = 0.1;
+      // GlitchTip versteht klassische Transaktionen, kein Span-Streaming
+      // (Default ab sentry_flutter 10).
+      options.traceLifecycle = SentryTraceLifecycle.static;
       // Fahrten und Orte sind personenbezogen genug -- keine IP, kein
       // Nutzer, keine Header.
       options.sendDefaultPii = false;
