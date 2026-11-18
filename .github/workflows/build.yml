@@ -31,7 +31,11 @@ jobs:
         run: flutter test
 
       - name: Build APK
-        run: flutter build apk --release
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: flutter build apk --release --dart-define=SENTRY_DSN="$SENTRY_DSN"
 
       - name: Build iOS
-        run: flutter build ios --no-codesign
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: flutter build ios --no-codesign --dart-define=SENTRY_DSN="$SENTRY_DSN"
