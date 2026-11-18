@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:speedster/app/providers.dart';
 import 'package:speedster/app/tracking_armer.dart';
 import 'package:speedster/app/permissions.dart';
@@ -45,6 +46,9 @@ class SpeedsterApp extends ConsumerWidget {
       // Theme zurueck -- genau das war vorher der Fall.
       themeMode: ThemeMode.system,
       home: consented ? const HomeShell() : const ConsentScreen(),
+      // Navigation als Breadcrumbs fuer GlitchTip. Ohne SENTRY_DSN ist
+      // Sentry nicht initialisiert und der Observer tut nichts.
+      navigatorObservers: [SentryNavigatorObserver()],
       // Zahlen werden ueber intl formatiert, und das liest die Sprache
       // aus einer globalen Vorgabe. Sie hier zu setzen ist die einzige
       // Stelle, an der die aufgeloeste Sprache bekannt ist, ohne sie

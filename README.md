@@ -81,6 +81,21 @@ flutter analyze
 Der Testlauf erzwingt Deutsch (`test/flutter_test_config.dart`), sonst liefe er
 gegen die englische Fassung und deutsche Erwartungen schlügen fehl.
 
+### Fehler- und Log-Tracking
+
+Fehler, Logs und ein Zehntel der Traces gehen über `sentry_flutter` an die
+selbst gehostete GlitchTip-Instanz (Sentry-kompatibel). Die DSN steht nicht im
+Code, sondern kommt beim Build hinein:
+
+```bash
+flutter build ipa --release --dart-define=SENTRY_DSN=<DSN aus GlitchTip, Projekt speedster>
+```
+
+Ohne `SENTRY_DSN` wird Sentry gar nicht initialisiert — kein Tracking, die App
+startet wie zuvor. Die Umgebung ist `production` im Release-Build, sonst
+`debug`; `--dart-define=SENTRY_ENVIRONMENT=...` überschreibt sie. Die CI zieht
+die DSN aus dem Repository-Secret `SENTRY_DSN`.
+
 ### Sprachen
 
 Texte stehen in `lib/l10n/app_de.arb` und `app_en.arb`; die Klassen darunter
